@@ -1,0 +1,136 @@
+#Functions for creating Maps
+
+
+
+witchmap <- function(variable_report, file_report, t_report=20, scale_min=0, scale_max=0, mapcolor="Reds", map_name="map", map_legend="Legend", region_id="witch13", plot_witch_regions=FALSE){
+  #library(ggplot2)
+  library(rworldmap)
+  #library(data.table)
+  savemap <- function(plotname){ggsave(filename=paste(graphdir,as.character(gsub(" ", "_", plotname)),"_map.png", sep=""), plot = last_plot() + labs(title=""), width=14, height=6)}
+  # Get World data
+  Nations <- data.table(map_data("world"))
+  Nations <- Nations[region != "Antarctica"]
+  Nations <- Nations[region != "Greenland"]
+  Nations <- Nations[region == "USSR", region:="Russia" ]
+  Nations <- Nations[region == "Zaire", region:="Congo" ]
+  Nations <- Nations[region == "Czechoslovakia", region:="Germany" ]
+  Nations <- Nations[region == "Yugoslavia", region:="Serbia" ]
+  Nations <- Nations[region == "Sicily", region:="Italy" ]
+  Nations <- Nations[region == "Sardinia", region:="Italy" ]
+  # Find ISO3
+  countries = unique(Nations$region)
+  Nations[,ISO3 := rwmGetISO3(region),by=c("region")]
+  #unique(Nations[is.na(ISO3),region]) # List of non-match
+  
+  #now WITCH regions
+  mod.countries.filename = paste0(witch_folder, "data_", region_id, "/regions.inc")
+  # Read mod_countries
+  mod.countries = readLines(mod.countries.filename)
+  mod.countries = mod.countries[mod.countries!=""]                                  # Remove empty lines
+  mod.countries = mod.countries[!str_detect(mod.countries,"^\\*")]                  # Remove * comments
+  mod.countries = str_trim(str_split_fixed(mod.countries,"#",2)[,1])                # Remove # comments
+  set.begin = grep("map_n_iso3(n,iso3)*",tolower(mod.countries))[1]                 
+  set.end = set.begin + grep(";",mod.countries[set.begin:length(mod.countries)])[1]  
+  mod.countries = mod.countries[(set.begin+1):(set.end-2)]                          # Keep mapping data
+  mod.countries = str_split(mod.countries,"\\.")
+  mod.countries <- data.table(matrix(unlist(mod.countries), ncol=2, byrow=T))
+  setnames(mod.countries,c("n","ISO3"))
+  # create mod.countries to map regions
+  #add for displaying center
+  mod.countries$center <- (mod.countries$ISO3%in%c("USA","BRA","CAN","AUS","NER","SAU","FRA","POL","RUS","AFG","IND","CHN","IDN"))
+  data_for_map_n <- subset(variable_report, t==t_report&file==file_report)
+  data_for_map_n$t <- NULL
+  data_for_map_n$file <- NULL
+  data_for_map_n$pathdir <- NULL
+  witch_data_on_iso3 <- merge(mod.countries,data_for_map_n, by="n")
+  Nations = merge(Nations,witch_data_on_iso3,by=c("ISO3"))
+  
+  if(!plot_witch_regions){
+  if(scale_min==0){scale_min = min(data_for_map_n$value); scale_max = max(data_for_map_n$value)}
+  World.map <- ggplot(Nations, aes(x = long, y = lat))
+  Country.layer <- c(geom_polygon(data = Nations, aes(x = long, y = lat, group = group, fill=value)))
+  Borders.layer <- c(geom_path(data = Nations, aes(x = long, y = lat, group = group), color="darkgray", size=0.1))  
+  p <- World.map + Country.layer + Borders.layer +
+  theme_minimal() + labs(x = "", y =  "") +
+  theme(axis.line=element_blank(), axis.text.x=element_blank(),axis.text.y=element_blank(),axis.ticks=element_blank(),
+  axis.title.x=element_blank(),axis.title.y=element_blank(),panel.grid.major=element_blank(),plot.background=element_blank(),panel.grid.minor=element_blank()) +
+  theme(legend.position="right") + 
+  scale_fill_distiller(name=map_legend, palette = mapcolor, breaks = pretty_breaks(n = 8), limits=c(scale_min, scale_max)) + ggtitle("")
+  #scale_fill_continuous(name=map_legend, low = "green", high = "red" , na.value = "grey")
+  
+  #limit to Europe:   coord_cartesian(xlim = c(-10,33), ylim = c(36,73)) +
+  
+  print(p)
+  savemap(map_name)
+  }
+  
+  #Map of WITCH regional mapping:
+  if(plot_witch_regions){
+  World.map <- ggplot(Nations, aes(x = long, y = lat))
+  Country.layer <- c(geom_polygon(data = Nations, aes(x = long, y = lat, group = group, fill=n)))
+  Borders.layer <- c(geom_path(data = Nations, aes(x = long, y = lat, group = group), color="darkgray", size=0.1))  
+  p <- World.map + Country.layer + Borders.layer +
+  theme_minimal() + labs(x = "", y =  "") +
+  theme(axis.line=element_blank(), axis.text.x=element_blank(), axis.text.y=element_blank(),axis.ticks=element_blank(),
+  axis.title.x=element_blank(),axis.title.y=element_blank(), panel.grid.major=element_blank(),plot.background=element_blank(), panel.grid.minor=element_blank()) +
+  scale_colour_manual(values = region_palette)
+  print(p)
+  savemap(map_name)  
+  }
+}
+
+
+
+
+
+
+
+
+
+#function to creat a map based on ISO3 country data.
+#data_for_map should contain only an ISO3 columns and a columns labeled datacolname
+countrymap <- function(data_for_map, datacolname="value", scale_min=0, scale_max=0, mapcolor="Reds", map_name="map", map_legend="Legend", graphdir = "./"){
+  # Get World data
+  Nations <- data.table(map_data("world"))
+  Nations <- Nations[region != "Antarctica"]
+  Nations <- Nations[region != "Greenland"]
+  Nations <- Nations[region == "USSR", region:="Russia" ]
+  Nations <- Nations[region == "Zaire", region:="Congo" ]
+  Nations <- Nations[region == "Czechoslovakia", region:="Germany" ]
+  Nations <- Nations[region == "Yugoslavia", region:="Serbia" ]
+  Nations <- Nations[region == "Sicily", region:="Italy" ]
+  Nations <- Nations[region == "Sardinia", region:="Italy" ]
+  # Find ISO3
+  countries = unique(Nations$region)
+  Nations[,ISO3 := rwmGetISO3(region),by=c("region")]
+  unique(Nations[is.na(ISO3),region]) # List of non-match
+  Nations = merge(Nations,data_for_map,by=c("ISO3"))
+  World.map <- ggplot(Nations, aes(x = long, y = lat))
+  Country.layer <- c(geom_polygon(data = Nations, aes(x = long, y = lat, group = group, fill=data_for_map)))
+  
+  Borders.layer <- c(geom_path(data = Nations, aes(x = long, y = lat, group = group), color="darkgray", size=0.1))                                      
+  Map <- World.map + Country.layer + Borders.layer +
+    coord_cartesian(xlim = c(-20,40), ylim = c(35,73)) +
+    theme_minimal() + labs(x = "", y =  "") +
+    theme(axis.line=element_blank(), axis.text.x=element_blank(),
+          axis.text.y=element_blank(),axis.ticks=element_blank(),
+          axis.title.x=element_blank(),axis.title.y=element_blank(),
+          panel.grid.major=element_blank(),plot.background=element_blank(),
+          panel.grid.minor=element_blank(),
+          legend.position="bottom") +
+    guides(color=FALSE) +
+    scale_fill_manual(values = c("#8DD3C7", "#FFFFB3","#BEBADA","#FB8072","#80B1D3","#FDB462","#B3DE69","#FCCDE5","#377EB8","#BC80BD","#CCEBC5","#FFED6F","#D95F02"), name="WITCH Regions", guide=guide_legend(nrow=1,keywidth = 2, title.position="top",direction="horizontal",label.position = "bottom")) 
+  #limit to Europe:   coord_cartesian(xlim = c(-10,33), ylim = c(36,73)) +
+  World.map + Country.layer + Borders.layer +
+    #  theme_minimal() 
+    theme_nothing() 
+  + labs(x = "", y =  "") +
+    theme(axis.line=element_blank(), axis.text.x=element_blank(),
+          axis.text.y=element_blank(),axis.ticks=element_blank(),
+          axis.title.x=element_blank(),axis.title.y=element_blank(),
+          panel.grid.major=element_blank(),plot.background=element_blank(),
+          panel.grid.minor=element_blank()) +
+    theme(legend.position="right") + scale_fill_continuous(name=map_legend, low = "green", high = "red" , na.value = "grey") + ggtitle("")
+  savemap(map_name)
+}
+

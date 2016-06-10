@@ -31,10 +31,18 @@ source('functions/witch_load_and_plot.R')
 filelist = gsub(".gdx","",list.files(path=pathdir[1], full.names = FALSE, pattern=removepattern, recursive = FALSE))
 filelist = filelist[str_detect(filelist, restrict_files)]
 if(!exists("scenlist")){scenlist <- gsub(removepattern,"",filelist)}
-print("GDX Files used:")
+if(!exists("scenplot_global_order")){scenplot_global_order = seq(1:length(scenlist))}
+print("GDX Files:")
 print(filelist)
 print("Scenario names:")
 print(scenlist)
+print("Scenarios actually used:")
+print(scenlist[scenplot_global_order])
+
+#now only consider the ones used
+filelist <- filelist[scenplot_global_order]
+scenlist <- scenlist[scenplot_global_order]
+
 #readkey()
 
 

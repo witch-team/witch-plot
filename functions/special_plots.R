@@ -30,11 +30,11 @@ Intensity_Plot <- function(year=2050, region="WORLD", year0=2010){
   Intensity_t$EI_change <- (((Intensity_t$EI/Intensity_2010$EI)**(1/(5*(year-year0))))-1)*100
   
   if(region[1]=="global"){
-    ggplot() + geom_point(data=Intensity_t, mapping=aes(x=CI_change, y=EI_change, shape=file), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change, ", year0,"-",year)) + ylab(paste0("Energy Intensity Change", year0,"-",year)) + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal") + ylim(-1, +1) + xlim(-1, +1)
+    ggplot() + geom_point(data=Intensity_t, mapping=aes(x=CI_change, y=EI_change, shape=file), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change, ", year0,"-",year)) + ylab(paste0("Energy Intensity Change, ", year0,"-",year)) + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal") + ylim(-1, +1) + xlim(-1, +1)
   }else{
-    ggplot() + geom_point(data=Intensity_t, mapping=aes(x=CI_change, y=EI_change, colour=n, shape=file), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change, ", year0,"-",year)) + ylab(paste0("Energy Intensity Change", year0,"-",year)) + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal") + ylim(-2, 0) + xlim(-0.5, +0.2)
+    ggplot() + geom_point(data=Intensity_t, mapping=aes(x=CI_change, y=EI_change, colour=n, shape=file), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change, ", year0,"-",year)) + ylab(paste0("Energy Intensity Change, ", year0,"-",year)) + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal") + ylim(-2, 0) + xlim(-0.5, +0.2)
   }
-  saveplot("CI EI Intensity Improvement")
+  saveplot("CI_EI_Improvement")
 }
 
 
@@ -59,4 +59,34 @@ saveplot("Sectoral CO2 Emissions LU")
 }
 
 
+Investment_Plot <- function(regions=witch_regions){
+  get_witch_simple("I_EN")
+  get_witch_simple("I_RD")
+  #I_RD <- subset(I_RD, rd=="en"); I_RD$rd <- NULL;
+  I_EN <- aggregate(value~n+t+file+pathdir, data=I_EN, sum)
+  #I_EN$type = "Energy Supply"
+  #I_RD$type = "Energy Efficiency"
+  Investment_Energy <- rbind(I_EN, I_RD)
+
+  #I_RD plot
+  I_RD$rd  <- mapvalues(I_RD$rd , from=unique(I_RD$rd), to=c("Energy Efficiency", "Advanced Biofuels", "Batteries"))
+  I_RD <- subset(I_RD, rd!="Batteries")
+  ggplot(subset(I_RD, ttoyear(t)<=yearmax & n %in% regions)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value*1e3, linetype=rd, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions_plotgrid)) + ylab("Billion USD") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + guides(linetype=guide_legend(title=NULL)) 
+  saveplot("Investment in RnD")
+  
+  #Investment in Energy Supply
+  ggplot(subset(I_EN, ttoyear(t)<=yearmax & n %in% regions)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value*1e3, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions_plotgrid)) + ylab("Billion USD") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + guides(linetype=guide_legend(title=NULL)) 
+  saveplot("Investment in Energy Supply")
+  
+  
+  #combined plots (maybe not needed!!)
+  #Stacked Regions Plot
+  #Investment_Energy_global <- aggregate(value~t+type+file+pathdir, data=Investment_Energy, sum)
+  #ggplot(subset(Investment_Energy_global, ttoyear(t)<=yearmax),aes(ttoyear(t),value*1e3,color=type)) + geom_line(stat="identity") + facet_grid(. ~ file, scales = "free") + ylab("Billion USD") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + scale_fill_manual(values = region_palette)
+  #saveplot("Investment Global")
+  
+  #ggplot(subset(Investment_Energy, ttoyear(t)<=yearmax & n %in% regions & type=="Energy Supply")) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value*1e3, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions_plotgrid)) + ylab("Billion USD") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom")
+  #saveplot("Investment in Regions")
+  
+}
 

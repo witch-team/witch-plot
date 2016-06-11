@@ -34,7 +34,7 @@ Intensity_Plot <- function(year=2050, region="WORLD", year0=2010){
   }else{
     ggplot() + geom_point(data=Intensity_t, mapping=aes(x=CI_change, y=EI_change, colour=n, shape=file), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change, ", year0,"-",year)) + ylab(paste0("Energy Intensity Change, ", year0,"-",year)) + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal") + ylim(-2, 0) + xlim(-0.5, +0.2)
   }
-  saveplot("CI_EI_Improvement")
+  saveplot("CI_EI_Improvement", plotdata=Intensity_t)
 }
 
 
@@ -51,11 +51,11 @@ Q_EMI_LU$sector="LU"
 Q_EMI_SECTORS = rbind(Q_EMI_FFI, Q_EMI_LU)
 #Stacked Regions Plot
 ggplot(subset(Q_EMI_SECTORS),aes(ttoyear(t),value, fill=n)) + geom_area(stat="identity") + facet_grid(sector ~ file, scales = "free") + ylab("GtCO2") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + scale_fill_manual(values = region_palette)
-saveplot("Sectoral CO2 Emissions RegionsStacked")
+saveplot("Sectoral CO2 Emissions RegionsStacked", plotdata=subset(Q_EMI_SECTORS))
 ggplot(subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="FFI")) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions_plotgrid)) + ylab("GtCO2") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom")
-saveplot("Sectoral CO2 Emissions FFI")
+saveplot("Sectoral CO2 Emissions FFI", plotdata=subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="FFI"))
 ggplot(subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="LU")) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions_plotgrid)) + ylab("GtCO2") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom")
-saveplot("Sectoral CO2 Emissions LU")
+saveplot("Sectoral CO2 Emissions LU", plotdata=subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="LU"))
 }
 
 
@@ -66,17 +66,17 @@ Investment_Plot <- function(regions=witch_regions){
   I_EN <- aggregate(value~n+t+file+pathdir, data=I_EN, sum)
   #I_EN$type = "Energy Supply"
   #I_RD$type = "Energy Efficiency"
-  Investment_Energy <- rbind(I_EN, I_RD)
+  #Investment_Energy <- rbind(I_EN, I_RD)
 
   #I_RD plot
   I_RD$rd  <- mapvalues(I_RD$rd , from=unique(I_RD$rd), to=c("Energy Efficiency", "Advanced Biofuels", "Batteries"))
   I_RD <- subset(I_RD, rd!="Batteries")
   ggplot(subset(I_RD, ttoyear(t)<=yearmax & n %in% regions)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value*1e3, linetype=rd, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions_plotgrid)) + ylab("Billion USD") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + guides(linetype=guide_legend(title=NULL)) 
-  saveplot("Investment in RnD")
+  saveplot("Investment in RnD", plotdata=subset(I_RD, ttoyear(t)<=yearmax & n %in% regions))
   
   #Investment in Energy Supply
   ggplot(subset(I_EN, ttoyear(t)<=yearmax & n %in% regions)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value*1e3, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions_plotgrid)) + ylab("Billion USD") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + guides(linetype=guide_legend(title=NULL)) 
-  saveplot("Investment in Energy Supply")
+  saveplot("Investment in Energy Supply", plotdata=subset(I_EN, ttoyear(t)<=yearmax & n %in% regions))
   
   
   #combined plots (maybe not needed!!)

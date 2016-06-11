@@ -105,7 +105,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       if(length(pathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}
       if(length(pathdir)==1){p <- p + guides(linetype=FALSE)}
       if(line2005){p <- p + geom_vline(size=0.5,aes(xintercept=2005), linetype="solid", color="grey")}
-      if(plot){saveplot(variable_name_save)}
+      if(plot){saveplot(variable_name_save, plotdata=subset(allfilesdata))}
     } 
     if (aggregation == "global_mean")
     {
@@ -120,7 +120,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       if(length(pathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}   
       if(length(pathdir)==1){p <- p + guides(linetype=FALSE)}
       if(line2005){p <- p + geom_vline(size=0.5,aes(xintercept=2005), linetype="solid", color="grey")}
-      if(plot){saveplot(variable_name_save)}
+      if(plot){saveplot(variable_name_save, plotdata=subset(allfilesdata))}
     } 
     if (aggregation == "regional") 
     {
@@ -132,7 +132,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
       if(length(pathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}   
       if(line2005){p <- p + geom_vline(size=0.5,aes(xintercept=2005), linetype="solid", color="grey")}
-      if(plot){saveplot(variable_name_save)}
+      if(plot){saveplot(variable_name_save, plotdata=subset(allfilesdata, n %in% regions))}
     }
     if (aggregation == "all") 
     {
@@ -170,7 +170,8 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
         }
       }
       if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ file)}
-      legend_position_old = legend_position; assign("legend_position", "bottom", envir = .GlobalEnv);  if(plot){saveplot(variable_name_save)}; assign("legend_position", legend_position_old, envir = .GlobalEnv) 
+      legend_position_old = legend_position; assign("legend_position", "bottom", envir = .GlobalEnv);  
+	  if(plot){saveplot(variable_name_save, plotdata=subset(allfilesdata))}; assign("legend_position", legend_position_old, envir = .GlobalEnv) 
     } 
     #save the variable under the WITCH name in the global environment
     assign(variable_name,allfilesdata,envir = .GlobalEnv)

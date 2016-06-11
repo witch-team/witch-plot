@@ -8,11 +8,12 @@ yeartot <- function(year){t=(as.numeric(year) - 2000) / 5; return(t);}
 
 
 
-saveplot <- function(plotname, width=7, height=5, text_size=10){
+saveplot <- function(plotname, width=7, height=5, text_size=10, plotdata=NULL){
   if(!exists("legend_position")){legend_position = "bottom"}
   if(legend_position=="bottom"){legend_direction="horizontal"}else{legend_direction="vertical"}
   print(last_plot() + labs(title=plotname)); 
-  ggsave(filename=paste(graphdir,as.character(gsub(" ", "_", plotname)),".png", sep=""), plot = last_plot() + labs(title=plotname) + theme(text = element_text(size=text_size), legend.position=legend_position, legend.direction = legend_direction), width=width, height=height)
+  ggsave(filename=paste0(graphdir,as.character(gsub(" ", "_", plotname)),".",figure_format), plot = last_plot() + labs(title=plotname) + theme(text = element_text(size=text_size), legend.position=legend_position, legend.direction = legend_direction), width=width, height=height)
+  if(!is.null(plotdata) & export_plotdata){write.xlsx(subset(plotdata, select=-pathdir), file = paste0(graphdir,as.character(gsub(" ", "_", plotname)),".xlsx"))}
 }
 
 

@@ -4,7 +4,7 @@ suppressPackageStartupMessages
 
 
 source('functions/get_libraries.R')
-pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'gdata', 'taRifx', 'reshape2', 'ggplot2', 'scales', 'RColorBrewer', 'plyr')
+pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'gdata', 'taRifx', 'reshape2', 'ggplot2', 'scales', 'RColorBrewer', 'plyr', 'openxlsx')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 
@@ -15,6 +15,8 @@ witch_folder = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_COD
 
 #Local Options
 create_all_figures_pdf = FALSE
+figure_format="png"
+export_plotdata = FALSE
 historical = TRUE  #add historical data where available
 line2005 = FALSE #adds line at 2005 to show history from model data
 

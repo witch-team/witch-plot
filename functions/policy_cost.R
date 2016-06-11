@@ -34,14 +34,14 @@ Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", re
   if(regions[1] != "WORLD"){p <- p + facet_grid(. ~ n)}
   if(show_numbers){p <- p + geom_text(data=subset(Policy_Cost, n %in% regions & file!=bauscen), aes(x=file, y=PC+0.1, label=paste0(round(PC, 1),"%")))}
   p <- p  + theme(axis.ticks = element_blank(), axis.text.x = element_blank())
-  saveplot("Policy Cost")
+  saveplot("Policy Cost", plotdata=subset(Policy_Cost, n %in% regions & file!=bauscen))
   
   #PC over time plot
   PC_annual_relative <- subset(GDP, t<=tmax&t>=tmin); PC_annual_relative$rel_cost <- PC_annual_relative$"GDP Loss"/PC_annual_relative$"bau";
   p <- ggplot(subset(PC_annual_relative, n %in% regions & file!=bauscen)) + geom_line(aes(ttoyear(t), rel_cost*100, color=file), show.legend = TRUE) +ylab("% of GDP (NPV)") + xlab("") + theme(legend.position="bottom",legend.direction="horizontal") + guides(fill=guide_legend(title=NULL, nrow = 1))
   if(length(pathdir) > 1){p <- p + facet_grid(. ~ pathdir)}
   if(regions[1] != "WORLD"){p <- p + facet_grid(. ~ n)}
-  saveplot("Policy Cost Yearly")
+  saveplot("Policy Cost Yearly", plotdata=subset(PC_annual_relative, n %in% regions & file!=bauscen))
   
   
   
@@ -54,7 +54,7 @@ Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", re
   carbonprice$value <- carbonprice$value * usd_deflator    #Apply deflator
   p <- ggplot(subset(carbonprice, t==20 & n=="usa")) + geom_bar(position=position_dodge(), stat="identity",aes(file, value*1e3/(44/12), fill=file), show.legend = TRUE) +ylab("$/tCO2") + theme(legend.position="bottom",legend.direction="horizontal")+ guides(fill=guide_legend(title=NULL, nrow = 1))
   if(length(pathdir) > 1){p <- p + facet_grid(. ~ pathdir)}
-  saveplot("Global Carbon Price 2100")
+  saveplot("Global Carbon Price 2100", plotdata=subset(carbonprice, t==20 & n=="usa"))
   
 
 }

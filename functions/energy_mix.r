@@ -37,7 +37,7 @@ Primary_Energy_Mix <- function(PES_y="value", restrict_files_pes="."){
     p <- ggplot(data=subset(TPES, t<=yeartot(yearmax) & t>=yeartot(yearmin) & str_detect(file, restrict_files_pes)),aes(ttoyear(t),value, fill=category)) + geom_area(stat="identity") + ylab("EJ") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") +  scale_fill_manual(values=c("green", "black", "blue", "chocolate2", "red", "brown", "yellow", "gold1")) 
     if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ file)}else{p <- p + facet_grid(. ~ file)}
     legend_position_old = legend_position; assign("legend_position", "bottom", envir = .GlobalEnv)
-    saveplot("Primary Energy Mix")
+    saveplot("Primary Energy Mix", plotdata=subset(TPES, t<=yeartot(yearmax) & t>=yeartot(yearmin) & str_detect(file, restrict_files_pes)))
     assign("legend_position", legend_position_old, envir = .GlobalEnv) 
     #now get also normal graph of total PES
     TPES <- PES_MIX  
@@ -50,7 +50,7 @@ Primary_Energy_Mix <- function(PES_y="value", restrict_files_pes="."){
     if(ssp_grid){p <- p + facet_grid(. ~ ssp)}
     if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
     if(length(pathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}
-    saveplot("PES Total")
+    saveplot("PES Total", plotdata=subset(TPES))
   }
   #assign("filelist", filelist_old, envir = .GlobalEnv)
 }
@@ -99,7 +99,7 @@ Primary_Energy_Mix_Regional <- function(PES_y="value", restrict_files_pes=".", r
     p <- p + facet_grid(n ~ file, scales="free")
     
     legend_position_old = legend_position; assign("legend_position", "bottom", envir = .GlobalEnv)
-    saveplot(plot_name)
+    saveplot(plot_name,plotdata=subset(TPES, ttoyear(t) %in% years & str_detect(file, restrict_files_pes)))
     assign("legend_position", legend_position_old, envir = .GlobalEnv) 
   }
   #assign("filelist", filelist_old, envir = .GlobalEnv)
@@ -168,7 +168,7 @@ Electricity_Mix <- function(Electricity_y="value", restrict_files_elec="."){
     p <- ggplot(data=subset(ELEC, t<=yeartot(yearmax) & str_detect(file, restrict_files_elec)),aes(ttoyear(t),value, fill=category)) + geom_area(stat="identity") + ylab("EJ") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") +  scale_fill_manual(values=c("Solar"="yellow", "Hydro"="blue", "Nuclear"="red", "Wind"="orange", "Coal w/ CCS"="dimgrey", "Coal w/o CCS"="black", "Gas w/ CCS"="brown", "Gas w/o CCS"="brown2", "Oil"="darkorchid4", "Biomass w/ CCS"="green",  "Biomass w/o CCS"="darkgreen"))
     if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ file)}else{p <- p + facet_grid(. ~ file)}
     legend_position_old = legend_position; assign("legend_position", "bottom", envir = .GlobalEnv)
-    saveplot("Electricity Mix")
+    saveplot("Electricity Mix", plotdata=subset(ELEC, t<=yeartot(yearmax) & str_detect(file, restrict_files_elec)))
     assign("legend_position", legend_position_old, envir = .GlobalEnv) 
   }
   assign("ssp_grid", ssp_grid_old, envir = .GlobalEnv) 
@@ -237,7 +237,7 @@ Electricity_Mix_Regional <- function(Electricity_y="value", restrict_files_elec=
     if(plot_type=="area"){p <- p + geom_area(stat="identity")}else{p <- p + geom_bar(stat="identity") + scale_x_continuous(breaks=years)}
     p <- p + facet_grid(n ~ file, scales="free")
     legend_position_old = legend_position; assign("legend_position", "bottom", envir = .GlobalEnv)
-    saveplot(plot_name)
+    saveplot(plot_name, plotdata=subset(ELEC, ttoyear(t) %in% years & str_detect(file, restrict_files_elec)))
     assign("legend_position", legend_position_old, envir = .GlobalEnv) 
   }
   #assign("filelist", filelist_old, envir = .GlobalEnv)

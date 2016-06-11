@@ -6,21 +6,22 @@ main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_C
 
 #all directoried with trailing slash "/"!
 pathdir = c("SSPv14/", "SSPv15trunk/") 
-pathdir = "ADB/"  #with trailing slash /
+pathdir = "damage_countries/"  #with trailing slash /
 
-removepattern="results_ssp2_"    #results_ssp2_bau_damages_" #"results_"
-restrict_files = "results_ssp2." #"."
+removepattern="results_"    #results_ssp2_bau_damages_" #"results_"
+restrict_files = "results_." #"."
 
 pathdir = paste0(main_directory, pathdir)
 graphdir = paste0(pathdir[1], "graphs/") #/graphs/ in first folder if multiple folders
 #graphdir = "SSPcompare/"
 
 #Name scenarios (otherwise it takes gdx filename)
-scenlist <- c("REF", "INDC_2C", "INDC_2C_TRADE", "INDC", "INDC_TRADE", "OPT_2C")
+#scenlist <- c("REF", "INDC_2C", "INDC_2C_TRADE", "INDC", "INDC_TRADE", "OPT_2C")
 
 
 yearmin=1990
 yearmax = 2050
+
 
 
 #Initialize default options, load all witch and other functions
@@ -29,7 +30,7 @@ source('functions/witch_functions.R')
 
 
 #Main part, get data plots etc.
-get_witch_variable("Q", "GDP", "iq", "y", 1, "T$", "global_sum", scenarios=c("REF"))
+get_witch_variable("Q", "GDP", "iq", "y", 1, "T$", "global_sum")
 get_witch_variable("Q_BAU", "GDP_BAU", "iq", "y", 1, "T$", "global_sum")
 get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2", 3.67, "GtCO2", "global_sum")
 get_witch_variable("TEMP", "Temperature", "m", "atm", 1, "°C", "global_mean")
@@ -50,6 +51,8 @@ get_witch_variable("Q_OUT", "Oil_cumulative", "f", "oil", 0.0036, "EJ", "global_
 get_witch_variable("Q_OUT", "Gas_cumulative", "f", "gas", 0.0036, "EJ", "global_sum", cumulative=TRUE)
 get_witch_variable("MCOST_PES", "price", "f", "coal", 1000, "1", "global_mean")
 get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2", 3.67, "GtCO2", "global_sum")
+get_witch_variable("SRM", "SRM_regional", "na", "na", 1, "TgS", "regional")
+get_witch_variable("OMEGA", "Damages", "na", "na", 1, "%", "regional")
 
 
 
@@ -61,6 +64,9 @@ regions_plotgrid = c("china", "india", "sasia", "easia", "indonesia")
 get_witch_variable("tpes", "Primary_Energy", "na", "na", 0.0036, "EJ", "regional")
 ggplot(subset(tpes, t<=10 & n %in% regions_plotgrid)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions_plotgrid)) + ylab("EJ") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom")
 saveplot("Primary Energy Regional")
+
+
+regions_plotgrid = c("china", "india", "sasia", "easia", "indonesia")
 
 
 #Special Graphs

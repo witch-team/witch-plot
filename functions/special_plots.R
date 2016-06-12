@@ -59,6 +59,40 @@ saveplot("Sectoral CO2 Emissions LU", plotdata=subset(Q_EMI_SECTORS, t<=10 & n %
 }
 
 
+#Emission reduction by source
+Emission_reduction <- function(regions=witch_regions, scenario_stringency_order){
+  get_witch_simple("Q_EMI")
+  Q_EMI <- as.data.frame(Q_EMI)
+  Q_EMI <- subset(Q_EMI, select=-pathdir)
+  Q_EMI <- reshape(Q_EMI, timevar = "e",idvar = c("t", "n", "file"),direction = "wide")
+  emi_sources= c("CO2FFI", "CCS", "CO2LU", "NON-CO2")
+  Q_EMI$CO2FFI <- Q_EMI$value.co2ind + Q_EMI$value.ccs
+  Q_EMI$CCS <- -Q_EMI$value.ccs
+  Q_EMI$CO2LU <- Q_EMI$value.co2lu
+  Q_EMI$"NON-CO2" <- Q_EMI$value.ch4 + Q_EMI$value.n2o + Q_EMI$value.slf + Q_EMI$value.llf
+  Q_EMI <- subset(Q_EMI, select=c("t", "n", "file", emi_sources))
+  Q_EMI <- subset(Q_EMI, file %in% scenario_stringency_order)
+
+  for(.num in length(scenario_stringency_order):2){
+    .cur_file <- (Q_EMI$file==scenario_stringency_order[.num])
+    .last_file <- (Q_EMI$file==scenario_stringency_order[.num-1])
+    Q_EMI[.cur_file, c(4:7)] <- Q_EMI[.cur_file, c(4:7)] - Q_EMI[.last_file, c(4:7)]
+  }
+  
+  MITIGATION_SOURCES <- melt(Q_EMI,id=c("t","n", "file"), variable.name = "source")
+  MITIGATION_SOURCES$value <- MITIGATION_SOURCES$value * (-1) * 1e3 * (44/12)
+  MITIGATION_SOURCES <- subset(MITIGATION_SOURCES, file!=scenario_stringency_order[1])
+  MITIGATION_SOURCES <- MITIGATION_SOURCES[order(match(MITIGATION_SOURCES$file,scenario_stringency_order)),]
+  MITIGATION_SOURCES <- MITIGATION_SOURCES[order(match(MITIGATION_SOURCES$file,scenario_stringency_order),match(MITIGATION_SOURCES$source,emi_sources)) ,]
+  #to set minimal negtaive vales to zero
+  #MITIGATION_SOURCES$value <- max(0, MITIGATION_SOURCES$value)
+  #Stacked Regions Plot
+  ggplot(subset(MITIGATION_SOURCES, ttoyear(t)<=yearmax & n %in% regions),aes(ttoyear(t),value, fill=interaction(file, source), group=interaction(file, source))) + geom_bar(stat="identity", position = "stack") + ylab("MtCO2") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") + facet_wrap( ~ n, scales = "free") + scale_fill_manual(values=c("#0000FF", "#000066", "#FFFF00", "#666600","#00FF00", "#006600", "#FF0000", "#660000"))
+  saveplot("Emission reduction by source", plotdata=subset(MITIGATION_SOURCES, ttoyear(t)<=yearmax & n %in% regions))
+}
+
+
+
 Investment_Plot <- function(regions=witch_regions){
   get_witch_simple("I_EN")
   get_witch_simple("I_RD")

@@ -42,19 +42,14 @@ Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", re
   if(length(pathdir) > 1){p <- p + facet_grid(. ~ pathdir)}
   if(regions[1] != "WORLD"){p <- p + facet_grid(. ~ n)}
   saveplot("Policy Cost Yearly", plotdata=subset(PC_annual_relative, n %in% regions & file!=bauscen))
-  
-  
-  
-  
-  
-  #Add Carbon Price in 2100
+}
+
+#Plots of Carbon Prices (TO BE FIXED)
+Carbon_Price <- function(scenplot=scenlist){
   get_witch_simple("carbonprice")
   carbonprice <- subset(carbonprice, file %in% scenplot)
-  
   carbonprice$value <- carbonprice$value * usd_deflator    #Apply deflator
   p <- ggplot(subset(carbonprice, t==20 & n=="usa")) + geom_bar(position=position_dodge(), stat="identity",aes(file, value*1e3/(44/12), fill=file), show.legend = TRUE) +ylab("$/tCO2") + theme(legend.position="bottom",legend.direction="horizontal")+ guides(fill=guide_legend(title=NULL, nrow = 1))
   if(length(pathdir) > 1){p <- p + facet_grid(. ~ pathdir)}
-  saveplot("Global Carbon Price 2100", plotdata=subset(carbonprice, t==20 & n=="usa"))
-  
-
+  saveplot("Global Carbon Price 2100")
 }

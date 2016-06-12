@@ -102,7 +102,9 @@ Primary_Energy_Mix_Regional <- function(PES_y="value", restrict_files_pes=".", r
     saveplot(plot_name,plotdata=subset(TPES, ttoyear(t) %in% years & str_detect(file, restrict_files_pes)))
     assign("legend_position", legend_position_old, envir = .GlobalEnv) 
   }
-  #assign("filelist", filelist_old, envir = .GlobalEnv)
+  get_witch_variable("tpes", "Primary_Energy", "na", "na", 0.0036, "EJ", "regional", plot = FALSE)
+  ggplot(subset(tpes, ttoyear(t)<=yearmax & n %in% regions)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("EJ") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom")
+  saveplot("Primary Energy Regional")
 }
 
 

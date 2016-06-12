@@ -1,33 +1,33 @@
 #Author: Johannes Emmerling
 #v1: February 09th, 2016
 suppressPackageStartupMessages
-
-
 source('functions/get_libraries.R')
 pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'gdata', 'taRifx', 'reshape2', 'ggplot2', 'scales', 'RColorBrewer', 'plyr', 'openxlsx')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 
-
 witch_folder = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
 
-
-
-#Local Options
+## Local Options ##
 create_all_figures_pdf = FALSE
 figure_format="png"
 export_plotdata = FALSE
 historical = TRUE  #add historical data where available
 line2005 = FALSE #adds line at 2005 to show history from model data
+theme_set(theme_bw())
+show_numbers_2100 = FALSE
+ssp_grid = FALSE
+legend_position="bottom"    # "none", "bottom", or "right"
+usd_deflator = 1
+#usd_deflator = 108.686/91.987  #2014 USD
+
+## End of Local Options ##
+
 
 
 #load basic functions
 source('functions/auxiliary_functions.R')
 source('functions/witch_load_and_plot.R')
-
-
-
-
 
 
 filelist = gsub(".gdx","",list.files(path=pathdir[1], full.names = FALSE, pattern=removepattern, recursive = FALSE))
@@ -39,50 +39,18 @@ print(filelist)
 print("Scenario names:")
 print(scenlist)
 print("Scenarios actually used:")
-print(scenlist[scenplot_global_order])
-
-#now only consider the ones used
 filelist <- filelist[scenplot_global_order]
 scenlist <- scenlist[scenplot_global_order]
+print(scenlist[scenplot_global_order])
 
-#readkey()
-
-
-
-# set basic parameters by default
-theme_set(theme_bw())
-show_numbers_2100 = FALSE
-ssp_grid = FALSE
-legend_position="bottom"    # "none", "bottom", or "right"
-
-if (!dir.exists(graphdir)){dir.create(graphdir)}
-
-
-usd_deflator = 1
-usd_deflator = 108.686/91.987  #2014 USD
-
-
-
-#regions:
-get_witch_simple("conf")
-region_id <- subset(conf, file==scenlist[1] & V1=="regions")$V2
-
-
-
-
-
-
-
-
+#create directory for graphs
+if (!dir.exists(graphdir)){dir.create(graphdir)} 
 if(file.exists(paste(graphdir, "all_figures.pdf", sep=""))){(file.remove(paste(graphdir, "all_figures.pdf", sep="")))}
 if(create_all_figures_pdf){pdf(paste(graphdir, "all_figures.pdf", sep=""), paper="a4r")}
 
-
-
-
-
-
-#Palettes for WITCH regions
+#Palettes for WITCH regions and regional aggregation
+get_witch_simple("conf")
+region_id <- subset(conf, file==scenlist[1] & V1=="regions")$V2
 get_witch_simple("n")
 get_witch_simple("t"); t_model<-unique(t$t)
 witch_regions <- subset(n, file==scenlist[1])$V1

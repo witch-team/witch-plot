@@ -30,7 +30,7 @@ source('functions/auxiliary_functions.R')
 source('functions/witch_load_and_plot.R')
 
 
-filelist = gsub(".gdx","",list.files(path=pathdir[1], full.names = FALSE, pattern=removepattern, recursive = FALSE))
+filelist = gsub(".gdx","",list.files(path=pathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
 filelist = filelist[str_detect(filelist, restrict_files)]
 if(!exists("scenlist")){scenlist <- gsub(removepattern,"",filelist)}
 if(!exists("scenplot_global_order")){scenplot_global_order = seq(1:length(scenlist))}

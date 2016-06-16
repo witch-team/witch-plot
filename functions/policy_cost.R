@@ -53,3 +53,19 @@ Carbon_Price <- function(scenplot=scenlist){
   if(length(pathdir) > 1){p <- p + facet_grid(. ~ pathdir)}
   saveplot("Global Carbon Price 2100")
 }
+
+
+Social_Cost_of_Carbon <- function(regions=witch_regions, scenplot=scenlist){
+  get_witch_simple("m_eqq_emi_tree")
+  get_witch_simple("m_eqq_y")
+  m_eqq_emi_tree <- subset(m_eqq_emi_tree, e=="co2")
+  m_eqq_emi_tree$e <- NULL
+  SCC <- m_eqq_emi_tree
+  SCC$SCC <- (-1) * (m_eqq_emi_tree$value / m_eqq_y$value) * 1000 / (44/12)
+  SCC$value <- NULL; SCC$pathdir <- NULL
+  
+  p <- ggplot(subset(SCC, n %in% regions & ttoyear(t) <= yearmax & ttoyear(t)>=2015),aes(ttoyear(t),SCC,colour=file)) + geom_line(stat="identity", size=1.2) + xlab("year") +ylab("$/tCO2")
+  p <- p + facet_grid(. ~ n, scales="free")
+  if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
+  saveplot("Social Cost of Carbon", plotdata=subset(SCC, n %in% regions & ttoyear(t) <= yearmax))
+}

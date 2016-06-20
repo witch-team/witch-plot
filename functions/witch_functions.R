@@ -2,7 +2,7 @@
 #v1: February 09th, 2016
 suppressPackageStartupMessages
 source('functions/get_libraries.R')
-pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'gdata', 'taRifx', 'reshape2', 'ggplot2', 'scales', 'RColorBrewer', 'plyr', 'openxlsx')
+pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'gdata', 'taRifx', 'reshape2', 'ggplot2', 'scales', 'RColorBrewer', 'plyr', 'openxlsx', 'gsubfn')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 
@@ -32,7 +32,7 @@ source('functions/witch_load_and_plot.R')
 
 filelist = gsub(".gdx","",list.files(path=pathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
 filelist = filelist[str_detect(filelist, restrict_files)]
-if(!exists("scenlist")){scenlist <- gsub(removepattern,"",filelist)}
+if(!exists("scenlist")){.tmp <- filelist; for(rm in removepattern){.tmp <- gsub(rm,"",.tmp)}; scenlist <- .tmp;}
 if(!exists("scenplot_global_order")){scenplot_global_order = seq(1:length(scenlist))}
 print("GDX Files:")
 print(filelist)
@@ -41,7 +41,7 @@ print(scenlist)
 print("Scenarios actually used:")
 filelist <- filelist[scenplot_global_order]
 scenlist <- scenlist[scenplot_global_order]
-print(scenlist[scenplot_global_order])
+print(scenlist)
 
 #create directory for graphs
 if (!dir.exists(graphdir)){dir.create(graphdir)} 

@@ -21,10 +21,9 @@ Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", re
   GDP$t <- as.factor(GDP$t)
   GDP$pathdir <- as.factor(GDP$pathdir)
   GDP$file <- as.factor(GDP$file)
-  if(regions[1]=="WORLD"){
-    GDP <- GDP[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
-    GDP$n <- "WORLD"
-    }
+  GDP_WORLD <- GDP[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
+  GDP_WORLD$n <- "WORLD"
+  GDP <- rbind(GDP, GDP_WORLD)
   GDP$t <- as.numeric(GDP$t)
   Policy_Cost <- subset(GDP, t<=tmax&t>=tmin)[, lapply(.SD, sum), by=c("n", "file", "pathdir") , .SDcols = c("GDP_Loss_discounted", "GDP_MER_discounted")]
   Policy_Cost$PC = 100*Policy_Cost$GDP_Loss_discounted / Policy_Cost$GDP_MER_discounted
@@ -64,7 +63,7 @@ Social_Cost_of_Carbon <- function(regions=witch_regions, scenplot=scenlist){
   m_eqq_emi_tree$e <- NULL
   SCC <- m_eqq_emi_tree
   SCC$SCC <- (-1) * (m_eqq_emi_tree$value / m_eqq_y$value) * 1000 / (44/12)
-  SCC$value <- NULL; SCC$pathdir <- NULL
+  SCC$value <- NULL; #SCC$pathdir <- NULL
   
   p <- ggplot(subset(SCC, n %in% regions & ttoyear(t) <= yearmax & ttoyear(t)>=2015 & file %in% scenplot),aes(ttoyear(t),SCC,colour=file)) + geom_line(stat="identity", size=1.2) + xlab("year") +ylab("$/tCO2")
   if(length(regions)>1){p <- p + facet_grid(. ~ n, scales="free")}

@@ -3,12 +3,13 @@
 
 
 
-ttoyear <- function(t){year=(as.numeric(t) * 5 + 2000); return(year);}
+ttoyear <- function(t){if(as.numeric(t[1])<1800){year=(as.numeric(t) * 5 + 2000)}else{year=t}; return(year);}
 yeartot <- function(year){t=(as.numeric(year) - 2000) / 5; return(t);}
 
 
 
 saveplot <- function(plotname, width=7, height=5, text_size=10, plotdata=NULL){
+  plotdata$t <- ttoyear(plotdata$t)
   if(!exists("legend_position")){legend_position = "bottom"}
   if(legend_position=="bottom"){legend_direction="horizontal"}else{legend_direction="vertical"}
   print(last_plot() + labs(title=plotname) + theme(text = element_text(size=text_size), legend.position=legend_position, legend.direction = legend_direction, legend.key = element_rect(colour = NA), legend.title=element_blank()) ); 

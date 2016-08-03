@@ -1,9 +1,11 @@
 
 add_historical_values <- function(variable, varname=deparse(substitute(variable))){
   .gdx <- gdx(paste0(witch_folder, "data_", region_id, "/data_historical_values.gdx"))
-  if(!is.na(pmatch(paste0(tolower(varname), "_valid") ,.gdx$parameters$name))){
+  valid_suffix <- "_valid"  #for CO2IND emissions, set it to 
+  #valid_suffix <- "_valid_oecd"
+  if(!is.na(pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name))){
     print(paste0("Historical values added for '", varname, "'."))
-    item <- .gdx$parameters$name[pmatch(paste0(tolower(varname), "_valid") ,.gdx$parameters$name)]
+    item <- .gdx$parameters$name[pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name)]
     .hist <- as.data.table(.gdx[item]) 
     
     #recover set dependency from iso3 data

@@ -1,13 +1,14 @@
 #main directory
 main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
-
+#main_directory = "C:\\Users\\Emmerling\\Documents\\Dropbox\\Professional\\FEEM\\EnergyIntensity\\Modeling\\"
 
 
 #all directoried with trailing slash "/"!
-pathdir = c("damage_countries/") #can be multiple directories
+pathdir = c("DIAG/") #can be multiple directories
 
 removepattern="results_"  
-restrict_files = "results_." #"."
+restrict_files = "DIAG" #"."
+exclude_files = "report_"
 
 pathdir = paste0(main_directory, pathdir)
 graphdir = paste0(pathdir[1], "graphs/") #/graphs/ in first folder if multiple folders
@@ -19,7 +20,7 @@ graphdir = paste0(pathdir[1], "graphs/") #/graphs/ in first folder if multiple f
 #scenplot_global_order <- c(5,3,1)
 
 yearmin=1990
-yearmax = 2100
+yearmax = 2150
 
 #Initialize default options, load all witch and other functions
 source('functions/witch_functions.R')
@@ -49,6 +50,17 @@ get_witch_variable("SRM", "SRM_regional", "na", "na", 1, "TgS", "regional")
 get_witch_variable("OMEGA", "Damages", "na", "na", 1, "%", "regional")
 
 
+#calibration
+get_witch_variable("tpes_kali", "TPES_global", "na", "na", 0.0036, "EJ", "global_sum")
+get_witch_variable("tpes_kali", "TPES", "na", "na", 0.0036, "EJ", "regional")
+get_witch_variable("ei_kali", "TPES", "na", "na", 1, "MJ/$", "regional")
+ggplot(tpes_kali) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=n)) + facet_wrap( ~ file) + ylab("EJ") + xlab("")  + scale_colour_manual(values = region_palette) + theme(legend.position="bottom")
+saveplot("PES compare calibrations")
+ggplot(ei_kali) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=n)) + facet_wrap( ~ file) + ylab("MJ/$") + xlab("") + scale_colour_manual(values = region_palette) + theme(legend.position="bottom")
+saveplot("EI compare calibrations")
+
+
+
 
 #Special Graphs
 regions_plotgrid = c("china", "india", "sasia", "easia", "indonesia")
@@ -61,6 +73,7 @@ Intensity_Plot(year=2050, region=c(regions_plotgrid, "WORLD"), year0=2010)
 Sectoral_Emissions(regions=regions_plotgrid)
 Policy_Cost(discount_rate=5, regions=regions_plotgrid, bauscen = "bau", show_numbers=TRUE, tmax=10)
 
+get_globiom_variables(regions=regions_plotgrid, varplot="ForestCover", varname="Forest Cover", varunit="%")  #plots forest cover
 
 
 

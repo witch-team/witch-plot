@@ -32,6 +32,7 @@ source('functions/witch_load_and_plot.R')
 
 filelist = gsub(".gdx","",list.files(path=pathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
 filelist = filelist[str_detect(filelist, restrict_files)]
+filelist = filelist[!str_detect(filelist, exclude_files)]
 if(!exists("scenlist")){.tmp <- filelist; for(rm in removepattern){.tmp <- gsub(rm,"",.tmp)}; scenlist <- .tmp;}
 if(!exists("scenplot_global_order")){scenplot_global_order = seq(1:length(scenlist))}
 print("GDX Files:")
@@ -55,7 +56,7 @@ get_witch_simple("n")
 get_witch_simple("t"); t_model<-unique(t$t)
 witch_regions <- subset(n, file==scenlist[1])$V1
 region_palette <- palette(rainbow(length(witch_regions)))
-region_palette <- c(usa="darkblue", oldeuro="blue", neweuro="cornflowerblue", kosau="darkgreen", cajaz="chartreuse4", te="gold2", mena="darkgoldenrod4", ssa="goldenrod", sasia="darkorange2", china="deeppink3", easia="orangered", laca="gold", india="khaki1", europe="blue", indonesia="brown")
+region_palette <- c(usa="darkblue", oldeuro="blue", neweuro="cornflowerblue", kosau="darkgreen", cajaz="chartreuse4", te="gold2", mena="darkgoldenrod4", ssa="goldenrod", sasia="darkorange2", china="deeppink3", easia="orangered", laca="gold", india="khaki1", europe="blue", indonesia="brown", Rest_of_World="grey48")
 
 
 #specialized functions

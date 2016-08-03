@@ -4,7 +4,7 @@
 
 
 ttoyear <- function(t){if(as.numeric(t[1])<1800){year=(as.numeric(t) * 5 + 2000)}else{year=t}; return(year);}
-yeartot <- function(year){t=(as.numeric(year) - 2000) / 5; return(t);}
+yeartot <- function(year){t=(as.numeric(as.character(year)) - 2000) / 5; return(t);}
 
 
 

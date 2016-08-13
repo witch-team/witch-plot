@@ -2,6 +2,8 @@
 main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
 #main_directory = "C:\\Users\\Emmerling\\Documents\\Dropbox\\Professional\\FEEM\\EnergyIntensity\\Modeling\\"
 
+#creating data Excel files creates a problem with old zip!!!
+Sys.setenv(R_ZIPCMD= "C:/apps/Rtools/bin/zip")   
 
 #all directoried with trailing slash "/"!
 pathdir = c("DIAG/") #can be multiple directories
@@ -20,7 +22,7 @@ graphdir = paste0(pathdir[1], "graphs/") #/graphs/ in first folder if multiple f
 #scenplot_global_order <- c(5,3,1)
 
 yearmin=1990
-yearmax = 2150
+yearmax = 2100
 
 #Initialize default options, load all witch and other functions
 source('functions/witch_functions.R')
@@ -28,6 +30,8 @@ source('functions/witch_functions.R')
 
 
 #Main part, get data plots etc.
+Global_Emissions(show_ar5=TRUE, ar5_budget=2000) #Global GHG Emissions
+
 get_witch_variable("Q", "GDP", "iq", "y", 1, "T$", "global_sum")
 get_witch_variable("Q_BAU", "GDP_BAU", "iq", "y", 1, "T$", "global_sum")
 get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2", 3.67, "GtCO2", "global_sum")
@@ -51,12 +55,12 @@ get_witch_variable("OMEGA", "Damages", "na", "na", 1, "%", "regional")
 
 
 #calibration
-get_witch_variable("tpes_kali", "TPES_global", "na", "na", 0.0036, "EJ", "global_sum")
-get_witch_variable("tpes_kali", "TPES", "na", "na", 0.0036, "EJ", "regional")
-get_witch_variable("ei_kali", "TPES", "na", "na", 1, "MJ/$", "regional")
-ggplot(tpes_kali) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=n)) + facet_wrap( ~ file) + ylab("EJ") + xlab("")  + scale_colour_manual(values = region_palette) + theme(legend.position="bottom")
-saveplot("PES compare calibrations")
-ggplot(ei_kali) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=n)) + facet_wrap( ~ file) + ylab("MJ/$") + xlab("") + scale_colour_manual(values = region_palette) + theme(legend.position="bottom")
+#get_witch_variable("tpes_kali", "TPES_global", "na", "na", 0.0036, "EJ", "global_sum")
+#get_witch_variable("tpes_kali", "TPES", "na", "na", 0.0036, "EJ", "regional")
+#get_witch_variable("ei_kali", "TPES", "na", "na", 1, "MJ/$", "regional")
+#ggplot(tpes_kali) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=n)) + facet_wrap( ~ file) + ylab("EJ") + xlab("")  + scale_colour_manual(values = region_palette) + theme(legend.position="bottom")
+#saveplot("PES compare calibrations")
+#ggplot(ei_kali) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=n)) + facet_wrap( ~ file) + ylab("MJ/$") + xlab("") + scale_colour_manual(values = region_palette) + theme(legend.position="bottom")
 saveplot("EI compare calibrations")
 
 
@@ -74,6 +78,12 @@ Sectoral_Emissions(regions=regions_plotgrid)
 Policy_Cost(discount_rate=5, regions=regions_plotgrid, bauscen = "bau", show_numbers=TRUE, tmax=10)
 
 get_globiom_variables(regions=regions_plotgrid, varplot="ForestCover", varname="Forest Cover", varunit="%")  #plots forest cover
+
+
+
+Mitigation_Decomposition(regions=regions_plotgrid, scenario_stringency_order = c("DIAG-Base", "DIAG-C30-gr5"), scen_short=c("Base", "C30-gr5"), plotname="Mitigation Decomposition")
+
+Carbon_Budget(regions=regions_plotgrid, scenario="DIAG-C30-gr5", plotname="CO2 FFI Emissions Asia and RoW")
 
 
 

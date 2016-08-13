@@ -11,7 +11,7 @@ witch_folder = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_COD
 ## Local Options ##
 create_all_figures_pdf = FALSE
 figure_format="png"
-export_plotdata = FALSE
+export_plotdata = TRUE
 historical = TRUE  #add historical data where available
 line2005 = FALSE #adds line at 2005 to show history from model data
 theme_set(theme_bw())

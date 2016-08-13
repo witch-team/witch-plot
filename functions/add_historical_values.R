@@ -2,7 +2,7 @@
 add_historical_values <- function(variable, varname=deparse(substitute(variable))){
   .gdx <- gdx(paste0(witch_folder, "data_", region_id, "/data_historical_values.gdx"))
   valid_suffix <- "_valid"  #for CO2IND emissions, set it to 
-  #valid_suffix <- "_valid_oecd"
+  if(varname=="Q_EMI"){valid_suffix <- "_valid_oecd"}
   if(!is.na(pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name))){
     print(paste0("Historical values added for '", varname, "'."))
     item <- .gdx$parameters$name[pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name)]
@@ -19,15 +19,26 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     t_historical<-unique(.hist$t)
 
     #special case where categories do not match exactly
-    if(item=="q_en_vali_weo")
+    if(item=="q_en_valid_weo")
     {
-      .ren <- .hist[V1=="elsolwind"]  #take half solar half wind as proxy!!
-      .pv <- .ren; .pv$value = .pv$value*0.5; .pv$V1 <- "elpv"
-      .wind <- .ren; .wind$value = .wind$value*0.5; .wind$V1 <- "elwind"
-      .csp <- .ren; .csp$value = .csp$value*0; .csp$V1 <- "elcsp"
+      .ren <- .hist[j=="elsolwind"]  #take half solar half wind as proxy!!
+      .pv <- .ren; .pv$value = .pv$value*0.5; .pv$j <- "elpv"
+      .wind <- .ren; .wind$value = .wind$value*0.5; .wind$j <- "elwind"
+      .csp <- .ren; .csp$value = .csp$value*0; .csp$j <- "elcsp"
       #now replace in original data
-      .hist <- .hist[V1!="elsolwind"]
+      .hist <- .hist[j!="elsolwind"]
       .hist <- rbind(.hist, .pv, .csp, .wind)
+      .hist$j <- mapvalues(.hist$j, from=c("elnuclear", "elpc", "elpb", "elgastr", "elhydro", "eloil"), to=c("elnuclear_old", "elpc_old", "elpb_old", "elgastr_old", "elhydro_old", "eloil_old"))
+      
+    }
+    if(item=="q_in_valid_weo") #add f column
+    {
+      .hist$f <- "oil"
+      .hist[jfed=="elgastr"]$f <- "gas"
+      .hist[jfed=="elpc"]$f <- "coal"
+      .hist[jfed=="elpb"]$f <- "wbio"
+      .hist[jfed=="elnuclear"]$f <- "uranium"
+      .hist$jfed <- mapvalues(.hist$jfed, from=c("elnuclear", "elpc", "elpb", "elgastr", "eloil"), to=c("elnuclear_old", "elpc_old", "elpb_old", "elgastr_old", "eloil_old"))
     }
     
     
@@ -50,7 +61,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     #if(varname=="Q_IN"){print(.hist[jfed=="elpc_old" & n=="china" & file=="BAU" & t>=0 & t<=2])}
 
     #have to decide what to do with years with both model and historical data
-    display_years = "historical"
+    display_years = "model"
     if(display_years=="model"){
       #display model data for overlapping years, delete historical data
       .hist <- subset(.hist, !(t %in% t_model))

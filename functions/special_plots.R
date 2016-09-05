@@ -173,9 +173,9 @@ Investment_Plot <- function(regions=witch_regions, scenplot=scenlist){
   Investment_Energy <- subset(Investment_Energy, t>=3 & t<=10)
   
   Investment_Energy_global <- aggregate(value~sector+category+file+pathdir, data=subset(Investment_Energy, n %in% regions), sum)
-  
-  #ggplot(subset(Investment_Energy_global),aes(ttoyear(t),value*1e3,color=type)) + geom_line(stat="identity") + facet_grid(. ~ file, scales = "free") + ylab("Billion USD") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + scale_fill_manual(values = region_palette)
-  ggplot(subset(Investment_Energy_global),aes(file,value*5, fill=category)) + geom_bar(stat="identity", position = "stack") + ylab("Trillion USD (2015-2050)") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") + facet_wrap( ~ sector, scales = "fixed")  + scale_x_discrete(limits=scenplot) + scale_fill_brewer(palette="Spectral")
+  Investment_Energy_global$value <-   Investment_Energy_global$value*5 
+
+  ggplot(subset(Investment_Energy_global),aes(file,value, fill=category)) + geom_bar(stat="identity", position = "stack") + ylab("Trillion USD (2015-2050)") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") + facet_wrap( ~ sector, scales = "fixed")  + scale_x_discrete(limits=scenplot) + scale_fill_brewer(palette="Spectral")
   #+ scale_fill_manual(values=c("#0000FF", "#000066", "#FFFF00", "#666600","#00FF00", "#006600", "#FF0000", "#660000"))
   saveplot("Investments Developing Asia, 2015-2050", plotdata=Investment_Energy_global)
 }
@@ -332,6 +332,7 @@ Global_Emissions <- function(show_ar5=TRUE, ar5_budget=2000){
   p <- ggplot(kemi[cbudget.co2<ar5_budget]) + geom_line(aes(x=YEAR,y=KGHG,group=paste(SCENARIO,MODEL)),alpha=0.1,size=1,color="lightgrey") 
   p <- p + geom_line(stat="identity", data=subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum), ttoyear(t) <= yearmax),aes(ttoyear(t),GHG*44/12, colour=file))
   saveplot("Global GHG Emissions (with AR5)", plotdata = subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum)))
+  assign("Global_Emissions", subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum)), envir = .GlobalEnv)
   }
 
   

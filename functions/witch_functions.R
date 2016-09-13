@@ -6,12 +6,13 @@ pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'gdata', 'taRifx', '
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 
-witch_folder = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
+#In case creating data Excel files creates a problem with old zip!!!
+#Sys.setenv(R_ZIPCMD= "C:/apps/Rtools/bin/zip")   
 
 ## Local Options ##
 create_all_figures_pdf = FALSE
 figure_format="png"
-export_plotdata = TRUE
+export_plotdata = FALSE  #save data for each graph also as EXCEL files
 historical = TRUE  #add historical data where available
 line2005 = FALSE #adds line at 2005 to show history from model data
 theme_set(theme_bw())
@@ -55,8 +56,28 @@ region_id <- subset(conf, file==scenlist[1] & V1=="regions")$V2
 get_witch_simple("n")
 get_witch_simple("t"); t_model<-unique(t$t)
 witch_regions <- subset(n, file==scenlist[1])$V1
-region_palette <- palette(rainbow(length(witch_regions)))
-region_palette <- c(usa="darkblue", oldeuro="blue", neweuro="cornflowerblue", kosau="darkgreen", cajaz="chartreuse4", te="gold2", mena="darkgoldenrod4", ssa="goldenrod", sasia="darkorange2", china="deeppink3", easia="orangered", laca="gold", india="khaki1", europe="blue", indonesia="brown", Rest_of_World="grey48")
+region_palette_rainbow <- setNames(palette(rainbow(length(witch_regions))), witch_regions)
+region_palette_specific <- c(usa="darkblue", 
+                    oldeuro="blue", 
+                    neweuro="cornflowerblue", 
+                    kosau="darkgreen", 
+                    cajaz="chartreuse4", 
+                    te="gold2", 
+                    mena="darkgoldenrod4", 
+                    ssa="goldenrod", 
+                    sasia="darkorange2", 
+                    china="deeppink3", 
+                    easia="orangered", 
+                    laca="gold", 
+                    india="khaki1", 
+                    europe="blue", 
+                    indonesia="brown", 
+                    Rest_of_World="grey48",
+                    chinaw="darkorange",
+                    chinac="darkorange2",
+                    chinae="darkorange4",
+                    italy="green")
+region_palette <- c(region_palette_specific, region_palette_rainbow)
 
 
 #specialized functions

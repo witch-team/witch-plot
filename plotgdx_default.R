@@ -1,24 +1,25 @@
-#main directory
-main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
+rm(list = ls())
+
+#Where you're WITCH code is located
+witch_folder = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
+#main directory of your results files
+main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch_cba/"
 #main_directory = "C:\\Users\\Emmerling\\Documents\\Dropbox\\Professional\\FEEM\\EnergyIntensity\\Modeling\\"
 
-#creating data Excel files creates a problem with old zip!!!
-Sys.setenv(R_ZIPCMD= "C:/apps/Rtools/bin/zip")   
-
 #all directoried with trailing slash "/"!
-pathdir = c("DIAG/") #can be multiple directories
+subdir = c("") #can be multiple directories
 
-removepattern="results_"  
-restrict_files = "DIAG" #"."
-exclude_files = "report_"
+removepattern=c("results_", "_bau")  # parts of the filename to remove
+restrict_files = "ITA" #"."          # restrict files to contain this string
+exclude_files = "report_"            # exclude some files
 
-pathdir = paste0(main_directory, pathdir)
-graphdir = paste0(pathdir[1], "graphs/") #/graphs/ in first folder if multiple folders
+pathdir = paste0(main_directory, subdir)
+graphdir = paste0(pathdir[1], "graphs/") #by default: /graphs/ in first folder if multiple folders
 
 
 #Name scenarios (otherwise it takes gdx filename)
 #scenlist <- c("REF", "INDC_2C", "INDC_2C_TRADE", "INDC", "INDC_TRADE", "OPT_2C")
-# select which scenarios are used,potentially change the order
+# select which scenarios are used,potentially change the order, by default, all scenarios are used
 #scenplot_global_order <- c(5,3,1)
 
 yearmin=1990
@@ -32,7 +33,10 @@ source('functions/witch_functions.R')
 #Main part, get data plots etc.
 Global_Emissions(show_ar5=TRUE, ar5_budget=2000) #Global GHG Emissions
 
+get_witch_variable("carbonprice", "Carbon Price", "na", "na", 1e3*12/44, "$/tCO2", "regional")
+
 get_witch_variable("Q", "GDP", "iq", "y", 1, "T$", "global_sum")
+get_witch_variable("Q", "GDP", "iq", "y", 1, "T$", "regional")
 get_witch_variable("Q_BAU", "GDP_BAU", "iq", "y", 1, "T$", "global_sum")
 get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2", 3.67, "GtCO2", "global_sum")
 get_witch_variable("TEMP", "Temperature", "m", "atm", 1, "°C", "global_mean")
@@ -55,13 +59,15 @@ get_witch_variable("OMEGA", "Damages", "na", "na", 1, "%", "regional")
 
 
 #calibration
-#get_witch_variable("tpes_kali", "TPES_global", "na", "na", 0.0036, "EJ", "global_sum")
 #get_witch_variable("tpes_kali", "TPES", "na", "na", 0.0036, "EJ", "regional")
-#get_witch_variable("ei_kali", "TPES", "na", "na", 1, "MJ/$", "regional")
+#get_witch_variable("ei_kali", "Energy Intensity", "na", "na", 1, "MJ/$", "regional")
+get_witch_variable("tpes_kali", "TPES_global", "na", "na", 0.0036, "EJ", "global_sum")
+get_witch_variable("ei_global", "Energy Intensity (global)", "na", "na", 1, "MJ/$", "global_mean")
+Intensity_Plot(year=2050, region=c(regions_plotgrid, "WORLD"), year0=2010)
 #ggplot(tpes_kali) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=n)) + facet_wrap( ~ file) + ylab("EJ") + xlab("")  + scale_colour_manual(values = region_palette) + theme(legend.position="bottom")
 #saveplot("PES compare calibrations")
 #ggplot(ei_kali) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=n)) + facet_wrap( ~ file) + ylab("MJ/$") + xlab("") + scale_colour_manual(values = region_palette) + theme(legend.position="bottom")
-saveplot("EI compare calibrations")
+#saveplot("EI compare calibrations")
 
 
 

@@ -261,14 +261,14 @@ Global_Emissions <- function(show_ar5=TRUE, ar5_budget=2000){
   Q_EMI <- subset(Q_EMI, select=c("t", "n", "file", "pathdir", emi_sources))
   ALL_EMI <- Q_EMI
   ALL_EMI$GHG <- ALL_EMI$CO2FFI + ALL_EMI$CCS + ALL_EMI$CO2LU + ALL_EMI$"NON-CO2"
-  p <- ggplot(data=subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum), ttoyear(t) <= yearmax),aes(ttoyear(t),GHG*44/12, colour=file)) + geom_line(stat="identity") + xlab("year") +ylab("GtCO2")
+  p <- ggplot(data=subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum), ttoyear(t) <= yearmax),aes(ttoyear(t),GHG*44/12, colour=file)) + geom_line(stat="identity") + xlab("") +ylab("GtCO2")
   saveplot("Global GHG Emissions", plotdata = subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum)))
   
   #now add AR5
   if(show_ar5){
   load("datasets/ar5emission.RData")
   p <- ggplot(kemi[cbudget.co2<ar5_budget]) + geom_line(aes(x=YEAR,y=KGHG,group=paste(SCENARIO,MODEL)),alpha=0.1,size=1,color="lightgrey") 
-  p <- p + geom_line(stat="identity", data=subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum), ttoyear(t) <= yearmax),aes(ttoyear(t),GHG*44/12, colour=file))
+  p <- p + geom_line(stat="identity", data=subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum), ttoyear(t) <= yearmax),aes(ttoyear(t),GHG*44/12, colour=file)) + xlab("") + ylab("GtCO2")
   saveplot("Global GHG Emissions (with AR5)", plotdata = subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum)))
   assign("Global_Emissions", subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum)), envir = .GlobalEnv)
   }

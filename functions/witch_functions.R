@@ -65,7 +65,7 @@ region_id <- subset(conf, file==scenlist[1] & V1=="regions")$V2
 get_witch_simple("n")
 get_witch_simple("t"); t_model<-unique(t$t)
 witch_regions <- subset(n, file==scenlist[1])$V1
-region_palette_rainbow <- setNames(palette(rainbow(length(witch_regions))), witch_regions)
+region_palette_rainbow <- setNames(rainbow(length(witch_regions)), witch_regions) #just in case have a fall back colour
 region_palette_specific <- c(usa="darkblue", 
                     oldeuro="blue", 
                     neweuro="cornflowerblue", 

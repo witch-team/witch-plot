@@ -1,5 +1,13 @@
 #Author: Johannes Emmerling
 #v1: February 09th, 2016
+
+pathdir = paste0(main_directory, subdir)
+#Specify directory for graphs and data to be saved: by default: /graphs/ in first folder if multiple folders
+graphdir = paste0(pathdir[1], "graphs/") 
+
+#check if directory valid
+if(!dir.exists(pathdir)){stop("Please check the main directory and sub directory, including the trailing slash!")}
+
 suppressPackageStartupMessages
 source('functions/get_libraries.R')
 pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'gdata', 'taRifx', 'reshape2', 'ggplot2', 'scales', 'RColorBrewer', 'plyr', 'openxlsx', 'gsubfn')
@@ -19,8 +27,9 @@ theme_set(theme_bw())
 show_numbers_2100 = FALSE
 ssp_grid = FALSE
 legend_position="bottom"    # "none", "bottom", or "right"
-usd_deflator = 1
+usd_deflator = 1 #by default, all values in 2005 USD
 #usd_deflator = 108.686/91.987  #2014 USD
+#usd_deflator = 1.10774   #2010 USD
 
 ## End of Local Options ##
 
@@ -30,10 +39,10 @@ usd_deflator = 1
 source('functions/auxiliary_functions.R')
 source('functions/witch_load_and_plot.R')
 
-
 filelist = gsub(".gdx","",list.files(path=pathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
 filelist = filelist[str_detect(filelist, restrict_files)]
 filelist = filelist[!str_detect(filelist, exclude_files)]
+if(length(filelist)==0){stop("No GDX files found.")}
 if(!exists("scenlist")){.tmp <- filelist; for(rm in removepattern){.tmp <- gsub(rm,"",.tmp)}; scenlist <- .tmp;}
 if(!exists("scenplot_global_order")){scenplot_global_order = seq(1:length(scenlist))}
 print("GDX Files:")
@@ -78,14 +87,16 @@ region_palette_specific <- c(usa="darkblue",
                     chinae="darkorange4",
                     italy="green")
 region_palette <- c(region_palette_specific, region_palette_rainbow)
+if(!exists("regions_focus")){regions_focus <- witch_regions}
+print(paste("Regional aggregation:", region_id))
 
 
-#specialized functions
+#load specialized functions
 source('functions/special_plots.R')
 source('functions/map_functions.R')
 source('functions/energy_mix.R')
 source('functions/policy_cost.R')
 source('functions/add_historical_values.R')
-
+source('functions/report_globiom_variables.R')
 
 

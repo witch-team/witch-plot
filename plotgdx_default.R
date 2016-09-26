@@ -1,26 +1,22 @@
 rm(list = ls())
-
+#all directoried with trailing slash "/"!
 #Where you're WITCH code is located
 witch_folder = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
 #main directory of your results files
-main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch_cba/"
-#main_directory = "C:\\Users\\Emmerling\\Documents\\Dropbox\\Professional\\FEEM\\EnergyIntensity\\Modeling\\"
+main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
+subdir = c("CCS/") #can be multiple directories
 
-#all directoried with trailing slash "/"!
-subdir = c("") #can be multiple directories
-
-removepattern=c("results_", "_bau")  # parts of the filename to remove
-restrict_files = "ITA" #"."          # restrict files to contain this string
+removepattern=c("results_")  # parts of the filename to remove
+restrict_files = "." #"."          # restrict files to contain this string
 exclude_files = "report_"            # exclude some files
-
-pathdir = paste0(main_directory, subdir)
-graphdir = paste0(pathdir[1], "graphs/") #by default: /graphs/ in first folder if multiple folders
-
 
 #Name scenarios (otherwise it takes gdx filename)
 #scenlist <- c("REF", "INDC_2C", "INDC_2C_TRADE", "INDC", "INDC_TRADE", "OPT_2C")
 # select which scenarios are used,potentially change the order, by default, all scenarios are used
 #scenplot_global_order <- c(5,3,1)
+
+#Special focus regions to report for
+#regions_focus = c("china", "india", "sasia", "easia", "indonesia")
 
 yearmin=1990
 yearmax = 2100
@@ -30,11 +26,11 @@ source('functions/witch_functions.R')
 
 
 
+
 #Main part, get data plots etc.
-Global_Emissions(show_ar5=TRUE, ar5_budget=2000) #Global GHG Emissions
+Global_Emissions(show_ar5=TRUE, ar5_budget=2000) #Global GHG Emissions (AR5 2000 is CB of 2 degrees)
 
 get_witch_variable("carbonprice", "Carbon Price", "na", "na", 1e3*12/44, "$/tCO2", "regional")
-
 get_witch_variable("Q", "GDP", "iq", "y", 1, "T$", "global_sum")
 get_witch_variable("Q", "GDP", "iq", "y", 1, "T$", "regional")
 get_witch_variable("Q_BAU", "GDP_BAU", "iq", "y", 1, "T$", "global_sum")
@@ -63,7 +59,7 @@ get_witch_variable("OMEGA", "Damages", "na", "na", 1, "%", "regional")
 #get_witch_variable("ei_kali", "Energy Intensity", "na", "na", 1, "MJ/$", "regional")
 get_witch_variable("tpes_kali", "TPES_global", "na", "na", 0.0036, "EJ", "global_sum")
 get_witch_variable("ei_global", "Energy Intensity (global)", "na", "na", 1, "MJ/$", "global_mean")
-Intensity_Plot(year=2050, region=c(regions_plotgrid, "WORLD"), year0=2010)
+Intensity_Plot(year=2050, region=c(regions_focus, "WORLD"), year0=2010)
 #ggplot(tpes_kali) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=n)) + facet_wrap( ~ file) + ylab("EJ") + xlab("")  + scale_colour_manual(values = region_palette) + theme(legend.position="bottom")
 #saveplot("PES compare calibrations")
 #ggplot(ei_kali) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=n)) + facet_wrap( ~ file) + ylab("MJ/$") + xlab("") + scale_colour_manual(values = region_palette) + theme(legend.position="bottom")
@@ -72,28 +68,27 @@ Intensity_Plot(year=2050, region=c(regions_plotgrid, "WORLD"), year0=2010)
 
 
 
-#Special Graphs
-regions_plotgrid = c("china", "india", "sasia", "easia", "indonesia")
-
 Primary_Energy_Mix(PES_y = "value") 
-Primary_Energy_Mix_Regional(PES_y = "value", regions = regions_plotgrid, years = seq(1990, 2050, 5), plot_type = "area")
+Primary_Energy_Mix_Regional(PES_y = "value", regions = regions_focus, years = seq(1990, 2050, 5), plot_type = "area")
 Electricity_Mix(Electricity_y = "value")
-Electricity_Mix_Regional(Electricity_y = "value", regions = regions_plotgrid, years = seq(1990, 2050, 1), plot_type = "area")
-Intensity_Plot(year=2050, region=c(regions_plotgrid, "WORLD"), year0=2010)
-Sectoral_Emissions(regions=regions_plotgrid)
-Policy_Cost(discount_rate=5, regions=regions_plotgrid, bauscen = "bau", show_numbers=TRUE, tmax=10)
+Electricity_Mix_Regional(Electricity_y = "value", regions = regions_focus, years = seq(1990, 2050, 1), plot_type = "area")
+Intensity_Plot(year=2050, region=c(regions_focus, "WORLD"), year0=2010)
+Sectoral_Emissions(regions=regions_focus)
+Policy_Cost(discount_rate=5, regions=regions_focus, bauscen = "bau", show_numbers=TRUE, tmax=10)
 
-get_globiom_variables(regions=regions_plotgrid, varplot="ForestCover", varname="Forest Cover", varunit="%")  #plots forest cover
+get_globiom_variables(regions=regions_focus, varplot="ForestCover", varname="Forest Cover", varunit="%")  #plots forest cover
 
 
 
-Mitigation_Decomposition(regions=regions_plotgrid, scenario_stringency_order = c("DIAG-Base", "DIAG-C30-gr5"), scen_short=c("Base", "C30-gr5"), plotname="Mitigation Decomposition")
+Mitigation_Decomposition(regions=regions_focus, scenario_stringency_order = c("DIAG-Base", "DIAG-C30-gr5"), scen_short=c("Base", "C30-gr5"), plotname="Mitigation Decomposition")
 
-Carbon_Budget(regions=regions_plotgrid, scenario="DIAG-C30-gr5", plotname="CO2 FFI Emissions Asia and RoW")
+Carbon_Budget(regions=regions_focus, scenario="DIAG-C30-gr5", plotname="CO2 FFI Emissions Asia and RoW")
 
+Investment_Plot(regions=regions_focus)
 
 
 #Map of WITCH regional aggregation
+#get_witch_simple("tfpn")
 #witchmap(tfpn, file_report="BAU", t_report=5, mapcolor="Blues", map_name="WITCH Regions", region_id="witch14eu", plot_witch_regions=TRUE)
 
 source('functions/close_functions.R') #finishes PDF, shows welfare

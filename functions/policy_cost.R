@@ -2,6 +2,7 @@
 
 
 Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", regions="WORLD", show_numbers=TRUE, scenplot=scenlist, measure="GDP", suffix=""){
+  if(!(bauscen %in% scenlist)){stop("For policy costs define an existing BAU scenario")}
   get_witch_simple("Q")
   Q$value <- Q$value * usd_deflator    #Apply deflator
   Q <- subset(Q, (t %in% t_model))

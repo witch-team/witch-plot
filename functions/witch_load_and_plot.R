@@ -37,7 +37,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
     
     #TRY: adding historical values
     #assign("test",allfilesdata,envir = .GlobalEnv)
-    if(historical){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name)}
+    if(historical){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot)}
     
     #clean data, edit sets, convert, replace NAs
     #print(scenplot)
@@ -232,9 +232,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
     #for(col in 1:length(allfilesdata)){if(is.numeric(allfilesdata[[col]])){setnames(allfilesdata, colnames(allfilesdata)[col], "value")}}
     
     #try adding historical values
-    if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name)}
-    
-    
+    if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot)}
     assign(variable_name,allfilesdata,envir = .GlobalEnv)
   }
 }

@@ -8,13 +8,14 @@ yeartot <- function(year){t=(as.numeric(as.character(year)) - 2000) / 5; return(
 
 
 
-saveplot <- function(plotname, width=7, height=5, text_size=10, plotdata=NULL){
+saveplot <- function(plotname, width=7, height=5, text_size=10, plotdata=NULL, suffix="", transparent=FALSE){
   if("t" %in% colnames(plotdata)){plotdata$t <- ttoyear(plotdata$t)}
   if(!exists("legend_position")){legend_position = "bottom"}
   if(legend_position=="bottom"){legend_direction="horizontal"}else{legend_direction="vertical"}
-  print(last_plot() + labs(title=plotname) + theme(text = element_text(size=text_size), legend.position=legend_position, legend.direction = legend_direction, legend.key = element_rect(colour = NA), legend.title=element_blank()) ); 
-  ggsave(filename=paste0(graphdir,as.character(gsub(" ", "_", plotname)),".",figure_format), plot = last_plot() + labs(title=plotname) + theme(text = element_text(size=text_size), legend.position=legend_position, legend.direction = legend_direction, legend.key = element_rect(colour = NA), legend.title=element_blank()), width=width, height=height)
-  if(!is.null(plotdata) & export_plotdata){write.xlsx(subset(plotdata, select=-pathdir), file = paste0(graphdir,as.character(gsub(" ", "_", plotname)),".xlsx"))}
+  if(transparent){transparent_background <- theme(legend.background = element_blank(), panel.background = element_blank(), plot.background = element_rect(fill = "transparent",colour = NA))}else{transparent_background = NULL}
+  print(last_plot() + labs(title=plotname) + theme(text = element_text(size=text_size), legend.position=legend_position, legend.direction = legend_direction, legend.key = element_rect(colour = NA), legend.title=element_blank()) + transparent_background); 
+  ggsave(filename=paste0(graphdir,as.character(gsub(" ", "_", plotname)),suffix,".",figure_format), plot = last_plot() + labs(title=plotname) + theme(text = element_text(size=text_size), legend.position=legend_position, legend.direction = legend_direction, legend.key = element_rect(colour = NA), legend.title=element_blank()), width=width, height=height, bg = "transparent")
+  if(!is.null(plotdata) & export_plotdata){write.xlsx(subset(plotdata, select=-pathdir), file = paste0(graphdir,as.character(gsub(" ", "_", plotname, suffix)),".xlsx"))}
 }
 
 

@@ -1,5 +1,9 @@
 
-add_historical_values <- function(variable, varname=deparse(substitute(variable))){
+add_historical_values <- function(variable, varname=deparse(substitute(variable)), scenplot=scenlist){
+  
+  #have to decide what to do with years with both model and historical data
+  display_years = "model" #"historical"
+  
   .gdx <- gdx(paste0(witch_folder, "data_", region_id, "/data_historical_values.gdx"))
   valid_suffix <- "_valid"  #for CO2IND emissions, set it to 
   if(varname=="Q_EMI"){valid_suffix <- "_valid_oecd"}
@@ -44,12 +48,12 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     
     
     #merge with variable
-    #first multiply by scenlist, add missing columns
+    #first multiply by scenplot, add missing columns
     .hist_temp <- .hist
-    for(scen in scenlist)
+    for(scen in scenplot)
     {
       .hist_temp$file <- scen
-      if(scen==scenlist[1]){.hist=.hist_temp}else{.hist <-rbind(.hist,.hist_temp)}
+      if(scen==scenplot[1]){.hist=.hist_temp}else{.hist <-rbind(.hist,.hist_temp)}
     }
     .hist_temp <- .hist
     for(pd in basename(pathdir))
@@ -60,8 +64,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     
     #if(varname=="Q_IN"){print(.hist[jfed=="elpc_old" & n=="china" & file=="BAU" & t>=0 & t<=2])}
 
-    #have to decide what to do with years with both model and historical data
-    display_years = "model"
+
     if(display_years=="model"){
       #display model data for overlapping years, delete historical data
       .hist <- subset(.hist, !(t %in% t_model))

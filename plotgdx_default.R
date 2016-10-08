@@ -28,7 +28,7 @@ source('functions/witch_functions.R')
 
 
 #Main part, get data plots etc.
-Global_Emissions(show_ar5=TRUE, ar5_budget=2000) #Global GHG Emissions (AR5 2000 is CB of 2 degrees)
+Plot_Global_Emissions(show_ar5=TRUE, ar5_budget=2000) #Global GHG Emissions (AR5 2000 is CB of 2 degrees)
 
 get_witch_variable("carbonprice", "Carbon Price", "na", "na", 1e3*12/44, "$/tCO2", "regional")
 get_witch_variable("Q", "GDP", "iq", "y", 1, "T$", "global_sum")

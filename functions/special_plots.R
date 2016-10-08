@@ -71,7 +71,9 @@ Mitigation_Sources <- function(regions=witch_regions, scenario_stringency_order)
   Q_EMI$CO2FFI <- Q_EMI$value.co2ind + Q_EMI$value.ccs
   Q_EMI$CCS <- -Q_EMI$value.ccs
   Q_EMI$CO2LU <- Q_EMI$value.co2lu
-  Q_EMI$"NON-CO2" <- Q_EMI$value.ch4 + Q_EMI$value.n2o + Q_EMI$value.slf + Q_EMI$value.llf
+  #Non-CO2 based on set
+  get_witch_simple("ghg") # to get GHGs for non-co2 sets
+  Q_EMI$"NON-CO2" <- rowSums(Q_EMI[colnames(Q_EMI) %in% paste0("value.",unique(ghg$e))]) - Q_EMI$value.co2
   Q_EMI <- subset(Q_EMI, select=c("t", "n", "file", emi_sources))
   Q_EMI <- subset(Q_EMI, file %in% scenario_stringency_order)
   ALL_EMI <- Q_EMI
@@ -247,29 +249,43 @@ Mitigation_Decomposition <- function(regions=witch_regions, scenario_stringency_
 }
 
 
-Global_Emissions <- function(show_ar5=TRUE, ar5_budget=2000){
-  get_witch_simple("Q_EMI")
+Plot_Global_Emissions <- function(show_ar5=TRUE, ar5_budget=2000, bauscen="ssp2_bau", scenplot=scenlist){
+  get_witch_simple("Q_EMI", scenplot = scenplot)
   Q_EMI <- as.data.frame(Q_EMI); Q_EMI_orig <- Q_EMI
-  get_witch_simple("ghg") # to get GHGs for non-co2 sets
   Q_EMI <- reshape(Q_EMI, timevar = "e",idvar = c("t", "n", "file", "pathdir"),direction = "wide")
   emi_sources= c("CO2FFI", "CCS", "CO2LU", "NON-CO2")
   Q_EMI$CO2FFI <- Q_EMI$value.co2ind + Q_EMI$value.ccs
   Q_EMI$CCS <- -Q_EMI$value.ccs
   Q_EMI$CO2LU <- Q_EMI$value.co2lu
   #Non-CO2 based on set
-  Q_EMI$"NON-CO2" <- rowSums(Q_EMI[colnames(Q_EMI) %in% paste0("value.",unique(ghg$e))]) - Q_EMI$value.co2
+  get_witch_simple("ghg") # to get GHGs for non-co2 sets
+  Q_EMI$"NON-CO2"  <- rowSums(Q_EMI[colnames(Q_EMI) %in% paste0("value.",unique(ghg$e))]) - Q_EMI$value.co2
   Q_EMI <- subset(Q_EMI, select=c("t", "n", "file", "pathdir", emi_sources))
   ALL_EMI <- Q_EMI
   ALL_EMI$GHG <- ALL_EMI$CO2FFI + ALL_EMI$CCS + ALL_EMI$CO2LU + ALL_EMI$"NON-CO2"
   p <- ggplot(data=subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum), ttoyear(t) <= yearmax),aes(ttoyear(t),GHG*44/12, colour=file)) + geom_line(stat="identity") + xlab("") +ylab("GtCO2")
   saveplot("Global GHG Emissions", plotdata = subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum)))
-  
+ 
   #now add AR5
   if(show_ar5){
   load("datasets/ar5emission.RData")
   p <- ggplot(kemi[cbudget.co2<ar5_budget]) + geom_line(aes(x=YEAR,y=KGHG,group=paste(SCENARIO,MODEL)),alpha=0.1,size=1,color="lightgrey") 
   p <- p + geom_line(stat="identity", data=subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum), ttoyear(t) <= yearmax),aes(ttoyear(t),GHG*44/12, colour=file)) + xlab("") + ylab("GtCO2")
   saveplot("Global GHG Emissions (with AR5)", plotdata = subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum)))
-  assign("Global_Emissions", subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum)), envir = .GlobalEnv)
   }
+  
+  assign("Global_Emissions_Data", subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum)), envir = .GlobalEnv)  
+ 
+  #add also abatement
+  Abatement <- dcast(Global_Emissions_Data, pathdir + t ~ file, value.var="GHG")
+  Emissions_BAU <- Abatement[bauscen]
+  for(abat_scen in scenplot){Abatement[abat_scen] <- -(Abatement[abat_scen]-Emissions_BAU)}
+  Abatement <- melt(Abatement, id.vars = c("pathdir", "t"), variable.name = "file")
+  Abatement$file <- as.character(Abatement$file)
+  Abatement <- subset(Abatement, file!=bauscen)
+  Abatement$value <- Abatement$value*44/12
+  ggplot(data=subset(Abatement, ttoyear(t) <= yearmax),aes(ttoyear(t),value, colour=file)) + geom_line(stat="identity") + xlab("") +ylab("GtCO2")
+  saveplot("Global Abatement", plotdata = Abatement)
+  assign("Global_Abatement_Data", Abatement, envir = .GlobalEnv)  
 }
+

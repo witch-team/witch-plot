@@ -2,7 +2,7 @@
 add_historical_values <- function(variable, varname=deparse(substitute(variable)), scenplot=scenlist){
   
   #have to decide what to do with years with both model and historical data
-  display_years = "model" #"historical"
+  display_years = "model"#historical" #"model" #"historical"
   
   .gdx <- gdx(paste0(witch_folder, "data_", region_id, "/data_historical_values.gdx"))
   valid_suffix <- "_valid"  #for CO2IND emissions, set it to 
@@ -21,6 +21,8 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     .hist$year <- yeartot(.hist$year)
     setnames(.hist, "year", "t")
     t_historical<-unique(.hist$t)
+    #adjust scenario names
+    .hist$n  <- mapvalues(.hist$n , from=witch_regions, to=display_regions)
 
     #special case where categories do not match exactly
     if(item=="q_en_valid_weo")

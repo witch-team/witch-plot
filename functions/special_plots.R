@@ -36,7 +36,7 @@ Intensity_Plot <- function(year=2050, region="WORLD", year0=2010, scenplot=scenl
   }else{
     ggplot() + geom_point(data=Intensity_t, mapping=aes(x=CI_change, y=EI_change, colour=n, shape=file), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change, ", year0,"-",year)) + ylab(paste0("Energy Intensity Change, ", year0,"-",year)) + guides(color=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal") + ylim(-2, 0) + xlim(-0.5, +0.2)
   }
-  saveplot("CI_EI_Improvement", plotdata=Intensity_t)
+  saveplot("CI_EI_Improvement", plotdata=Intensity_t, add_title = F)
 }
 
 
@@ -46,18 +46,18 @@ Intensity_Plot <- function(year=2050, region="WORLD", year0=2010, scenplot=scenl
 Sectoral_Emissions <- function(regions=witch_regions, scenplot=scenlist){
 get_witch_variable("Q_EMI", "CO2_FFI", "e", "co2ind", 3.67, "GtCO2", "regional", plot = F)
 Q_EMI_FFI <- Q_EMI
-Q_EMI_FFI$sector="FFI"
+Q_EMI_FFI$sector="Fossil Fuels and Industrial"#FFI
 get_witch_variable("Q_EMI", "CO2_LU", "e", "co2lu", 3.67, "GtCO2", "regional", plot = F)
 Q_EMI_LU <- Q_EMI
-Q_EMI_LU$sector="LU"
+Q_EMI_LU$sector="Land Use"#LU
 Q_EMI_SECTORS = rbind(Q_EMI_FFI, Q_EMI_LU)
 #Stacked Regions Plot
-ggplot(subset(Q_EMI_SECTORS, file %in% scenplot),aes(ttoyear(t),value, fill=n)) + geom_area(stat="identity") + facet_grid(sector ~ file, scales = "free") + ylab("GtCO2") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + scale_fill_manual(values = region_palette)
-saveplot("Sectoral CO2 Emissions RegionsStacked", plotdata=subset(Q_EMI_SECTORS, file %in% scenplot))
-ggplot(subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="FFI" & file %in% scenplot)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("GtCO2") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom")
-saveplot("Sectoral CO2 Emissions FFI", plotdata=subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="FFI" & file %in% scenplot))
-ggplot(subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="LU" & file %in% scenplot)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("GtCO2") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom")
-saveplot("Sectoral CO2 Emissions LU", plotdata=subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="LU" & file %in% scenplot))
+ggplot(subset(Q_EMI_SECTORS, file %in% scenplot),aes(ttoyear(t),value, fill=n)) + geom_area(stat="identity") + facet_grid(sector ~ file, scales = "free") + ylab("GtCO2") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") + scale_fill_manual(values = region_palette)
+saveplot("Sectoral CO2 Emissions Regions", plotdata=subset(Q_EMI_SECTORS, file %in% scenplot), add_title=F)
+ggplot(subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="Fossil Fuels and Industrial" & file %in% scenplot)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("GtCO2") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom")
+saveplot("Sectoral CO2 Emissions FFI", plotdata=subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="Fossil Fuels and Industrial" & file %in% scenplot))
+ggplot(subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="Land Use" & file %in% scenplot)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("GtCO2") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom")
+saveplot("Sectoral CO2 Emissions LU", plotdata=subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="Land Use" & file %in% scenplot))
 }
 
 

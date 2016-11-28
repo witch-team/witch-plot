@@ -3,10 +3,12 @@ rm(list = ls())
 #Where you're WITCH code is located
 witch_folder = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
 #main directory of your results files
-main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
-subdir = c("CCS/") #can be multiple directories
+main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/DeepDecarbComparison/"
+#main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/EnergyIntensity/Modeling/results_sspdb/"
+#main_directory = "U:\\SCAMBIO\\ADVANCEWP6RUNS\\"
+subdir = c("") #can be multiple directories
 
-removepattern=c("results_")  # parts of the filename to remove
+removepattern=c("results_") #, "ssp2_", "_spa0")  # parts of the filename to remove
 restrict_files = "." #"."          # restrict files to contain this string
 exclude_files = "report_"            # exclude some files
 
@@ -28,9 +30,9 @@ source('functions/witch_functions.R')
 
 
 #Main part, get data plots etc.
-Plot_Global_Emissions(show_ar5=TRUE, ar5_budget=2000) #Global GHG Emissions (AR5 2000 is CB of 2 degrees)
+Plot_Global_Emissions(show_ar5=TRUE, ar5_budget=1180) #Global GHG Emissions (AR5 2000 is CB of 2 degrees, 1180GtCO2 for "likely 2deg")
 
-get_witch_variable("carbonprice", "Carbon Price", "na", "na", 1e3*12/44, "$/tCO2", "regional")
+get_witch_variable("carbonprice", "Carbon Price", "na", "na", 1e3*12/44, "$/tCO2", "global_mean")
 get_witch_variable("Q", "GDP", "iq", "y", 1, "T$", "global_sum")
 get_witch_variable("Q", "GDP", "iq", "y", 1, "T$", "regional")
 get_witch_variable("Q_BAU", "GDP_BAU", "iq", "y", 1, "T$", "global_sum")
@@ -38,6 +40,7 @@ get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2", 3.67, "GtCO2", "global_
 get_witch_variable("TEMP", "Temperature", "m", "atm", 1, "°C", "global_mean")
 get_witch_variable("Q_EN", "SEN", "j", "el", 0.0036, "EJ", "global_sum")
 get_witch_variable("Q_EMI", "CCS_Emissions", "e", "ccs", 3.67, "GtCO2", "global_sum")
+get_witch_variable("Q_EMI", "CCS_Emissions_Stored", "e", "ccs", 3.67, "GtCO2", "global_sum", cumulative = T)
 get_witch_variable("tpes", "tpes", "na", "na", 0.0036, "1", "global_sum")
 get_witch_variable("Q_EN", "Final_Energy", "j", "en", 0.0036, "EJ", "global_sum")
 get_witch_variable("Q_PES", "Coal_PES", "f", "coal", 0.0036, "EJ", "global_sum")
@@ -45,9 +48,9 @@ get_witch_variable("Q_OUT", "Coal_OUT", "f", "coal", 0.0036, "EJ", "global_sum")
 get_witch_variable("Q_PES", "Gas", "f", "gas", 0.0036, "EJ", "global_sum")
 get_witch_variable("Q_PES", "Oil", "f", "oil", 0.0036, "EJ", "global_sum")
 get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2", 3.67, "GtCO2", "global_sum")
-get_witch_variable("Q_OUT", "Coal_cumulative", "f", "coal", 0.0036, "EJ", "global_sum", cumulative=TRUE)
-get_witch_variable("Q_OUT", "Oil_cumulative", "f", "oil", 0.0036, "EJ", "global_sum", cumulative=TRUE)
-get_witch_variable("Q_OUT", "Gas_cumulative", "f", "gas", 0.0036, "EJ", "global_sum", cumulative=TRUE)
+get_witch_variable("Q_OUT", "Coal_cumulative", "f", "coal", 0.0036*1e-3, "ZJ", "global_sum", cumulative=TRUE)
+get_witch_variable("Q_OUT", "Oil_cumulative", "f", "oil", 0.0036*1e-3, "ZJ", "global_sum", cumulative=TRUE)
+get_witch_variable("Q_OUT", "Gas_cumulative", "f", "gas", 0.0036*1e-3, "ZJ", "global_sum", cumulative=TRUE)
 get_witch_variable("MCOST_PES", "price", "f", "coal", 1000, "1", "global_mean")
 get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2", 3.67, "GtCO2", "global_sum")
 get_witch_variable("SRM", "SRM_regional", "na", "na", 1, "TgS", "regional")
@@ -57,7 +60,14 @@ get_witch_variable("OMEGA", "Damages", "na", "na", 1, "%", "regional")
 #calibration
 #get_witch_variable("tpes_kali", "TPES", "na", "na", 0.0036, "EJ", "regional")
 #get_witch_variable("ei_kali", "Energy Intensity", "na", "na", 1, "MJ/$", "regional")
-get_witch_variable("tpes_kali", "TPES_global", "na", "na", 0.0036, "EJ", "global_sum")
+get_witch_variable("tpes", "TPES_global", "na", "na", 0.0036, "EJ", "global_sum")
+get_witch_variable("ykali", "GDP_global", "na", "na", 1, "T$", "global_sum")
+ei_global <- tpes; ei_global$value <- ei_global$value/ykali$value
+ggplot(ei_global,aes(ttoyear(t),value,colour=file)) + geom_line(stat="identity") + xlab("") + ylab("") + theme(legend.position="bottom", legend.box = "horizontal")
+saveplot("EI Global original SSPs")
+
+#now (better) based on new WITCH
+
 get_witch_variable("ei_global", "Energy Intensity (global)", "na", "na", 1, "MJ/$", "global_mean")
 Intensity_Plot(year=2050, region=c(regions_focus, "WORLD"), year0=2010)
 #ggplot(tpes_kali) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=n)) + facet_wrap( ~ file) + ylab("EJ") + xlab("")  + scale_colour_manual(values = region_palette) + theme(legend.position="bottom")

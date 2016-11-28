@@ -1,5 +1,5 @@
 #get all the WITCH variables
-get_witch_variable <- function(variable_name, variable_name_save=variable_name, additional_set="na", additional_set_id="na", convert=1, unit="", aggregation="regional", cumulative=FALSE, plot=TRUE, bar="", bar_x="time", bar_y="value", bar_setvalues="", bar_colors="", regions=witch_regions, scenplot=scenlist){
+get_witch_variable <- function(variable_name, variable_name_save=variable_name, additional_set="na", additional_set_id="na", convert=1, unit="", aggregation="regional", cumulative=FALSE, plot=TRUE, bar="", bar_x="time", bar_y="value", bar_setvalues="", bar_colors="", regions=witch_regions, scenplot=scenlist, variable_field="l"){
   #aggregation=none: no graph is created no aggregation performed, just loads the element
   #some default values, maybe not even needed to customize
   #removepattern="results_"
@@ -19,7 +19,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
         mygdx <- gdx(paste(current_pathdir, file,".gdx",sep=""))
         if(is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$parameters) | is.element(variable_name, all_items(mygdx)$sets) | is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$equations))
         {
-          tempdata <- data.table(mygdx[variable_name])
+          tempdata <- data.table(mygdx[variable_name, field=variable_field])
           tempdata$file <- as.character(file)
           tempdata$t <- as.numeric(tempdata$t)
           tempdata$pathdir <- basename(current_pathdir)
@@ -34,6 +34,8 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
   
   if(exists("allfilesdata")){
     allfilesdata$file  <- mapvalues(allfilesdata$file , from=filelist, to=scenlist)
+    allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions)
+    
     
     #TRY: adding historical values
     #assign("test",allfilesdata,envir = .GlobalEnv)
@@ -226,6 +228,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
   
   if(exists("allfilesdata")){
     allfilesdata$file  <- mapvalues(allfilesdata$file , from=filelist, to=scenlist)
+    if(!(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions)}
     allfilesdata <- subset(allfilesdata, file %in% scenplot)
     #change column of numeric values to "value"
     #print(colnames(allfilesdata))

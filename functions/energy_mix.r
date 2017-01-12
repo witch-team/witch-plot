@@ -14,7 +14,7 @@ Primary_Energy_Mix <- function(PES_y="value", scenplot=scenlist, plot_only_histo
     TPES <- subset(TPES, j %in% c("oil", "coal", "gas", "uranium", "trbiofuel", "wbio", "advbio", "trbiomass") | j %in% c("elpv", "elcsp", "elhydro_new", "elhydro_old", "elback", "nelcoalabat", "elwindon", "elwindoff"))
     TPES$category[TPES$j %in% c("oil")] = "Oil"
     TPES$category[TPES$j %in% c("gas")] = "Natural Gas"
-    TPES$category[TPES$j %in% c("coal", "nelcoalabat")] = "Coal"
+    TPES$category[TPES$j %in% c("coal")] = "Coal"
     TPES$category[TPES$j %in% c("uranium", "elback")] = "Nuclear"
     TPES$category[TPES$j %in% c("trbiofuel", "wbio", "advbio", "trbiomass")] = "Biomass"
     TPES$category[TPES$j %in% c("elpv", "elcsp")] = "Solar"
@@ -98,7 +98,7 @@ Primary_Energy_Mix_Regional <- function(PES_y="value", regions=witch_regions, ye
     TPES <- subset(TPES, j %in% c("oil", "coal", "gas", "uranium", "trbiofuel", "wbio", "advbio", "trbiomass") | j %in% c("elpv", "elcsp", "elhydro_new", "elhydro_old", "elback", "nelcoalabat", "elwindon", "elwindoff"))
     TPES$category[TPES$j %in% c("oil")] = "Oil"
     TPES$category[TPES$j %in% c("gas")] = "Natural Gas"
-    TPES$category[TPES$j %in% c("coal", "nelcoalabat")] = "Coal"
+    TPES$category[TPES$j %in% c("coal")] = "Coal"
     TPES$category[TPES$j %in% c("uranium", "elback")] = "Nuclear"
     TPES$category[TPES$j %in% c("trbiofuel", "wbio", "advbio", "trbiomass")] = "Biomass"
     TPES$category[TPES$j %in% c("elpv", "elcsp")] = "Solar"

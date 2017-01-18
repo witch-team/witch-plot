@@ -1,7 +1,7 @@
 
 
 
-Primary_Energy_Mix <- function(PES_y="value", scenplot=scenlist, plot_only_history_graphs=FALSE){
+Primary_Energy_Mix <- function(PES_y="value", scenplot=scenlist, plot_only_history=FALSE){
   if(length(pathdir)==10){print("PES mix only for one directory at a time!")}else{
     #tpes(t,n) = sum(f$(sum(jfed,csi(f,jfed,t,n))), Q_PES(f,t,n))+sum(jreal$(not xiny(jreal,jfed)), Q_EN(jreal,t,n));
     ssp_grid_old=ssp_grid; assign("ssp_grid", FALSE, envir = .GlobalEnv) 

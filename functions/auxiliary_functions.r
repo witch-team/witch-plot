@@ -14,7 +14,7 @@ saveplot <- function(plotname, width=7, height=5, text_size=10, plotdata=NULL, s
   if(!exists("legend_position")){legend_position = "bottom"}
   if(legend_position=="bottom"){legend_direction="horizontal"}else{legend_direction="vertical"}
   if(transparent){transparent_background <- theme(legend.background = element_blank(), panel.background = element_blank(), plot.background = element_rect(fill = "transparent",colour = NA))}else{transparent_background = NULL}
-  print(last_plot() + labs(title=if(add_title){plotname}else{""}) + theme(text = element_text(size=text_size), legend.position=legend_position, legend.direction = legend_direction, legend.key = element_rect(colour = NA), legend.title=element_blank()) + transparent_background); 
+  print(last_plot() + labs(title=if(add_title){plotname}else{""}) + theme(plot.title = element_text(hjust = 0.5)) + theme(text = element_text(size=text_size), legend.position=legend_position, legend.direction = legend_direction, legend.key = element_rect(colour = NA), legend.title=element_blank()) + transparent_background); 
   ggsave(filename=paste0(graphdir,as.character(gsub(" ", "_", plotname)),suffix,".",figure_format), plot = last_plot() + labs(title=if(add_title){plotname}else{""}) + theme(text = element_text(size=text_size), legend.position=legend_position, legend.direction = legend_direction, legend.key = element_rect(colour = NA), legend.title=element_blank()), width=width, height=height, bg = "transparent")
   if(!is.null(plotdata) & export_plotdata){write.xlsx(subset(plotdata, select=-pathdir), file = paste0(graphdir,as.character(gsub(" ", "_", plotname, suffix)),".xlsx"))}
 }

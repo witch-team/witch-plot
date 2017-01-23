@@ -20,7 +20,8 @@ Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", re
   GDP$t <- as.factor(GDP$t)
   GDP$pathdir <- as.factor(GDP$pathdir)
   GDP$file <- as.factor(GDP$file)
-  GDP_WORLD <- GDP[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
+  GDP_WORLD <- GDP; GDP_WORLD$n <- NULL
+  GDP_WORLD <- GDP_WORLD[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
   GDP_WORLD$n <- "WORLD"
   GDP <- rbind(GDP, GDP_WORLD)
   GDP$t <- as.numeric(GDP$t)
@@ -61,10 +62,10 @@ Q <- subset(Q, t %in% seq(1,30))
 get_witch_simple("COST_PES")
 get_witch_simple("COST_EMI")
 get_witch_simple("SRM_COST"); setnames(SRM_COST, "value", "SRM_COST")
-COST_EMI$e <- as.factor(COST_EMI$e)
-COST_PES$f <- as.factor(COST_PES$f)
-COST_EMI <- COST_EMI[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; COST_EMI$e <- NULL; setnames(COST_EMI, "value", "COST_EMI")
-COST_PES <- COST_PES[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; COST_PES$f <- NULL; setnames(COST_PES, "value", "COST_PES")
+COST_EMI$e <- NULL;
+COST_EMI <- COST_EMI[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; setnames(COST_EMI, "value", "COST_EMI")
+COST_PES$f <- NULL;
+COST_PES <- COST_PES[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; setnames(COST_PES, "value", "COST_PES")
 Q <- merge(Q, COST_EMI, by = c("t", "n", "file", "pathdir"))
 Q <- merge(Q, COST_PES, by = c("t", "n", "file", "pathdir"))
 Q <- merge(Q, SRM_COST, by = c("t", "n", "file", "pathdir"), all = T)
@@ -83,10 +84,10 @@ if(measure=="Consumption"){coopbau_Q <- subset(coopbau_Q, iq=="cc")}
 setnames(coopbau_Q, "value", "coopbau"); coopbau_Q$iq <- NULL
 coopbau_COST_EMI <- data.table(coopbaugdxfile["COST_EMI"])
 coopbau_COST_PES <- data.table(coopbaugdxfile["COST_PES"])
-coopbau_COST_EMI$e <- as.factor(coopbau_COST_EMI$e)
-coopbau_COST_PES$f <- as.factor(coopbau_COST_PES$f)
-coopbau_COST_EMI <- coopbau_COST_EMI[, lapply(.SD, sum), by=c("t", "n")]; coopbau_COST_EMI$e <- NULL; setnames(coopbau_COST_EMI, "value", "COST_EMI")
-coopbau_COST_PES <- coopbau_COST_PES[, lapply(.SD, sum), by=c("t", "n")]; coopbau_COST_PES$f <- NULL; setnames(coopbau_COST_PES, "value", "COST_PES")
+coopbau_COST_EMI$e <- NULL;
+coopbau_COST_EMI <- coopbau_COST_EMI[, lapply(.SD, sum), by=c("t", "n")];  setnames(coopbau_COST_EMI, "value", "COST_EMI")
+coopbau_COST_PES$f <- NULL;
+coopbau_COST_PES <- coopbau_COST_PES[, lapply(.SD, sum), by=c("t", "n")]; setnames(coopbau_COST_PES, "value", "COST_PES")
 coopbau_Q <- merge(coopbau_Q, coopbau_COST_EMI, by = c("t", "n"))
 coopbau_Q <- merge(coopbau_Q, coopbau_COST_PES, by = c("t", "n"))
 coopbau_Q$COSTcoopbau <- coopbau_Q$COST_EMI + coopbau_Q$COST_PES
@@ -128,9 +129,11 @@ DAM_DECOMP$t <- as.factor(DAM_DECOMP$t)
 DAM_DECOMP$pathdir <- as.factor(DAM_DECOMP$pathdir)
 DAM_DECOMP$file <- as.factor(DAM_DECOMP$file)
 DAM_DECOMP <- as.data.table(DAM_DECOMP)
-DAM_DECOMP_WORLD <- DAM_DECOMP[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
+DAM_DECOMP_WORLD <- DAM_DECOMP; DAM_DECOMP_WORLD$n <- NULL
+DAM_DECOMP_WORLD <- DAM_DECOMP_WORLD[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
 DAM_DECOMP_WORLD$n <- "WORLD"
 DAM_DECOMP <- rbind(DAM_DECOMP, DAM_DECOMP_WORLD)
+assign("DAM_DECOMP", DAM_DECOMP, envir = .GlobalEnv)
 
 #now aggregate to NPV discounted values (PC)
 DAM_DECOMP_NPV <- DAM_DECOMP
@@ -143,6 +146,7 @@ DAM_DECOMP_NPV$"Geoengineering costs" <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_
 DAM_DECOMP_NPV$"bau"  <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"bau" 
 
 DAM_DECOMP_NPV <- subset(DAM_DECOMP_NPV, t<=tmax&t>=tmin)
+DAM_DECOMP_NPV$t <- NULL
 DAM_DECOMP_NPV <- as.data.table(DAM_DECOMP_NPV)[, lapply(.SD, sum), by=c("n", "file", "pathdir"), .SDcols = c("Mitigation costs", "Standard Climate impacts" , "Gradient Climate impacts", "Geoengineering impacts", "Geoengineering costs", "bau")]
 DAM_DECOMP_NPV$"Mitigation costs" = 100*DAM_DECOMP_NPV$"Mitigation costs"/DAM_DECOMP_NPV$bau
 DAM_DECOMP_NPV$"Standard Climate impacts" = 100*DAM_DECOMP_NPV$"Standard Climate impacts"/DAM_DECOMP_NPV$bau

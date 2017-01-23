@@ -84,9 +84,9 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
     #Plot for each variable
     if (aggregation == "global_sum")
     {
+      allfilesdata$n <- NULL
       if(length(pathdir)>=1){allfilesdata <- aggregate(value~t+file+pathdir, data=allfilesdata, sum)}
       else{allfilesdata <- aggregate(value~t+file, data=allfilesdata, sum)}
-      allfilesdata$n <- NULL
       #print(str(allfilesdata)); assign("test",allfilesdata,envir = .GlobalEnv)
       allfilesdata <- as.data.table(allfilesdata)
       if(cumulative)
@@ -111,9 +111,9 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
     } 
     if (aggregation == "global_mean")
     {
+      allfilesdata$n <- NULL      
       if(length(pathdir)>=1){allfilesdata <- allfilesdata[, lapply(.SD, mean), by=c("t", "file", "pathdir")]}
       else{allfilesdata <- allfilesdata[, lapply(.SD, mean), by=c("t", "file")]}
-      allfilesdata$n <- NULL
       if(ssp_grid){allfilesdata <- ssptriple(allfilesdata); line_colour = "rcp"; line_type="spa"}
       p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, colour=get(line_colour), linetype=get(line_type))) + geom_line(stat="identity", size=line_size) + xlab("year") +ylab(unit) + labs(linetype=line_type, colour=line_colour)
       if(show_numbers_2100){p <- p + geom_text(data=subset(allfilesdata, t==20), aes(x=2100, y=value, label=round(value, 2)))}

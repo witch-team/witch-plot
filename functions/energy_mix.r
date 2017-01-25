@@ -32,8 +32,8 @@ Primary_Energy_Mix <- function(PES_y="value", scenplot=scenlist, plot_only_histo
     
     TPES$j <- NULL
     #get global picture for now
-    TPES <- TPES[, lapply(.SD, sum), by=c("t", "file", "pathdir", "category")]
     TPES$n <- NULL
+    TPES <- TPES[, lapply(.SD, sum), by=c("t", "file", "pathdir", "category")]
     #Plot PES over time
     assign("PES_MIX",TPES,envir = .GlobalEnv)
 
@@ -66,7 +66,7 @@ Primary_Energy_Mix <- function(PES_y="value", scenplot=scenlist, plot_only_histo
     
     #now get also normal graph of total PES
     TPES <- PES_MIX  
-    TPES$category <- as.factor(TPES$category)
+    TPES$category <- NULL #as.factor(TPES$category)
     if(length(pathdir)>=1){TPES <- TPES[, lapply(.SD, sum), by=c("t", "file", "pathdir")]}
     else{TPES <- TPES[, lapply(.SD, sum), by=c("t", "file")]}
     if(ssp_grid){TPES <- ssptriple(TPES); line_colour = "rcp"; line_type="spa"}else{line_colour = "file"; line_type="pathdir"}
@@ -184,8 +184,8 @@ Electricity_Mix <- function(Electricity_y="value", scenplot=scenlist){
     
     ELEC$j <- NULL
     #get global picture for now
-    ELEC <- ELEC[, lapply(.SD, sum), by=c("t", "file", "pathdir", "category")]
     ELEC$n <- NULL
+    ELEC <- ELEC[, lapply(.SD, sum), by=c("t", "file", "pathdir", "category")]
     #Plot PES over time
     assign("ELEC_MIX",ELEC,envir = .GlobalEnv)
     if(Electricity_y=="share"){ELEC <- ddply(ELEC, c("t", "file", "pathdir"), transform, value=value/(sum(value))*100)}

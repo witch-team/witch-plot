@@ -276,7 +276,7 @@ Energy_Prices <- function(scenplot=scenlist){
     if(scen==unique(FPRICE$file)[1]){historical_witch=.historical_witch_temp}else{historical_witch <-rbind(historical_witch,.historical_witch_temp)}
   }
   FPRICE$file <- as.character(FPRICE$file)
-  prices_merged <- merge(subset(FPRICE, f!="uranium"), historical_witch, by = c("year", "f", "file"), all=TRUE)
+  prices_merged <- merge(subset(FPRICE, f %in% c("oil", "gas", "coal")), historical_witch, by = c("year", "f", "file"), all=TRUE)
   prices_merged[is.na(prices_merged)] <- 0
   prices_merged$value <- prices_merged$value.x + prices_merged$value.y
   p <- ggplot(prices_merged, aes(year, witch2iiasa*value, group=interaction(f, file), colour=f, linetype=file)) + geom_line(size = 1.0) + labs(x="", y="World Energy Prices ($/GJ)", colour="Fuel", linetype="scenario")

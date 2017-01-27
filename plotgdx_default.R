@@ -3,13 +3,13 @@ rm(list = ls())
 #Where you're WITCH code is located
 witch_folder = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
 #main directory of your results files
-main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/DeepDecarbComparison/"
+main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
 #main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/EnergyIntensity/Modeling/results_sspdb/"
 #main_directory = "U:\\SCAMBIO\\ADVANCEWP6RUNS\\"
 subdir = c("") #can be multiple directories
 
 removepattern=c("results_") #, "ssp2_", "_spa0")  # parts of the filename to remove
-restrict_files = "." #"."          # restrict files to contain this string
+restrict_files = "res." #"."          # restrict files to contain this string
 exclude_files = "report_"            # exclude some files
 
 #Name scenarios (otherwise it takes gdx filename)
@@ -20,7 +20,7 @@ exclude_files = "report_"            # exclude some files
 #Special focus regions to report for
 #regions_focus = c("china", "india", "sasia", "easia", "indonesia")
 
-yearmin=1990
+yearmin=1850
 yearmax = 2100
 
 #Initialize default options, load all witch and other functions
@@ -96,6 +96,7 @@ Carbon_Budget(regions=regions_focus, scenario="DIAG-C30-gr5", plotname="CO2 FFI 
 
 Investment_Plot(regions=regions_focus)
 
+Energy_Prices(scenplot = scenlist)
 
 #Map of WITCH regional aggregation
 #get_witch_simple("tfpn")

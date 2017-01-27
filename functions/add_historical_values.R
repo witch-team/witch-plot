@@ -6,20 +6,16 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   
   .gdx <- gdx(paste0(witch_folder, "data_", region_id, "/data_historical_values.gdx"))
   valid_suffix <- "_valid"  #for CO2IND emissions, set it to 
-  if(varname=="Q_EMI"){valid_suffix <- "_valid_oecd"}
+  if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"}
   if(!is.na(pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name))){
     print(paste0("Historical values added for '", varname, "'."))
     item <- .gdx$parameters$name[pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name)]
     .hist <- as.data.table(.gdx[item]) 
     
-    #recover set dependency from iso3 data
-    .gdxiso3 <- gdx(paste0(witch_folder, "input/build/data_historical_values.gdx"))
-    colnames(.hist) <-colnames(.gdxiso3[item])
-    setnames(.hist, "iso3", "n")
-    
+    #get set dependency based on WITCH variable
+    colnames(.hist) <- setdiff(colnames(variable), c("file", "pathdir"))
     #adjust time unit to model
-    .hist$year <- yeartot(.hist$year)
-    setnames(.hist, "year", "t")
+    .hist$t <- yeartot(.hist$t)
     t_historical<-unique(.hist$t)
     #adjust scenario names
     .hist$n  <- mapvalues(.hist$n , from=witch_regions, to=display_regions)

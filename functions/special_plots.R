@@ -289,3 +289,113 @@ Plot_Global_Emissions <- function(show_ar5=TRUE, ar5_budget=2000, bauscen="ssp2_
   assign("Global_Abatement_Data", Abatement, envir = .GlobalEnv)  
 }
 
+
+Energy_Prices <- function(scenplot=scenlist){
+  #unit conversion factor
+  witch2iiasa = (1000/0.0036)  #T$/TWH to $/GJ
+  twh2ej = 0.0036
+  gj2boe = 5.86152
+  for (variable_name in c("FPRICE","CPRICE")){   
+    for (file in filelist) {
+      #read data from GDX file
+      mygdx <- gdx(paste(pathdir, file,".gdx",sep=""))
+      tempdata <- mygdx[variable_name]
+      if(nrow(tempdata)!=0){tempdata$file <- as.character(gsub("results_","",file))}
+      if(file==filelist[1]){allfilesdata=tempdata}else{allfilesdata <-rbind(allfilesdata,tempdata)}
+      #create dataframe based on variable_name
+      remove(tempdata)
+    }
+    assign(variable_name, allfilesdata)
+  }
+  # energy price charts  (gas prices are EU, Japan, USA. Coal is Europe, Oil is WTI)
+  historical_energy_prices_table <-"year coal	oil	gas_eu	gas_jpn	gas
+  1987	1.046822742	3.138895876	2.018957346	0	          1.575829384
+  1988	1.335785953	2.613507823	1.800947867	0	          1.59399684
+  1989	1.40735786	3.220329804	1.504739336	0	          1.60821485
+  1990	1.454180602	4.009483584	1.928909953	0	          1.609794629
+  1991	1.431438127	3.524921882	2.8507109		0           1.409162717
+  1992	1.288628763	3.366475728	2.241706161	3.548183254	1.679304897
+  1993	1.126421405	3.01962689	2.462875197	3.409952607	2.010268562
+  1994	1.243478261	2.815976285	2.191943128	3.113744076	1.819905213
+  1995	1.488294314	3.015145663	2.555292259	3.371248025	1.632701422
+  1996	1.379598662	3.626440229	2.606635071	3.699052133	2.591627172
+  1997	1.301672241	3.372532013	2.530805687	3.564770932	2.352369668
+  1998	1.070234114	2.354408871	2.127962085	2.610584518	1.978120063
+  1999	0.962876254	3.161057283	1.713270142	3.168246445	2.14849921
+  2000	1.20367893	4.969981391	3.274881517	4.962085308	4.083728278
+  2001	1.305492668	4.244156203	3.671406003	4.425750395	3.749605055
+  2002	1.058515565	4.28188216	2.52685624	4.195892575	3.180094787
+  2003	1.458123231	5.084863191	3.304897314	4.721169036	5.205670774
+  2004	2.410644456	6.790129427	3.559241706	5.583728278	5.587551786
+  2005	2.024723437	9.262012504	5.606635071	6.665876777	8.450874717
+  2006	2.14408284	10.80553429	7.78436019	7.629541864	6.36923516
+  2007	2.969404425	11.81723622	7.718009479	7.97235387	6.617962736
+  2008	4.938918189	16.37682658	12.45260664	10.98657188	8.395452522
+  2009	2.36317284	10.13464309	8.393364929	7.100315956	3.744352291
+  2010	3.093632622	13.00318203	7.793838863	8.89178515	4.156638644
+  2011	4.064297659	15.55416306	10.04423381	14.74249605	3.790121852
+  2012	3.093632622	15.40533773	11.35624013	17.19905213	2.6085703
+  2013	0           0        		10.60584518	16.42101106	3.534386211"
+  historical_energy_prices <- read.table(textConnection(historical_energy_prices_table), sep="", head=T, dec=".")
+  historical_energy_prices <- melt(historical_energy_prices,id.vars="year")
+  historical_witch <- historical_energy_prices; historical_witch$value = historical_witch$value / witch2iiasa; setnames(historical_witch, "variable", "f")
+  historical_witch <- subset(historical_witch, f %in% unique(FPRICE$f))
+  
+  FPRICE$year=as.numeric(FPRICE$t) * 5 + 2000; FPRICE$t <- NULL
+  FPRICE$f <- as.factor(FPRICE$f); FPRICE$file <- as.factor(FPRICE$file)
+  #ggplot(subset(FPRICE, f!="uranium"&year<=yearmax), aes(year, witch2iiasa*value, group=interaction(f, file), colour=f, linetype=file)) + geom_line(size = 1.0) + labs(x="", y="World Energy Prices ($/GJ)", colour="Fuel", linetype="scenario")
+  #saveplot("World Energy Prices Timeseries")
+  FPRICE <- subset(FPRICE, file %in% scenplot)
+  FPRICE <- subset(FPRICE, year>2013); 
+  historical_witch$year <- as.numeric(historical_witch$year) 
+  historical_witch <- subset(historical_witch, year<2013); 
+  FPRICE$f <- as.character(FPRICE$f);historical_witch$f <- as.character(historical_witch$f)
+  #add it for each scenario
+  .historical_witch_temp <- historical_witch
+  for(scen in unique(FPRICE$file))
+  {
+    .historical_witch_temp$file <- scen
+    if(scen==unique(FPRICE$file)[1]){historical_witch=.historical_witch_temp}else{historical_witch <-rbind(historical_witch,.historical_witch_temp)}
+  }
+  FPRICE$file <- as.character(FPRICE$file)
+  prices_merged <- merge(subset(FPRICE, f %in% c("oil", "gas", "coal")), historical_witch, by = c("year", "f", "file"), all=TRUE)
+  prices_merged[is.na(prices_merged)] <- 0
+  prices_merged$value <- prices_merged$value.x + prices_merged$value.y   #to keep both series
+  #prices_merged$value.x <- NUL; prices_merged$value.y <- NULL
+  p <- ggplot(prices_merged, aes(year, witch2iiasa*value, group=interaction(f, file), colour=f, linetype=file)) + geom_line(size = 1.0) + labs(x="", y="World Energy Prices ($/GJ)", colour="Fuel", linetype="scenario")
+  legend_position = "right"
+  saveplot("World Energy Prices", plotdata = prices_merged)
+  Energy_Price_Data <- prices_merged
+  Energy_Price_Data$value.x <- NULL
+  Energy_Price_Data$value.y <- NULL
+  Energy_Price_Data$year <- yeartot(Energy_Price_Data$year); setnames(Energy_Price_Data, "year", "t")
+  setnames(Energy_Price_Data, "value", "energy_price"); Energy_Price_Data$energy_price <- Energy_Price_Data$energy_price
+  assign("Energy_Price_Data", Energy_Price_Data, envir = .GlobalEnv)  
+}
+
+
+
+
+Energy_Trade <- function(fuel="oil", scenplot=scenlist){
+  get_witch_variable("Q_OUT", "Extraction", "f", fuel, 1, "TWh", "regional", plot = F)
+  get_witch_variable("Q_PES", "Consumption", "f", fuel, 1, "TWh", "regional", plot = F)
+  NET_EXPORT <- Q_OUT
+  setnames(NET_EXPORT, "value", "Extraction")
+  NET_EXPORT <- merge(NET_EXPORT, Q_PES, by = c("t", "n", "file", "pathdir"))
+  setnames(NET_EXPORT, "value", "Consumption")
+  Energy_Prices(scenplot=scenlist)
+  NET_EXPORT <- merge(NET_EXPORT, subset(Energy_Price_Data, f==fuel), by = c("t", "file"), all.x = TRUE)
+  #volume in EJ, prices in $/GJ, value in billion USD
+  NET_EXPORT$Net_Export_Volume <- (NET_EXPORT$Extraction - NET_EXPORT$Consumption) * 0.0036
+  NET_EXPORT$Net_Export_Value <- ((NET_EXPORT$Extraction - NET_EXPORT$Consumption) * NET_EXPORT$energy_price) * 1e3
+  NET_EXPORT$pathdir <- NULL
+  NET_EXPORT$f <- NULL
+  NET_EXPORT <- NET_EXPORT[!is.na(energy_price)]
+  NET_EXPORT <- melt(NET_EXPORT, id.vars = c("t", "n", "file"))
+  
+  ggplot(subset(NET_EXPORT, file %in% scenplot & variable %in% c("Net_Export_Volume", "Net_Export_Value")),aes(ttoyear(t),value, fill=n)) + geom_area(stat="identity") + facet_grid(variable ~ file, scales = "free") + ylab("billion USD / EJ") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") + scale_fill_manual(values = region_palette)
+  saveplot(paste("Energy Trade:", fuel), plotdata = NET_EXPORT)
+}
+
+
+

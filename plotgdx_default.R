@@ -56,9 +56,10 @@ get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2", 3.67, "GtCO2", "global_
 get_witch_variable("SRM", "SRM_regional", "na", "na", 1, "TgS", "regional")
 get_witch_variable("OMEGA", "Damages", "na", "na", 1, "%", "regional")
 get_witch_variable("Q_OUT", "Oil_Extraction", "f", "oil", 1, "TWh", "regional")
+
 Energy_Trade(fuel = "oil")
 
-
+Energy_Prices(unit = "boe", scenplot = scenlist)
 
 #calibration
 #get_witch_variable("tpes_kali", "TPES", "na", "na", 0.0036, "EJ", "regional")

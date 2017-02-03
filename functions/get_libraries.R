@@ -13,20 +13,6 @@ require_package <- function(package){
 }
 
 require_gdxtools <- function(){
-  # gdxrrw
-  if(!suppressMessages(suppressWarnings(require(gdxrrw, quietly = TRUE)))){
-    if (Sys.info()['sysname']=="Windows") {
-      require_package("reshape2")
-      download.file("https://support.gams.com/_media/gdxrrw:gdxrrw_0.5.4.zip","gdxrrw_0.5.4.zip",method="curl")
-      install.packages("gdxrrw_0.5.4.zip",repos=NULL)
-    } else {
-      install_if_needed_and_load("reshape2")
-      download.file("https://support.gams.com/_media/gdxrrw:gdxrrw_0.5.4.tar.gz","gdxrrw_0.5.4.tar.gz",method="curl")
-      install.packages("gdxrrw_0.5.4.tar.gz",repos=NULL)
-    }
-    suppressPackageStartupMessages(library(gdxrrw, quietly = TRUE))
-  }
-  
   # gdxtools
   if(!suppressMessages(suppressWarnings(require(gdxtools, quietly = TRUE)))){ 
     require_package("devtools")
@@ -35,7 +21,7 @@ require_gdxtools <- function(){
     suppressPackageStartupMessages(library(gdxtools, quietly = TRUE))
   }
   
-  if(packageVersion("gdxtools")<numeric_version("0.3.4")){
-    stop("You need to install a newer version of gdxtools (>=0.3.4). Please run remove.packages('gdxtools', restart R and rerun this script.")
+  if(packageVersion("gdxtools")<numeric_version("0.4.0")){
+    stop("You need to install a newer version of gdxtools (>=0.4.0). Please run remove.packages('gdxtools', restart R and rerun this script.")
   }
 }

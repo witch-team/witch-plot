@@ -290,7 +290,7 @@ Plot_Global_Emissions <- function(show_ar5=TRUE, ar5_budget=2000, bauscen="ssp2_
 }
 
 
-Energy_Prices <- function(scenplot=scenlist){
+Energy_Prices <- function(unit="GJ", scenplot=scenlist){
   #unit conversion factor
   witch2iiasa = (1000/0.0036)  #T$/TWH to $/GJ
   twh2ej = 0.0036
@@ -362,7 +362,8 @@ Energy_Prices <- function(scenplot=scenlist){
   prices_merged[is.na(prices_merged)] <- 0
   prices_merged$value <- prices_merged$value.x + prices_merged$value.y   #to keep both series
   #prices_merged$value.x <- NUL; prices_merged$value.y <- NULL
-  p <- ggplot(prices_merged, aes(year, witch2iiasa*value, group=interaction(f, file), colour=f, linetype=file)) + geom_line(size = 1.0) + labs(x="", y="World Energy Prices ($/GJ)", colour="Fuel", linetype="scenario")
+  if(unit=="GJ"){p <- ggplot(prices_merged, aes(year, witch2iiasa*value, group=interaction(f, file), colour=f, linetype=file)) + geom_line(size = 1.0) + labs(x="", y="World Energy Prices ($/GJ)", colour="Fuel", linetype="scenario")}
+  else{p <- ggplot(prices_merged, aes(year, gj2boe*witch2iiasa*value, group=interaction(f, file), colour=f, linetype=file)) + geom_line(size = 1.0) + labs(x="", y="World Energy Prices ($/boe)", colour="Fuel", linetype="scenario")}
   legend_position = "right"
   saveplot("World Energy Prices", plotdata = prices_merged)
   Energy_Price_Data <- prices_merged

@@ -103,6 +103,7 @@ region_palette_specific <- c(usa="darkblue",
 region_palette <- c(region_palette_specific, region_palette_rainbow)
 if(!exists("regions_focus")){regions_focus <- witch_regions}
 print(paste("Regional aggregation:", region_id))
+witch_colors_alphabetic <- c("chartreuse4", "deeppink3", "orangered", "khaki1", "darkgreen", "gold", "darkgoldenrod4", "cornflowerblue", "blue", "darkorange2", "goldenrod", "gold2", "darkblue")
 
 
 #load specialized functions

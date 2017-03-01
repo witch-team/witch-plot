@@ -97,10 +97,8 @@ Q <- merge(Q, coopbau_Q, by=c("n", "t"), all = TRUE)
 Q[str_detect(file, "coop")]$bau <- Q[str_detect(file, "coop")]$coopbau
 Q[str_detect(file, "coop")]$COSTbau <- Q[str_detect(file, "coop")]$COSTcoopbau
 }
-
-
-
 #end routine to get coop bau
+
 
 setnames(Q, "value", "Consumption (net)")   #MEANING : Q.l value
 DAM_DECOMP <- merge(dam_rep, Q, by = c("t", "n", "file", "pathdir"))
@@ -115,12 +113,12 @@ DAM_DECOMP[is.na(DAM_DECOMP)] <- 0
 #DAM_DECOMP <- subset(DAM_DECOMP, file %in% scenplot)
 
 DAM_DECOMP$"Consumption (gross)" <- (DAM_DECOMP$"Consumption (net)" + DAM_DECOMP$COST) * (1 + DAM_DECOMP$standard_gross + DAM_DECOMP$gradient_damage + DAM_DECOMP$geoeng) - DAM_DECOMP$COST
-DAM_DECOMP$"Mitigation costs" <- (DAM_DECOMP$"bau") - (DAM_DECOMP$"Consumption (gross)") - DAM_DECOMP$SRM_COST
+DAM_DECOMP$"Residual costs" <- (DAM_DECOMP$"bau") - (DAM_DECOMP$"Consumption (gross)") - DAM_DECOMP$SRM_COST
 #DAM_DECOMP$"Mitigation costs" <- DAM_DECOMP$"Mitigation costs" - (DAM_DECOMP$COST - DAM_DECOMP$COSTbau)
 DAM_DECOMP$"Standard Climate impacts" <- (DAM_DECOMP$"Consumption (gross)" - DAM_DECOMP$"Consumption (net)") * DAM_DECOMP$standard_gross / (DAM_DECOMP$standard_gross + DAM_DECOMP$gradient_damage + DAM_DECOMP$geoeng)
 DAM_DECOMP$"Gradient Climate impacts" <- (DAM_DECOMP$"Consumption (gross)" - DAM_DECOMP$"Consumption (net)") * DAM_DECOMP$gradient_damage / (DAM_DECOMP$standard_gross + DAM_DECOMP$gradient_damage + DAM_DECOMP$geoeng)
-DAM_DECOMP$"Geoengineering impacts" <- (DAM_DECOMP$"Consumption (gross)" - DAM_DECOMP$"Consumption (net)") * DAM_DECOMP$geoeng / (DAM_DECOMP$standard_gross + DAM_DECOMP$gradient_damage + DAM_DECOMP$geoeng)
-DAM_DECOMP$"Geoengineering costs" <- DAM_DECOMP$SRM_COST
+DAM_DECOMP$"SRM impacts" <- (DAM_DECOMP$"Consumption (gross)" - DAM_DECOMP$"Consumption (net)") * DAM_DECOMP$geoeng / (DAM_DECOMP$standard_gross + DAM_DECOMP$gradient_damage + DAM_DECOMP$geoeng)
+DAM_DECOMP$"SRM costs" <- DAM_DECOMP$SRM_COST
 
 DAM_DECOMP <- subset(DAM_DECOMP, file %in% scenplot)
 #add world values
@@ -138,24 +136,25 @@ assign("DAM_DECOMP", DAM_DECOMP, envir = .GlobalEnv)
 #now aggregate to NPV discounted values (PC)
 DAM_DECOMP_NPV <- DAM_DECOMP
 DAM_DECOMP_NPV$t <- as.numeric(DAM_DECOMP_NPV$t)
-DAM_DECOMP_NPV$"Mitigation costs" <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"Mitigation costs"
+DAM_DECOMP_NPV$"Residual costs" <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"Residual costs"
 DAM_DECOMP_NPV$"Standard Climate impacts" <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"Standard Climate impacts"
 DAM_DECOMP_NPV$"Gradient Climate impacts" <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"Gradient Climate impacts" 
-DAM_DECOMP_NPV$"Geoengineering impacts" <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"Geoengineering impacts"
-DAM_DECOMP_NPV$"Geoengineering costs" <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"Geoengineering costs"
+DAM_DECOMP_NPV$"SRM impacts" <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"SRM impacts"
+DAM_DECOMP_NPV$"SRM costs" <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"SRM costs"
 DAM_DECOMP_NPV$"bau"  <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"bau" 
 
 DAM_DECOMP_NPV <- subset(DAM_DECOMP_NPV, t<=tmax&t>=tmin)
 DAM_DECOMP_NPV$t <- NULL
-DAM_DECOMP_NPV <- as.data.table(DAM_DECOMP_NPV)[, lapply(.SD, sum), by=c("n", "file", "pathdir"), .SDcols = c("Mitigation costs", "Standard Climate impacts" , "Gradient Climate impacts", "Geoengineering impacts", "Geoengineering costs", "bau")]
-DAM_DECOMP_NPV$"Mitigation costs" = 100*DAM_DECOMP_NPV$"Mitigation costs"/DAM_DECOMP_NPV$bau
+DAM_DECOMP_NPV <- as.data.table(DAM_DECOMP_NPV)[, lapply(.SD, sum), by=c("n", "file", "pathdir"), .SDcols = c("Residual costs", "Standard Climate impacts" , "Gradient Climate impacts", "SRM impacts", "SRM costs", "bau")]
+DAM_DECOMP_NPV$"Residual costs" = 100*DAM_DECOMP_NPV$"Residual costs"/DAM_DECOMP_NPV$bau
 DAM_DECOMP_NPV$"Standard Climate impacts" = 100*DAM_DECOMP_NPV$"Standard Climate impacts"/DAM_DECOMP_NPV$bau
-DAM_DECOMP_NPV$"Geoengineering impacts" = 100*DAM_DECOMP_NPV$"Geoengineering impacts"/DAM_DECOMP_NPV$bau
-DAM_DECOMP_NPV$"Geoengineering costs" = 100*DAM_DECOMP_NPV$"Geoengineering costs"/DAM_DECOMP_NPV$bau
+DAM_DECOMP_NPV$"SRM impacts" = 100*DAM_DECOMP_NPV$"SRM impacts"/DAM_DECOMP_NPV$bau
+DAM_DECOMP_NPV$"SRM costs" = 100*DAM_DECOMP_NPV$"SRM costs"/DAM_DECOMP_NPV$bau
 DAM_DECOMP_NPV$"bau" <- NULL
 DAM_DECOMP_NPV <- melt(DAM_DECOMP_NPV, id.vars = c("n", "file", "pathdir"))
 #add totals for labels
 DAM_DECOMP_NPV <- ddply(DAM_DECOMP_NPV, .(file, n), transform, total = cumsum(value))
+assign("DAM_DECOMP_NPV", DAM_DECOMP_NPV, envir = .GlobalEnv)
 #Plot
 #dodged just to see negative values
 print(ggplot(subset(DAM_DECOMP_NPV, n %in% regions & file!=bauscen)) + geom_bar(position=position_dodge(), stat="identity",aes(file, value, fill=variable), show.legend = TRUE) +ylab(paste("% of", measure, "(NPV)")) + xlab("") + theme(legend.position="bottom",legend.direction="horizontal") + guides(fill=guide_legend(title=NULL, nrow = 1)))

@@ -2,7 +2,7 @@
 
 
 
-witchmap <- function(variable_report, file_report, t_report=20, scale_min=0, scale_max=0, mapcolor="Reds", map_name="map", map_legend="Legend", region_id="witch13", plot_witch_regions=FALSE){
+witchmap <- function(variable_report, file_report, t_report=20, scale_min=0, scale_max=0, mapcolor="Reds", map_name="map", map_legend="Legend", plot_witch_regions=FALSE){
   #library(ggplot2)
   library(rworldmap)
   #library(data.table)
@@ -69,13 +69,22 @@ witchmap <- function(variable_report, file_report, t_report=20, scale_min=0, sca
   World.map <- ggplot(Nations, aes(x = long, y = lat))
   Country.layer <- c(geom_polygon(data = Nations, aes(x = long, y = lat, group = group, fill=n)))
   Borders.layer <- c(geom_path(data = Nations, aes(x = long, y = lat, group = group), color="darkgray", size=0.1))  
+  
+  #add center location:
+  region_centers <- aggregate(cbind(long, lat) ~ n, data=subset(Nations), FUN=function(x)mean(x+360)-360);
+  
   p <- World.map + Country.layer + Borders.layer +
   theme_minimal() + labs(x = "", y =  "") +
   theme(axis.line=element_blank(), axis.text.x=element_blank(), axis.text.y=element_blank(),axis.ticks=element_blank(),
   axis.title.x=element_blank(),axis.title.y=element_blank(), panel.grid.major=element_blank(),plot.background=element_blank(), panel.grid.minor=element_blank()) +
-  scale_colour_manual(values = region_palette)
+  scale_fill_manual(values = region_palette)
+  #Add centers
+  p <- p + geom_text(data=region_centers, aes(long, lat, label = n), size=4)
   print(p)
   savemap(map_name)  
+  print("Region centers and distances:")
+  assign("region_centers", region_centers, envir = .GlobalEnv)
+  assign("region_distances", as.matrix(CalcDists(region_centers)), envir = .GlobalEnv)
   }
 }
 
@@ -133,4 +142,57 @@ countrymap <- function(data_for_map, datacolname="value", scale_min=0, scale_max
     theme(legend.position="right") + scale_fill_continuous(name=map_legend, low = "green", high = "red" , na.value = "grey") + ggtitle("")
   savemap(map_name)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+#functions to calculate distances (adapted from https://gist.github.com/sckott/931445)
+
+# Convert degrees to radians
+deg2rad <- function(deg) return(deg*pi/180)
+
+# Calculates the geodesic distance between two points specified by 
+# radian latitude/longitude using the Haversine formula
+# Ouputs distance between sites 1 and 2 as meters
+gcd.hf <- function(long1, lat1, long2, lat2) {
+  R <- 6371 # Earth mean radius [km]
+  delta.long <- (long2 - long1)
+  delta.lat <- (lat2 - lat1)
+  a <- sin(delta.lat/2)^2 + cos(lat1) * cos(lat2) * sin(delta.long/2)^2
+  c <- 2 * asin(min(1,sqrt(a)))
+  d = (R * c)*1000
+  return(d) # Distance in meters
+}
+
+# Fxn to calculate matrix of distances between each two sites
+# INPUT: a data frame in which longs are in first column and lats in second column
+# OUTPUT: a distance matrix (class dist) between all pairwise sites
+# Output distances are in meters
+CalcDists <- function(longlats) {
+  name <- longlats[1]
+  n <- nrow(longlats)
+  z <- matrix(0, n, n, dimnames = name)
+  for (i in 1:n) {
+    for (j in 1:n) z[i, j] <- gcd.hf(long1 = deg2rad(longlats[i, 2]), 
+                                     lat1 = deg2rad(longlats[i, 3]), long2 = deg2rad(longlats[j, 2]), 
+                                     lat2 = deg2rad(longlats[j, 3]))
+  }
+  z <- as.dist(z)
+  return(z/1000) #in kilometers
+}
+
+
+
+
+
+
+
 

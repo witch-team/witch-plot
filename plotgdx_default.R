@@ -9,7 +9,7 @@ main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_C
 subdir = c("") #can be multiple directories
 
 removepattern=c("results_") #, "ssp2_", "_spa0")  # parts of the filename to remove
-restrict_files = "res." #"."          # restrict files to contain this string
+restrict_files = "witch16" #"."          # restrict files to contain this string
 exclude_files = "report_"            # exclude some files
 
 #Name scenarios (otherwise it takes gdx filename)
@@ -104,9 +104,20 @@ Energy_Prices(scenplot = scenlist)
 
 #Map of WITCH regional aggregation
 #get_witch_simple("tfpn")
-#witchmap(tfpn, file_report="BAU", t_report=5, mapcolor="Blues", map_name="WITCH Regions", region_id="witch14eu", plot_witch_regions=TRUE)
+#witchmap(tfpn, file_report=scenlist[1], t_report=5, mapcolor="Blues", map_name="WITCH Regions", plot_witch_regions=TRUE)
 
 source('functions/close_functions.R') #finishes PDF, shows welfare
 
 
+
+
+#function to save fate for Soheil format
+writewitchcsv <- function(data, csvfilename="data"){
+  data <- subset(data, select=c(t,n,value))
+  data$t <- ttoyear(data$t)
+  data<- dcast(data, formula = t ~ n)
+  write.csv(data, file=paste0(graphdir, csvfilename, ".csv"), row.names = FALSE)
+}
+
+writewitchcsv(l, "population")
 

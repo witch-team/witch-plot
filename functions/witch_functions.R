@@ -93,14 +93,22 @@ region_palette_specific <- c(usa="darkblue",
                     India="khaki1",
                     europe="blue",
                     Europe="blue", 
-                    indonesia="brown", 
-                    Indonesia="brown", 
+                    indonesia="darkseagreen", 
+                    Indonesia="darkseagreen", 
                     Rest_of_World="grey48",
                     chinaw="darkorange",
                     chinac="darkorange2",
                     chinae="darkorange4",
-                    italy="green")
-region_palette <- c(region_palette_specific, region_palette_rainbow)
+                    italy="green",
+                    mexico="slateblue2",
+                    brazil="tomato4",
+                    canada="blueviolet",
+                    jpnkor="lightsalmon3",
+                    pacific="forestgreen",
+                    southafrica="indianred3",
+                    seasia="orangered" 
+                    )
+region_palette <- region_palette_specific #c(region_palette_specific, region_palette_rainbow)
 if(!exists("regions_focus")){regions_focus <- witch_regions}
 print(paste("Regional aggregation:", region_id))
 witch_colors_alphabetic <- c("chartreuse4", "deeppink3", "orangered", "khaki1", "darkgreen", "gold", "darkgoldenrod4", "cornflowerblue", "blue", "darkorange2", "goldenrod", "gold2", "darkblue")

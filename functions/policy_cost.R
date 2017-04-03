@@ -59,18 +59,18 @@ if(measure=="Consumption"){Q <- subset(Q, iq=="cc")}
 Q$iq <- NULL
 Q <- subset(Q, t %in% seq(1,30))
 #add emission reduction and PES costs to get full gross GDP
-get_witch_simple("COST_PES")
+get_witch_simple("COST_FUEL")
 get_witch_simple("COST_EMI")
 get_witch_simple("SRM_COST"); setnames(SRM_COST, "value", "SRM_COST")
 COST_EMI$e <- NULL;
 COST_EMI <- COST_EMI[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; setnames(COST_EMI, "value", "COST_EMI")
-COST_PES$f <- NULL;
-COST_PES <- COST_PES[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; setnames(COST_PES, "value", "COST_PES")
+COST_FUEL$fuel <- NULL;
+COST_FUEL <- COST_FUEL[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; setnames(COST_FUEL, "value", "COST_FUEL")
 Q <- merge(Q, COST_EMI, by = c("t", "n", "file", "pathdir"))
-Q <- merge(Q, COST_PES, by = c("t", "n", "file", "pathdir"))
+Q <- merge(Q, COST_FUEL, by = c("t", "n", "file", "pathdir"))
 Q <- merge(Q, SRM_COST, by = c("t", "n", "file", "pathdir"), all = T)
-Q$COST <- Q$COST_EMI + Q$COST_PES + Q$SRM_COST
-Q$COST_EMI <- NULL; Q$COST_PES <- NULL 
+Q$COST <- Q$COST_EMI + Q$COST_FUEL + Q$SRM_COST
+Q$COST_EMI <- NULL; Q$COST_FUEL <- NULL 
 #finished adding COSTs
 
 bau <- subset(Q, file==bauscen); bau$SRM_COST <- NULL; setnames(bau, "value", "bau"); setnames(bau, "COST", "COSTbau"); bau$file <- NULL
@@ -83,15 +83,15 @@ if(measure=="GDP"){coopbau_Q <- subset(coopbau_Q, iq=="y")}
 if(measure=="Consumption"){coopbau_Q <- subset(coopbau_Q, iq=="cc")}
 setnames(coopbau_Q, "value", "coopbau"); coopbau_Q$iq <- NULL
 coopbau_COST_EMI <- data.table(coopbaugdxfile["COST_EMI"])
-coopbau_COST_PES <- data.table(coopbaugdxfile["COST_PES"])
+coopbau_COST_FUEL <- data.table(coopbaugdxfile["COST_FUEL"])
 coopbau_COST_EMI$e <- NULL;
 coopbau_COST_EMI <- coopbau_COST_EMI[, lapply(.SD, sum), by=c("t", "n")];  setnames(coopbau_COST_EMI, "value", "COST_EMI")
-coopbau_COST_PES$f <- NULL;
-coopbau_COST_PES <- coopbau_COST_PES[, lapply(.SD, sum), by=c("t", "n")]; setnames(coopbau_COST_PES, "value", "COST_PES")
+coopbau_COST_FUEL$fuel <- NULL;
+coopbau_COST_FUEL <- coopbau_COST_FUEL[, lapply(.SD, sum), by=c("t", "n")]; setnames(coopbau_COST_FUEL, "value", "COST_FUEL")
 coopbau_Q <- merge(coopbau_Q, coopbau_COST_EMI, by = c("t", "n"))
-coopbau_Q <- merge(coopbau_Q, coopbau_COST_PES, by = c("t", "n"))
-coopbau_Q$COSTcoopbau <- coopbau_Q$COST_EMI + coopbau_Q$COST_PES
-coopbau_Q$COST_EMI <- NULL; coopbau_Q$COST_PES <- NULL 
+coopbau_Q <- merge(coopbau_Q, coopbau_COST_FUEL, by = c("t", "n"))
+coopbau_Q$COSTcoopbau <- coopbau_Q$COST_EMI + coopbau_Q$COST_FUEL
+coopbau_Q$COST_EMI <- NULL; coopbau_Q$COST_FUEL <- NULL 
 coopbau_Q$t <- as.numeric(coopbau_Q$t);
 Q <- merge(Q, coopbau_Q, by=c("n", "t"), all = TRUE)
 Q[str_detect(file, "coop")]$bau <- Q[str_detect(file, "coop")]$coopbau

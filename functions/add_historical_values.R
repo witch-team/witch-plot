@@ -13,7 +13,13 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     .hist <- as.data.table(.gdx[item]) 
     
     #get set dependency based on WITCH variable
-    colnames(.hist) <- setdiff(colnames(variable), c("file", "pathdir"))
+    #colnames(.hist) <- setdiff(colnames(variable), c("file", "pathdir"))
+    #better: get it from /built/!!!
+    .gdxiso3 <- gdx(paste0(witch_folder, "input/build/data_historical_values.gdx"))
+    colnames(.hist) <-colnames(.gdxiso3[item])	
+    if("global" %in% colnames(.hist)){setnames(.hist, "global", "n")}else{setnames(.hist, "iso3", "n")}
+    setnames(.hist, "year", "t")
+    
     #adjust time unit to model
     .hist$t <- yeartot(.hist$t)
     t_historical<-unique(.hist$t)
@@ -33,13 +39,13 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
       .hist$j <- mapvalues(.hist$j, from=c("elnuclear", "elpc", "elpb", "elgastr", "elhydro", "eloil"), to=c("elnuclear_old", "elpc_old", "elpb_old", "elgastr_old", "elhydro_old", "eloil_old"))
       
     }
-    if(item=="q_in_valid_weo") #add f column
+    if(item=="q_in_valid_weo") #add fuel column
     {
-      .hist$f <- "oil"
-      .hist[jfed=="elgastr"]$f <- "gas"
-      .hist[jfed=="elpc"]$f <- "coal"
-      .hist[jfed=="elpb"]$f <- "wbio"
-      .hist[jfed=="elnuclear"]$f <- "uranium"
+      .hist$fuel <- "oil"
+      .hist[jfed=="elgastr"]$fuel <- "gas"
+      .hist[jfed=="elpc"]$fuel <- "coal"
+      .hist[jfed=="elpb"]$fuel <- "wbio"
+      .hist[jfed=="elnuclear"]$fuel <- "uranium"
       .hist$jfed <- mapvalues(.hist$jfed, from=c("elnuclear", "elpc", "elpb", "elgastr", "eloil"), to=c("elnuclear_old", "elpc_old", "elpb_old", "elgastr_old", "eloil_old"))
     }
     

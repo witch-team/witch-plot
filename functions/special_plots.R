@@ -338,18 +338,18 @@ Energy_Prices <- function(unit="GJ", scenplot=scenlist){
   2013	0           0        		10.60584518	16.42101106	3.534386211"
   historical_energy_prices <- read.table(textConnection(historical_energy_prices_table), sep="", head=T, dec=".")
   historical_energy_prices <- melt(historical_energy_prices,id.vars="year")
-  historical_witch <- historical_energy_prices; historical_witch$value = historical_witch$value / witch2iiasa; setnames(historical_witch, "variable", "f")
-  historical_witch <- subset(historical_witch, f %in% unique(FPRICE$f))
+  historical_witch <- historical_energy_prices; historical_witch$value = historical_witch$value / witch2iiasa; setnames(historical_witch, "variable", "fuel")
+  historical_witch <- subset(historical_witch, fuel %in% unique(FPRICE$fuel))
   
   FPRICE$year=as.numeric(FPRICE$t) * 5 + 2000; FPRICE$t <- NULL
-  FPRICE$f <- as.factor(FPRICE$f); FPRICE$file <- as.factor(FPRICE$file)
-  #ggplot(subset(FPRICE, f!="uranium"&year<=yearmax), aes(year, witch2iiasa*value, group=interaction(f, file), colour=f, linetype=file)) + geom_line(size = 1.0) + labs(x="", y="World Energy Prices ($/GJ)", colour="Fuel", linetype="scenario")
+  FPRICE$fuel <- as.factor(FPRICE$fuel); FPRICE$file <- as.factor(FPRICE$file)
+  #ggplot(subset(FPRICE, fuel!="uranium"&year<=yearmax), aes(year, witch2iiasa*value, group=interaction(fuel, file), colour=fuel, linetype=file)) + geom_line(size = 1.0) + labs(x="", y="World Energy Prices ($/GJ)", colour="Fuel", linetype="scenario")
   #saveplot("World Energy Prices Timeseries")
   FPRICE <- subset(FPRICE, file %in% scenplot)
   FPRICE <- subset(FPRICE, year>2013); 
   historical_witch$year <- as.numeric(historical_witch$year) 
   historical_witch <- subset(historical_witch, year<2013); 
-  FPRICE$f <- as.character(FPRICE$f);historical_witch$f <- as.character(historical_witch$f)
+  FPRICE$fuel <- as.character(FPRICE$fuel);historical_witch$fuel <- as.character(historical_witch$fuel)
   #add it for each scenario
   .historical_witch_temp <- historical_witch
   for(scen in unique(FPRICE$file))
@@ -358,12 +358,12 @@ Energy_Prices <- function(unit="GJ", scenplot=scenlist){
     if(scen==unique(FPRICE$file)[1]){historical_witch=.historical_witch_temp}else{historical_witch <-rbind(historical_witch,.historical_witch_temp)}
   }
   FPRICE$file <- as.character(FPRICE$file)
-  prices_merged <- merge(subset(FPRICE, f %in% c("oil", "gas", "coal")), historical_witch, by = c("year", "f", "file"), all=TRUE)
+  prices_merged <- merge(subset(FPRICE, fuel %in% c("oil", "gas", "coal")), historical_witch, by = c("year", "fuel", "file"), all=TRUE)
   prices_merged[is.na(prices_merged)] <- 0
   prices_merged$value <- prices_merged$value.x + prices_merged$value.y   #to keep both series
   #prices_merged$value.x <- NUL; prices_merged$value.y <- NULL
-  if(unit=="GJ"){p <- ggplot(prices_merged, aes(year, witch2iiasa*value, group=interaction(f, file), colour=f, linetype=file)) + geom_line(size = 1.0) + labs(x="", y="World Energy Prices ($/GJ)", colour="Fuel", linetype="scenario")}
-  else{p <- ggplot(prices_merged, aes(year, gj2boe*witch2iiasa*value, group=interaction(f, file), colour=f, linetype=file)) + geom_line(size = 1.0) + labs(x="", y="World Energy Prices ($/boe)", colour="Fuel", linetype="scenario")}
+  if(unit=="GJ"){p <- ggplot(prices_merged, aes(year, witch2iiasa*value, group=interaction(fuel, file), colour=fuel, linetype=file)) + geom_line(size = 1.0) + labs(x="", y="World Energy Prices ($/GJ)", colour="Fuel", linetype="scenario")}
+  else{p <- ggplot(prices_merged, aes(year, gj2boe*witch2iiasa*value, group=interaction(fuel, file), colour=fuel, linetype=file)) + geom_line(size = 1.0) + labs(x="", y="World Energy Prices ($/boe)", colour="Fuel", linetype="scenario")}
   legend_position = "right"
   saveplot("World Energy Prices", plotdata = prices_merged)
   Energy_Price_Data <- prices_merged
@@ -378,14 +378,14 @@ Energy_Prices <- function(unit="GJ", scenplot=scenlist){
 
 
 Energy_Trade <- function(fuel="oil", scenplot=scenlist){
-  get_witch_variable("Q_OUT", "Extraction", "f", fuel, 1, "TWh", "regional", plot = F)
-  get_witch_variable("Q_PES", "Consumption", "f", fuel, 1, "TWh", "regional", plot = F)
+  get_witch_variable("Q_OUT", "Extraction", "f", f, 1, "TWh", "regional", plot = F)
+  get_witch_variable("Q_FUEL", "Consumption", "fuel", fuel, 1, "TWh", "regional", plot = F)
   NET_EXPORT <- Q_OUT
   setnames(NET_EXPORT, "value", "Extraction")
-  NET_EXPORT <- merge(NET_EXPORT, Q_PES, by = c("t", "n", "file", "pathdir"))
+  NET_EXPORT <- merge(NET_EXPORT, Q_FUEL, by = c("t", "n", "file", "pathdir"))
   setnames(NET_EXPORT, "value", "Consumption")
   Energy_Prices(scenplot=scenlist)
-  NET_EXPORT <- merge(NET_EXPORT, subset(Energy_Price_Data, f==fuel), by = c("t", "file"), all.x = TRUE)
+  NET_EXPORT <- merge(NET_EXPORT, subset(Energy_Price_Data, fuel==fuel), by = c("t", "file"), all.x = TRUE)
   #volume in EJ, prices in $/GJ, value in billion USD
   NET_EXPORT$Net_Export_Volume <- (NET_EXPORT$Extraction - NET_EXPORT$Consumption) * 0.0036
   NET_EXPORT$Net_Export_Value <- ((NET_EXPORT$Extraction - NET_EXPORT$Consumption) * NET_EXPORT$energy_price) * 1e3

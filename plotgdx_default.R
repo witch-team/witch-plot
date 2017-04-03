@@ -3,14 +3,18 @@ rm(list = ls())
 #Where you're WITCH code is located
 witch_folder = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
 #main directory of your results files
-main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
-#main_directory = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/EnergyIntensity/Modeling/results_sspdb/"
-#main_directory = "U:\\SCAMBIO\\ADVANCEWP6RUNS\\"
-subdir = c("") #can be multiple directories
+main_directory <- "C:\\Users\\Emmerling\\Documents\\Dropbox\\Professional\\FEEM\\GeoEngineering\\Strategic Geoengineering\\gdxfiles\\"
+main_directory = "U:\\SCAMBIO\\submission_cdlinks\\"
 
-removepattern=c("results_") #, "ssp2_", "_spa0")  # parts of the filename to remove
-restrict_files = "witch16" #"."          # restrict files to contain this string
-exclude_files = "report_"            # exclude some files
+#all directoried with trailing slash "/"!
+subdir = c("2017_04_04/") #can be multiple directories
+
+
+
+
+removepattern = c("results_") 
+restrict_files = "results" #"."
+exclude_files = "report"
 
 #Name scenarios (otherwise it takes gdx filename)
 #scenlist <- c("REF", "INDC_2C", "INDC_2C_TRADE", "INDC", "INDC_TRADE", "OPT_2C")
@@ -43,15 +47,15 @@ get_witch_variable("Q_EMI", "CCS_Emissions", "e", "ccs", 3.67, "GtCO2", "global_
 get_witch_variable("Q_EMI", "CCS_Emissions_Stored", "e", "ccs", 3.67, "GtCO2", "global_sum", cumulative = T)
 get_witch_variable("tpes", "tpes", "na", "na", 0.0036, "1", "global_sum")
 get_witch_variable("Q_EN", "Final_Energy", "j", "en", 0.0036, "EJ", "global_sum")
-get_witch_variable("Q_PES", "Coal_PES", "f", "coal", 0.0036, "EJ", "global_sum")
+get_witch_variable("Q_FUEL", "Coal_FUEL", "fuel", "coal", 0.0036, "EJ", "global_sum")
 get_witch_variable("Q_OUT", "Coal_OUT", "f", "coal", 0.0036, "EJ", "global_sum")
-get_witch_variable("Q_PES", "Gas", "f", "gas", 0.0036, "EJ", "global_sum")
-get_witch_variable("Q_PES", "Oil", "f", "oil", 0.0036, "EJ", "global_sum")
+get_witch_variable("Q_FUEL", "Gas", "fuel", "gas", 0.0036, "EJ", "global_sum")
+get_witch_variable("Q_FUEL", "Oil", "fuel", "oil", 0.0036, "EJ", "global_sum")
 get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2", 3.67, "GtCO2", "global_sum")
 get_witch_variable("Q_OUT", "Coal_cumulative", "f", "coal", 0.0036*1e-3, "ZJ", "global_sum", cumulative=TRUE)
 get_witch_variable("Q_OUT", "Oil_cumulative", "f", "oil", 0.0036*1e-3, "ZJ", "global_sum", cumulative=TRUE)
 get_witch_variable("Q_OUT", "Gas_cumulative", "f", "gas", 0.0036*1e-3, "ZJ", "global_sum", cumulative=TRUE)
-get_witch_variable("MCOST_PES", "price", "f", "coal", 1000, "1", "global_mean")
+get_witch_variable("MCOST_FUEL", "price", "fuel", "coal", 1000, "1", "global_mean")
 get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2", 3.67, "GtCO2", "global_sum")
 get_witch_variable("SRM", "SRM_regional", "na", "na", 1, "TgS", "regional")
 get_witch_variable("OMEGA", "Damages", "na", "na", 1, "%", "regional")
@@ -113,11 +117,17 @@ source('functions/close_functions.R') #finishes PDF, shows welfare
 
 #function to save fate for Soheil format
 writewitchcsv <- function(data, csvfilename="data"){
-  data <- subset(data, select=c(t,n,value))
+  data$pathdir <- NULL;data$file <- NULL
   data$t <- ttoyear(data$t)
-  data<- dcast(data, formula = t ~ n)
+  data<- dcast(data, formula = t + educat ~ n)
   write.csv(data, file=paste0(graphdir, csvfilename, ".csv"), row.names = FALSE)
 }
 
-writewitchcsv(l, "population")
+get_witch_simple("l")
+
+get_witch_simple("education")
+
+writewitchcsv(education, "education")
+
+
 

@@ -3,14 +3,13 @@
 
 Primary_Energy_Mix <- function(PES_y="value", scenplot=scenlist, plot_only_history=FALSE){
   if(length(pathdir)==10){print("PES mix only for one directory at a time!")}else{
-    #tpes(t,n) = sum(f$(sum(jfed,csi(f,jfed,t,n))), Q_PES(f,t,n))+sum(jreal$(not xiny(jreal,jfed)), Q_EN(jreal,t,n));
     ssp_grid_old=ssp_grid; assign("ssp_grid", FALSE, envir = .GlobalEnv) 
-    get_witch_variable("Q_PES", "Q_PES", "f", "all", 0.0036, "EJ", "regional", plot=FALSE, scenplot=scenplot)
+    get_witch_variable("Q_FUEL", "Q_FUEL", "fuel", "all", 0.0036, "EJ", "regional", plot=FALSE, scenplot=scenplot)
     get_witch_variable("Q_EN", "Q_EN", "jreal", "all", 0.0036, "EJ", "regional", plot=FALSE, scenplot=scenplot)
     assign("ssp_grid", ssp_grid_old, envir = .GlobalEnv) 
     #aggregate sub-categories
-    setnames(Q_PES,"f", "j")
-    TPES <- rbind(Q_PES, Q_EN)
+    setnames(Q_FUEL,"fuel", "j")
+    TPES <- rbind(Q_FUEL, Q_EN)
     TPES <- subset(TPES, j %in% c("oil", "coal", "gas", "uranium", "trbiofuel", "wbio", "advbio", "trbiomass") | j %in% c("elpv", "elcsp", "elhydro_new", "elhydro_old", "elback", "nelcoalabat", "elwindon", "elwindoff"))
     TPES$category[TPES$j %in% c("oil")] = "Oil"
     TPES$category[TPES$j %in% c("gas")] = "Natural Gas"
@@ -46,18 +45,18 @@ Primary_Energy_Mix <- function(PES_y="value", scenplot=scenlist, plot_only_histo
     
     #get also a only historical graph
     if(plot_only_history){
-    y_range_pes_mix <- layer_scales(p)$y$range$range#ggplot_build(p)$panel$ranges[[1]]$y.range 
-    x_range_pes_mix <- layer_scales(p)$x$range$range#ggplot_build(p)$panel$ranges[[1]]$x.range 
+    y_range_FUEL_mix <- layer_scales(p)$y$range$range#ggplot_build(p)$panel$ranges[[1]]$y.range 
+    x_range_FUEL_mix <- layer_scales(p)$x$range$range#ggplot_build(p)$panel$ranges[[1]]$x.range 
     TPES_history <- TPES
     TPES_history[file!=scenplot[1]]$value <- NA #only keep first facet
     if(PES_y=="share"){TPES_history <- ddply(TPES_history, c("t", "file", "pathdir"), transform, value=value/(sum(value))*100)}
-    p <- ggplot(data=subset(TPES_history, t<=yeartot(yearmax) & t>=yeartot(yearmin)),aes(ttoyear(t),value, fill=category, na.rm = FALSE)) + geom_area(stat="identity", na.rm = FALSE) + ylab("EJ") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") +  scale_fill_manual(values=c("green", "black", "blue", "chocolate2", "red", "brown", "yellow", "gold1")) + xlim(x_range_pes_mix) + ylim(y_range_pes_mix)
+    p <- ggplot(data=subset(TPES_history, t<=yeartot(yearmax) & t>=yeartot(yearmin)),aes(ttoyear(t),value, fill=category, na.rm = FALSE)) + geom_area(stat="identity", na.rm = FALSE) + ylab("EJ") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") +  scale_fill_manual(values=c("green", "black", "blue", "chocolate2", "red", "brown", "yellow", "gold1")) + xlim(x_range_FUEL_mix) + ylim(y_range_FUEL_mix)
     if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ file)}else{p <- p + facet_grid(. ~ file)}
     saveplot("Primary Energy Mix", plotdata=subset(TPES_history, t<=yeartot(yearmax) & t>=yeartot(yearmin)), suffix="_onlyBAU")
     #now also remove future on the BASELINE
     TPES_history[t>3]$value <- NA
     if(PES_y=="share"){TPES_history <- ddply(TPES_history, c("t", "file", "pathdir"), transform, value=value/(sum(value))*100)}
-    p <- ggplot(data=subset(TPES_history, t<=yeartot(yearmax) & t>=yeartot(yearmin)),aes(ttoyear(t),value, fill=category, na.rm = FALSE)) + geom_area(stat="identity", na.rm = FALSE) + ylab("EJ") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") +  scale_fill_manual(values=c("green", "black", "blue", "chocolate2", "red", "brown", "yellow", "gold1")) + xlim(x_range_pes_mix) + ylim(y_range_pes_mix)
+    p <- ggplot(data=subset(TPES_history, t<=yeartot(yearmax) & t>=yeartot(yearmin)),aes(ttoyear(t),value, fill=category, na.rm = FALSE)) + geom_area(stat="identity", na.rm = FALSE) + ylab("EJ") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") +  scale_fill_manual(values=c("green", "black", "blue", "chocolate2", "red", "brown", "yellow", "gold1")) + xlim(x_range_FUEL_mix) + ylim(y_range_FUEL_mix)
     if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ file)}else{p <- p + facet_grid(. ~ file)}
     legend_position_old = legend_position; assign("legend_position", "bottom", envir = .GlobalEnv)
     saveplot("Primary Energy Mix", plotdata=subset(TPES_history, t<=yeartot(yearmax) & t>=yeartot(yearmin)), suffix="_historical")
@@ -86,14 +85,13 @@ Primary_Energy_Mix <- function(PES_y="value", scenplot=scenlist, plot_only_histo
 
 Primary_Energy_Mix_Regional <- function(PES_y="value", regions=witch_regions, years=seq(2005, 2100, 5), plot_type="area", scenplot=scenlist, plot_name="Primary Energy Mix Regional"){
   if(length(pathdir)!=1){print("PES mix REGIONAL only for one directory at a time!")}else{
-    #tpes(t,n) = sum(f$(sum(jfed,csi(f,jfed,t,n))), Q_PES(f,t,n))+sum(jreal$(not xiny(jreal,jfed)), Q_EN(jreal,t,n));
     ssp_grid_old=ssp_grid; assign("ssp_grid", FALSE, envir = .GlobalEnv) 
-    get_witch_variable("Q_PES", "Q_PES", "f", "all", 0.0036, "EJ", "regional", plot=FALSE)
+    get_witch_variable("Q_FUEL", "Q_FUEL", "fuel", "all", 0.0036, "EJ", "regional", plot=FALSE)
     get_witch_variable("Q_EN", "Q_EN", "jreal", "all", 0.0036, "EJ", "regional", plot=FALSE)
     assign("ssp_grid", ssp_grid_old, envir = .GlobalEnv) 
     #aggregate sub-categories
-    setnames(Q_PES,"f", "j")
-    TPES <- rbind(Q_PES, Q_EN)
+    setnames(Q_FUEL,"fuel", "j")
+    TPES <- rbind(Q_FUEL, Q_EN)
     TPES <- subset(TPES, n %in% regions)
     TPES <- subset(TPES, j %in% c("oil", "coal", "gas", "uranium", "trbiofuel", "wbio", "advbio", "trbiomass") | j %in% c("elpv", "elcsp", "elhydro_new", "elhydro_old", "elback", "nelcoalabat", "elwindon", "elwindoff"))
     TPES$category[TPES$j %in% c("oil")] = "Oil"
@@ -141,7 +139,7 @@ Electricity_Mix <- function(Electricity_y="value", scenplot=scenlist){
     get_witch_simple("Q_IN"); Q_IN$value <- Q_IN$value * 0.0036 
     get_witch_simple("csi")
     setnames(csi, "value", "csi")
-    JFED <- merge(Q_IN, csi, by = c("t", "n", "file", "pathdir", "f", "jfed"), all=TRUE)
+    JFED <- merge(Q_IN, csi, by = c("t", "n", "file", "pathdir", "fuel", "jfed"), all=TRUE)
     #take efficiency for EL into account
     #add csi for historical (seems to be 1!)
     JFED$csi[is.na(JFED$csi) & JFED$jfed=="elpc_old"] <- 0.45
@@ -152,7 +150,7 @@ Electricity_Mix <- function(Electricity_y="value", scenplot=scenlist){
     
     JFED$value <- JFED$value * JFED$csi
     JFED$csi <- NULL
-    JFED$f <- NULL
+    JFED$fuel <- NULL
     setnames(JFED, "jfed", "j")
 
     get_witch_variable("Q_EN", "Q_EN", "jreal", "all", 0.0036, "EJ", "regional", plot=FALSE)
@@ -206,7 +204,7 @@ Electricity_Mix_Regional <- function(Electricity_y="value", regions=witch_region
     get_witch_simple("Q_IN"); Q_IN$value <- Q_IN$value * 0.0036 
     get_witch_simple("csi")
     setnames(csi, "value", "csi")
-    JFED <- merge(Q_IN, csi, by = c("t", "n", "file", "pathdir", "f", "jfed"), all=TRUE)
+    JFED <- merge(Q_IN, csi, by = c("t", "n", "file", "pathdir", "fuel", "jfed"), all=TRUE)
     #take efficiency for EL into account
     #add csi for historical (seems to be 1!)
     JFED$csi[is.na(JFED$csi) & JFED$jfed=="elpc_old"] <- 0.45
@@ -217,7 +215,7 @@ Electricity_Mix_Regional <- function(Electricity_y="value", regions=witch_region
     
     JFED$value <- JFED$value * JFED$csi
     JFED$csi <- NULL
-    JFED$f <- NULL
+    JFED$fuel <- NULL
     setnames(JFED, "jfed", "j")
     
     get_witch_variable("Q_EN", "Q_EN", "jreal", "all", 0.0036, "EJ", "regional", plot=FALSE)

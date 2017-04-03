@@ -2,7 +2,7 @@
 
 
 
-witchmap <- function(variable_report, file_report, t_report=20, scale_min=0, scale_max=0, mapcolor="Reds", map_name="map", map_legend="Legend", plot_witch_regions=FALSE){
+witchmap <- function(variable_report, file_report, t_report=20, scale_min=0, scale_max=0, mapcolor="Reds", map_name="map", map_legend="Legend", plot_witch_regions=FALSE, add_bars=FALSE){
   #library(ggplot2)
   library(rworldmap)
   #library(data.table)
@@ -44,6 +44,9 @@ witchmap <- function(variable_report, file_report, t_report=20, scale_min=0, sca
   data_for_map_n$pathdir <- NULL
   witch_data_on_iso3 <- merge(mod.countries,data_for_map_n, by="n")
   Nations = merge(Nations,witch_data_on_iso3,by=c("ISO3"))
+  #get center location:
+  region_centers <- aggregate(cbind(long, lat) ~ n, data=subset(Nations), FUN=function(x)mean(x+360)-360);
+  
   
   if(!plot_witch_regions){
   if(scale_min==0){scale_min = min(data_for_map_n$value); scale_max = max(data_for_map_n$value)}
@@ -56,7 +59,14 @@ witchmap <- function(variable_report, file_report, t_report=20, scale_min=0, sca
   axis.title.x=element_blank(),axis.title.y=element_blank(),panel.grid.major=element_blank(),plot.background=element_blank(),panel.grid.minor=element_blank()) +
   theme(legend.position="right") + 
   scale_fill_distiller(name=map_legend, palette = mapcolor, breaks = pretty_breaks(n = 8), limits=c(scale_min, scale_max)) + ggtitle("")
-  #scale_fill_continuous(name=map_legend, low = "green", high = "red" , na.value = "grey")
+  if(add_bars!=FALSE){
+    p <- p + geom_text(data=region_centers, aes(long, lat, label = n), size=4)
+    data_bars <- merge(region_centers, data_for_map_n, by="n")
+    data_bars$mapbarvalue <- data_bars[add_bars]
+    print(data_bars)
+    p <- p + geom_point(data=data_bars, aes(long, lat, size = mapbarvalue), color="deeppink3") + scale_size_continuous(limits=c(1,8), range = c(1, 16), guide = guide_legend(title = add_bars))# + scale_size_area(min_size=1, max_size = 5) #+ scale_size_continuous(from=c(1), to=c(5)) #
+    }
+ 
   
   #limit to Europe:   coord_cartesian(xlim = c(-10,33), ylim = c(36,73)) +
   
@@ -70,9 +80,7 @@ witchmap <- function(variable_report, file_report, t_report=20, scale_min=0, sca
   Country.layer <- c(geom_polygon(data = Nations, aes(x = long, y = lat, group = group, fill=n)))
   Borders.layer <- c(geom_path(data = Nations, aes(x = long, y = lat, group = group), color="darkgray", size=0.1))  
   
-  #add center location:
-  region_centers <- aggregate(cbind(long, lat) ~ n, data=subset(Nations), FUN=function(x)mean(x+360)-360);
-  
+ 
   p <- World.map + Country.layer + Borders.layer +
   theme_minimal() + labs(x = "", y =  "") +
   theme(axis.line=element_blank(), axis.text.x=element_blank(), axis.text.y=element_blank(),axis.ticks=element_blank(),

@@ -24,7 +24,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     .hist$t <- yeartot(.hist$t)
     t_historical<-unique(.hist$t)
     #adjust scenario names
-    .hist$n  <- mapvalues(.hist$n , from=witch_regions, to=display_regions)
+    .hist$n  <- mapvalues(.hist$n , from=witch_regions, to=display_regions, warn_missing = F)
 
     #special case where categories do not match exactly
     if(item=="q_en_valid_weo")

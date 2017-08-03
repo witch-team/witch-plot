@@ -34,7 +34,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
   
   if(exists("allfilesdata")){
     allfilesdata$file  <- mapvalues(allfilesdata$file , from=filelist, to=scenlist)
-    allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions)
+    allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F)
     
     
     #TRY: adding historical values
@@ -228,7 +228,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
   
   if(exists("allfilesdata")){
     allfilesdata$file  <- mapvalues(allfilesdata$file , from=filelist, to=scenlist)
-    if(!(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions)}
+    if(!(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F)}
     allfilesdata <- subset(allfilesdata, file %in% scenplot)
     #change column of numeric values to "value"
     #print(colnames(allfilesdata))

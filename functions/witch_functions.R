@@ -104,7 +104,7 @@ region_palette_specific <- c(usa="darkblue",
                     brazil="tomato4",
                     canada="blueviolet",
                     jpnkor="lightsalmon3",
-                    pacific="forestgreen",
+                    oceania="forestgreen",
                     southafrica="indianred3",
                     seasia="orangered" 
                     )

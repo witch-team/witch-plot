@@ -28,6 +28,6 @@ shinyUI(pageWithSidebar(
   
   # Show the plot
   mainPanel(
-    plotOutput("gdxompaRplot")
+    plotOutput("gdxompaRplot", width = "100%", height = "700px", hover=hoverOpts(id="plot_hover", delay = 100, delayType = "debounce"))
   )
 ))

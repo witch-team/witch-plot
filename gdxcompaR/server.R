@@ -30,6 +30,15 @@ shinyServer(function(input, output) {
   save_plot = FALSE
   line2005 = TRUE
   
+  
+  #get list of variables
+  mygdx <- gdx(paste(pathdir[1], filelist[1],".gdx",sep=""))
+  list_of_variables <- c(all_items(mygdx)$variables, all_items(mygdx)$parameters)
+  #now instead by hand
+  list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "FPRICE", "CPRICE", "l")
+  
+  
+  
   #get data
   get_witch_simple(variable, check_calibration=TRUE)
   allfilesdata <- get(variable)
@@ -74,7 +83,12 @@ shinyServer(function(input, output) {
   p <- p + geom_line(data=subset(allfilesdata, n %in% regions & file=="calibration"),aes(ttoyear(t),value,colour=n), stat="identity", size=1.0)
   if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
   if(line2005){p <- p + geom_vline(size=0.5,aes(xintercept=2005), linetype="solid", color="grey")}
-  print(p)
+  
+  #format and print plot
+  print(p + labs(title=variable) + theme(text = element_text(size=16), legend.position="right", legend.direction = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()))
+  
   if(save_plot){saveplot(variable)}
+  
+  
   })
 })

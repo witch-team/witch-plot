@@ -1,5 +1,5 @@
 
-add_historical_values <- function(variable, varname=deparse(substitute(variable)), scenplot=scenlist){
+add_historical_values <- function(variable, varname=deparse(substitute(variable)), scenplot=scenlist, check_calibration=FALSE){
   
   #have to decide what to do with years with both model and historical data
   display_years = "model"#historical" #"model" #"historical"
@@ -52,39 +52,47 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     
     
     #merge with variable
-    #first multiply by scenplot, add missing columns
-    .hist_temp <- .hist
-    for(scen in scenplot)
-    {
-      .hist_temp$file <- scen
-      if(scen==scenplot[1]){.hist=.hist_temp}else{.hist <-rbind(.hist,.hist_temp)}
-    }
-    .hist_temp <- .hist
-    for(pd in basename(pathdir))
-    {
-      .hist_temp$pathdir <- pd
-      if(pd==basename(pathdir)[1]){.hist=.hist_temp}else{.hist <-rbind(.hist,.hist_temp)}
-    }
-    
-    #if(varname=="Q_IN"){print(.hist[jfed=="elpc_old" & n=="china" & file=="BAU" & t>=0 & t<=2])}
-
-
-    if(display_years=="model"){
-      #display model data for overlapping years, delete historical data
-      .hist <- subset(.hist, !(t %in% t_model))
+    if(check_calibration){
+      #merge with variable, here just add with file="calibration" if check_calibration
+      .hist$file <- "calibration"
+      #just multiply by the pathdir so it appears for each pathdir
+      .hist_temp <- .hist
+      for(pd in basename(pathdir))
+      {
+        .hist_temp$pathdir <- pd
+        if(pd==basename(pathdir)[1]){.hist=.hist_temp}else{.hist <-rbind(.hist,.hist_temp)}
+      }
     }else{
-      #or display historical data years, delete model data for 2005 and 2010
-      #variable <- subset(variable, !(t %in% unique(.hist$t)))
-      #variable <- subset(variable, !(t %in% unique(.hist$t)))
-      variable <- subset(variable, !(t %in% t_historical))
+    #first multiply by scenplot, add missing columns here add historical data to results
+    .hist_temp <- .hist
+    
+      for(scen in scenplot)
+      {
+        .hist_temp$file <- scen
+        if(scen==scenplot[1]){.hist=.hist_temp}else{.hist <-rbind(.hist,.hist_temp)}
+      }
+      .hist_temp <- .hist
+      for(pd in basename(pathdir))
+      {
+        .hist_temp$pathdir <- pd
+        if(pd==basename(pathdir)[1]){.hist=.hist_temp}else{.hist <-rbind(.hist,.hist_temp)}
+      }
+      if(display_years=="model"){
+        #display model data for overlapping years, delete historical data
+        .hist <- subset(.hist, !(t %in% t_model))
+      }else{
+        #or display historical data years, delete model data for 2005 and 2010
+        #variable <- subset(variable, !(t %in% unique(.hist$t)))
+        #variable <- subset(variable, !(t %in% unique(.hist$t)))
+        variable <- subset(variable, !(t %in% t_historical))
+      }
     }
+
+
     
-    #if(varname=="Q_IN"){print(.hist[jfed=="elpc_old" & n=="china" & file=="BAU" & t>=0 & t<=2])}
-    
+ 
     merged_variable <- rbind(variable, .hist)
-    
-    #if(varname=="Q_IN"){print(merged_variable[jfed=="elpc_old" & n=="china" & file=="BAU" & t>=0 & t<=2])}
-    
+ 
     #assign("varname", merged_variable, envir = .GlobalEnv)
     return(merged_variable)
     }
@@ -93,6 +101,3 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     return(variable)
     }
 }
-
-
-  

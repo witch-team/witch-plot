@@ -22,6 +22,7 @@ create_all_figures_pdf = FALSE
 figure_format="png"
 export_plotdata = FALSE  #save data for each graph also as EXCEL files
 historical = TRUE  #add historical data where available
+check_calibration=FALSE  # don't add historical data but rather have them overlap to check calibration
 line2005 = FALSE #adds line at 2005 to show history from model data
 theme_set(theme_bw())
 show_numbers_2100 = FALSE
@@ -87,10 +88,10 @@ region_palette_specific <- c(usa="darkblue",
                     PRC="deeppink3", 
                     easia="orangered", 
                     ESEAP="orangered", 
-                    laca="gold", 
-                    Laca="gold", 
-                    india="khaki1",
-                    India="khaki1",
+                    laca="#fbb714", 
+                    Laca="#fbb714", 
+                    india="#fbf003",
+                    India="#fbf003",
                     europe="blue",
                     Europe="blue", 
                     indonesia="darkseagreen", 
@@ -121,5 +122,7 @@ source('functions/energy_mix.R')
 source('functions/policy_cost.R')
 source('functions/add_historical_values.R')
 source('functions/report_globiom_variables.R')
+source('gdxcompaR/gdxcompaR_static.R')
+
 
 

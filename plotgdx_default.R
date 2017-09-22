@@ -3,11 +3,11 @@ rm(list = ls())
 #Where you're WITCH code is located
 witch_folder = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
 #main directory of your results files
-main_directory <- "C:\\Users\\Emmerling\\Documents\\Dropbox\\Professional\\FEEM\\GeoEngineering\\Strategic Geoengineering\\gdxfiles\\"
-main_directory = "U:\\SCAMBIO\\submission_cdlinks\\"
+main_directory <- "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
+#main_directory = "U:\\SCAMBIO\\submission_cdlinks\\"
 
 #all directoried with trailing slash "/"!
-subdir = c("2017_04_04/") #can be multiple directories
+subdir = c("") #can be multiple directories
 
 
 
@@ -32,6 +32,15 @@ source('functions/witch_functions.R')
 
 
 
+#gdxcompaR including historical data
+gdxcompaR_static("Q_EN", additional_set="j", additional_set_id="el", convert=.0036, unit="EJ", regions=witch_regions)
+gdxcompaR_static("Q_OUT", additional_set="f", additional_set_id="oil", convert=.0036, unit="EJ", regions=witch_regions)
+#Run gdxcompaR ShinyApp, specify variable, unit, and conversion factor in gdxcompaR/server.R
+library(shiny);runApp(appDir = "gdxcompaR")
+
+
+stop("Just load everything")
+
 
 #Main part, get data plots etc.
 Plot_Global_Emissions(show_ar5=TRUE, ar5_budget=1180) #Global GHG Emissions (AR5 2000 is CB of 2 degrees, 1180GtCO2 for "likely 2deg")
@@ -39,7 +48,7 @@ Plot_Global_Emissions(show_ar5=TRUE, ar5_budget=1180) #Global GHG Emissions (AR5
 get_witch_variable("carbonprice", "Carbon Price", "na", "na", 1e3*12/44, "$/tCO2", "global_mean")
 get_witch_variable("Q", "GDP", "iq", "y", 1, "T$", "global_sum")
 get_witch_variable("Q", "GDP", "iq", "y", 1, "T$", "regional")
-get_witch_variable("Q_BAU", "GDP_BAU", "iq", "y", 1, "T$", "global_sum")
+get_witch_variable("Q_BAU", "GDP_BAU", "iq", "Y", 1, "T$", "global_sum")
 get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2", 3.67, "GtCO2", "global_sum")
 get_witch_variable("TEMP", "Temperature", "m", "atm", 1, "°C", "global_mean")
 get_witch_variable("Q_EN", "SEN", "j", "el", 0.0036, "EJ", "global_sum")
@@ -128,6 +137,31 @@ get_witch_simple("l")
 get_witch_simple("education")
 
 writewitchcsv(education, "education")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

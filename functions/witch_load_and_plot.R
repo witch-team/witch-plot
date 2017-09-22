@@ -4,6 +4,11 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
   #some default values, maybe not even needed to customize
   #removepattern="results_"
   #ssp_grid = FALSE
+  #DEBUG:
+  #variable_name="Q_OUT"; variable_name_save=variable_name; additional_set="f"; additional_set_id="oil"; convert=1; unit=""; aggregation="regional"; cumulative=FALSE; plot=TRUE; bar=""; bar_x="time"; bar_y="value"; bar_setvalues=""; bar_colors=""; regions=witch_regions; scenplot=scenlist; variable_field="l"; current_pathdir = pathdir[1]; file <- filelist[1];
+  
+  
+  
   line_size = 1.5;
   
   show_legend_title = F
@@ -61,7 +66,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
     
     if (additional_set != "na" & additional_set_id != "all" & additional_set_id != "sum") 
     {
-      allfilesdata <- subset(allfilesdata, get(additional_set)==as.character(additional_set_id))
+      allfilesdata <- subset(allfilesdata, tolower(get(additional_set))==as.character(additional_set_id))
       #finally remove column containing the only remaining set since values are in "values" 
       allfilesdata <- subset(allfilesdata, select=-get(additional_set))
     }
@@ -207,7 +212,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
 
 # only load GDX and process basically
 
-get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist){
+get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE){
   variable_name_save=as.character(gsub("_", " ", variable_name_save))
   for (current_pathdir in pathdir){
     for (file in filelist){
@@ -225,7 +230,6 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
       }
     }
   }
-  
   if(exists("allfilesdata")){
     allfilesdata$file  <- mapvalues(allfilesdata$file , from=filelist, to=scenlist)
     if(!(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F)}
@@ -235,8 +239,9 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
     #for(col in 1:length(allfilesdata)){if(is.numeric(allfilesdata[[col]])){setnames(allfilesdata, colnames(allfilesdata)[col], "value")}}
     
     #try adding historical values
-    if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot)}
+    if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot, check_calibration=check_calibration)}
     assign(variable_name,allfilesdata,envir = .GlobalEnv)
   }
+  #return(allfilesdata)
 }
 

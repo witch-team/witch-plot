@@ -17,7 +17,8 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     #better: get it from /built/!!!
     .gdxiso3 <- gdx(paste0(witch_folder, "input/build/data_historical_values.gdx"))
     colnames(.hist) <-colnames(.gdxiso3[item])	
-    if("global" %in% colnames(.hist)){setnames(.hist, "global", "n")}else{setnames(.hist, "iso3", "n")}
+    #add "World" if no country level data but global
+    if(!("iso3" %in% colnames(.hist))){.hist$n = "World"}else{setnames(.hist, "iso3", "n")}
     setnames(.hist, "year", "t")
     
     #adjust time unit to model

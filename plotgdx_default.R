@@ -34,7 +34,7 @@ source('functions/witch_functions.R')
 
 #gdxcompaR including historical data
 gdxcompaR_static("Q_EN", additional_set="j", additional_set_id="el", convert=.0036, unit="EJ", regions=witch_regions)
-gdxcompaR_static("Q_OUT", additional_set="f", additional_set_id="oil", convert=.0036, unit="EJ", regions=witch_regions)
+#gdxcompaR_static("Q_OUT", additional_set="f", additional_set_id="oil", convert=.0036, unit="EJ", regions=witch_regions)
 #Run gdxcompaR ShinyApp, specify variable, unit, and conversion factor in gdxcompaR/server.R
 library(shiny);runApp(appDir = "gdxcompaR")
 

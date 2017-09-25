@@ -8,15 +8,17 @@ shinyUI(pageWithSidebar(
   
   # Sidebar with a slider of years and set elements
   sidebarPanel(
+    uiOutput("select_variable"),
+    #actionButton("chgvar", "Update variable", icon("refresh")),
     sliderInput("yearmin", 
                 "Start year:", 
-                min = 1850,
+                min = 1970,
                 max = 2100, 
                 value = 1980,
                 step = 5),
     sliderInput("yearmax", 
                 "End year:", 
-                min = 1990,
+                min = 1970,
                 max = 2100, 
                 value = 2100,
                 step  = 5),
@@ -28,6 +30,7 @@ shinyUI(pageWithSidebar(
   
   # Show the plot
   mainPanel(
+    textOutput("varname"),
     plotOutput("gdxompaRplot", width = "100%", height = "700px", hover=hoverOpts(id="plot_hover", delay = 100, delayType = "debounce"))
   )
 ))

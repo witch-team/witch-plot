@@ -107,7 +107,8 @@ region_palette_specific <- c(usa="darkblue",
                     jpnkor="lightsalmon3",
                     oceania="forestgreen",
                     southafrica="indianred3",
-                    seasia="orangered" 
+                    seasia="orangered", 
+                    World="black"
                     )
 region_palette <- region_palette_specific #c(region_palette_specific, region_palette_rainbow)
 if(!exists("regions_focus")){regions_focus <- witch_regions}

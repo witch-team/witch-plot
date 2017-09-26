@@ -2,7 +2,14 @@
 
 
 
-witchmap <- function(variable_report, file_report, t_report=20, scale_min=0, scale_max=0, mapcolor="Reds", map_name="map", map_legend="Legend", plot_witch_regions=FALSE, add_bars=FALSE){
+witchmap <- function(variable_report, file_report, t_report=20, scale_min=0, scale_max=0, mapcolor="Reds", map_name="map", map_legend="Legend", plot_witch_regions=FALSE, add_region_names=FALSE, add_bars=FALSE){
+  
+  #Palettes: Diverging: BrBG, PiYG, PRGn, PuOr, RdBu, RdGy, RdYlBu, RdYlGn, Spectral
+  #Palettes: Qualitative: Accent, Dark2, Paired, Pastel1, Pastel2, Set1, Set2, Set3
+  #Palettes: Sequential: Blues, BuGn, BuPu, GnBu, Greens, Greys, Oranges, OrRd, PuBu, PuBuGn, PuRd, Purples, RdPu, Reds, YlGn, YlGnBu, YlOrBr, YlOrRd
+  
+  
+  
   #library(ggplot2)
   library(rworldmap)
   #library(data.table)
@@ -58,20 +65,24 @@ witchmap <- function(variable_report, file_report, t_report=20, scale_min=0, sca
   theme(axis.line=element_blank(), axis.text.x=element_blank(),axis.text.y=element_blank(),axis.ticks=element_blank(),
   axis.title.x=element_blank(),axis.title.y=element_blank(),panel.grid.major=element_blank(),plot.background=element_blank(),panel.grid.minor=element_blank()) +
   theme(legend.position="right") + 
-  scale_fill_distiller(name=map_legend, palette = mapcolor, breaks = pretty_breaks(n = 8), limits=c(scale_min, scale_max)) + ggtitle("")
-  if(add_bars!=FALSE){
-    p <- p + geom_text(data=region_centers, aes(long, lat, label = n), size=4)
+  scale_fill_distiller(name=map_legend, palette = mapcolor, direction = 1, breaks = pretty_breaks(n = 8), limits=c(scale_min, scale_max)) + ggtitle("")
     data_bars <- merge(region_centers, data_for_map_n, by="n")
-    data_bars$mapbarvalue <- data_bars[add_bars]
+    #data_bars$mapbarvalue <- data_bars["value"]
+    assign("data_bars",data_bars,envir = .GlobalEnv)
     print(data_bars)
-    p <- p + geom_point(data=data_bars, aes(long, lat, size = mapbarvalue), color="deeppink3") + scale_size_continuous(limits=c(1,8), range = c(1, 16), guide = guide_legend(title = add_bars))# + scale_size_area(min_size=1, max_size = 5) #+ scale_size_continuous(from=c(1), to=c(5)) #
+    if(add_bars!=FALSE){
+    p <- p + geom_point(data=data_bars, aes(long, lat, size = value), color="deeppink3") + scale_size_continuous()#limits=c(1,8), range = c(1, 16), guide = guide_legend(title = ""))# + scale_size_area(min_size=1, max_size = 5) #+ scale_size_continuous(from=c(1), to=c(5)) #
     }
  
+  if(add_region_names){p <- p + geom_text(data=region_centers, aes(long, lat, label = n), size=4)}
   
   #limit to Europe:   coord_cartesian(xlim = c(-10,33), ylim = c(36,73)) +
-  
   print(p)
   savemap(map_name)
+  #optionally add also a bar chart
+  p_bar <- ggplot(data_bars, aes(n, value, fill=n)) + geom_bar(stat="identity") + scale_fill_manual(values = region_palette)
+  saveplot(paste0(map_name, " (bar chart)"))
+  
   }
   
   #Map of WITCH regional mapping:

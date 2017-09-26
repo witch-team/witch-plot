@@ -87,6 +87,18 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
     #if(additional_set!="na"){allfilesdata[[additional_set]] <- as.factor(allfilesdata[[additional_set]])}
     #print(str(allfilesdata)); assign("test",allfilesdata,envir = .GlobalEnv)
     
+    
+    if(cumulative)
+    {
+      allfilesdata <- subset(allfilesdata, round(t) == t ) #to only keep every five years to get right cumulative, if historical data
+      allfilesdata <- allfilesdata[,list(value,t,value_cumulative=cumsum(value)*5-value*5),list(n, file, pathdir)]
+      allfilesdata$value <- allfilesdata$value_cumulative 
+      allfilesdata$value_cumulative <- NULL
+    }
+    
+    
+    
+    
     #Plot for each variable
     if (aggregation == "global_sum")
     {
@@ -95,13 +107,6 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       else{allfilesdata <- aggregate(value~t+file, data=allfilesdata, sum)}
       #print(str(allfilesdata)); assign("test",allfilesdata,envir = .GlobalEnv)
       allfilesdata <- as.data.table(allfilesdata)
-      if(cumulative)
-        {
-        allfilesdata <- subset(allfilesdata, round(t) == t ) #to only keep every five years to get right cumulative, if historical data
-        allfilesdata <- allfilesdata[,list(value,t,value_cumulative=cumsum(value)*5-value*5),list(file, pathdir)]
-        allfilesdata$value <- allfilesdata$value_cumulative 
-        allfilesdata$value_cumulative <- NULL
-        }
       #if(ssp_grid){allfilesdata$ssp <- str_extract(allfilesdata$file, "ssp[1-5]")}
       #try for RCP:
       if(ssp_grid){allfilesdata <- ssptriple(allfilesdata); line_colour = "rcp"; line_type="spa"}

@@ -33,11 +33,12 @@ source('functions/witch_functions.R')
 
 
 #gdxcompaR including historical data
-gdxcompaR_static("Q_EN", additional_set="j", additional_set_id="el", convert=.0036, unit="EJ", regions=witch_regions)
+#gdxcompaR_static("Q_EN", additional_set="j", additional_set_id="el", convert=.0036, unit="EJ", regions=witch_regions)
 #gdxcompaR_static("Q_OUT", additional_set="f", additional_set_id="oil", convert=.0036, unit="EJ", regions=witch_regions)
-#Run gdxcompaR ShinyApp, specify variable, unit, and conversion factor in gdxcompaR/server.R
+#Run gdxcompaR ShinyApp, unit, and conversion factor in gdxcompaR/server.R
 library(shiny);runApp(appDir = "gdxcompaR")
-
+#get_witch_variable("Q", "GDP", "iq", "y", 1, "T$", "global_sum")
+#get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2leak", 3.67, "GtCO2", "global_sum")
 
 stop("Just load everything")
 

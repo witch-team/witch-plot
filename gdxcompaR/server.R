@@ -1,7 +1,5 @@
 #Specify variable to load
 variable = "Q_FUEL"
-unit = ""
-convert=1 # 0.0036   
 
 
 library(shiny)
@@ -22,8 +20,7 @@ shinyServer(function(input, output, session) {
   mygdx <- gdx(paste(pathdir[1], filelist[1],".gdx",sep=""))
   list_of_variables <- c(all_items(mygdx)$variables, all_items(mygdx)$parameters)
   #now instead by hand
-  list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "l", "FPRICE")
-  
+  list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "l", "FPRICE", "emi_cap", "ctax", "MCOST_INV", "COST_EMI", "MCOST_EMI")
   
   #Variable selector
   output$select_variable <- renderUI({
@@ -39,13 +36,6 @@ shinyServer(function(input, output, session) {
   
 
 
-  #get data first time
-  get_witch_simple(variable, check_calibration=TRUE)
-  allfilesdata <- get(variable)
-  #get the name of the additional set
-  additional_set <- setdiff(colnames(allfilesdata), c("file", "pathdir", "t", "n", "value"))
-  #extract additional set elements
-  if(length(additional_set)==0){additional_set="na"; set_elements = "na"}else{set_elements <- unique(tolower(as.data.frame(allfilesdata)[, grep(additional_set, colnames(allfilesdata))]))}
     
     #REGION selector
     output$select_regions <- renderUI({
@@ -55,7 +45,6 @@ shinyServer(function(input, output, session) {
   
 
 
-  
 # MAIN CODE FOR PLOT GENERATION  
 output$gdxompaRplot <- renderPlot({
 
@@ -64,12 +53,17 @@ output$gdxompaRplot <- renderPlot({
     #get data updated
     get_witch_simple(variable, check_calibration=TRUE)
     allfilesdata <- get(variable)
-    
+    #print(str(allfilesdata))
     #get the name of the additional set
     additional_set <- setdiff(colnames(allfilesdata), c("file", "pathdir", "t", "n", "value"))
     #extract additional set elements
-    if(length(additional_set)==0){additional_set="na"; set_elements = "na"}else
-    {set_elements <- unique(tolower(as.data.frame(allfilesdata)[, grep(additional_set, colnames(allfilesdata))]))}
+    if(length(additional_set)==0){additional_set="not available"; set_elements = "not available"}else if(length(additional_set)==1)
+    {set_elements <- unique(tolower(as.data.frame(allfilesdata)[, match(additional_set, colnames(allfilesdata))]))}
+    else if(length(additional_set)>1)
+    {
+    #if more than one additional set (not yet working!)
+    variable <- list_of_variables[(match("Q", list_of_variables)+1)]
+    }
  
 
 
@@ -79,12 +73,12 @@ output$gdxompaRplot <- renderPlot({
     #Selector for additional set
     output$choose_additional_set <- renderUI({
       sel <- input$additional_set_id_selected
+      #print(paste("in setselector", sel))
       size_elements <- min(length(set_elements), 10)
       selectInput("additional_set_id_selected", "Additional set element", set_elements, size=size_elements, selectize = F, multiple = F, selected = sel) 
       })  
     
 
-  
       
   #get input from sliders/buttons
   yearmin = input$yearmin
@@ -92,27 +86,29 @@ output$gdxompaRplot <- renderPlot({
   additional_set_id <- input$additional_set_id_selected
   regions <- input$regions_selected
   
-  
+  #print(paste("after getting inputs", additional_set_id))
 
   
   # SUBSET data and PLOT
   
   #choose additional selected element
-  if(additional_set_id!="na"){
+  if(additional_set_id!="not available"){
     allfilesdata[[additional_set]] <- tolower(allfilesdata[[additional_set]]) # to fix erroneous gams cases (y and Y etc.)
     allfilesdata <- subset(allfilesdata, get(additional_set)==additional_set_id)
     allfilesdata[[additional_set]] <- NULL #remove additional set column
   }
   #time frame
   allfilesdata <- subset(allfilesdata, ttoyear(t)>=yearmin & ttoyear(t)<=yearmax)
-  #Unit conversion
-  allfilesdata$value <- allfilesdata$value * convert 
   #regional computations of World
   allfilesdata_global <- aggregate(value~t+file+pathdir, data=allfilesdata, sum)
   allfilesdata_global$n <- "World"
   allfilesdata <- rbind(allfilesdata, allfilesdata_global)
 
-  p <- ggplot(subset(allfilesdata, n %in% regions & file!="calibration"),aes(ttoyear(t),value,colour=n, line_type=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
+  #Unit conversion
+  unit_conversion <- unit_conversion(variable)
+  allfilesdata$value <- allfilesdata$value * unit_conversion$convert   
+  
+  p <- ggplot(subset(allfilesdata, n %in% regions & file!="calibration"),aes(ttoyear(t),value,colour=n, line_type=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
   p <- p + geom_line(data=subset(allfilesdata, n %in% regions & file=="calibration"),aes(ttoyear(t),value,colour=n), stat="identity", size=1.0)
   if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
   if(line2005){p <- p + geom_vline(size=0.5,aes(xintercept=2005), linetype="solid", color="grey")}

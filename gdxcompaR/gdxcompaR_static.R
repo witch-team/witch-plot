@@ -9,7 +9,7 @@ allfilesdata <- get(variable)
 
 #choose subsets
 if(additional_set!="na"){
-  allfilesdata <- subset(allfilesdata, get(additional_set)==additional_set_id)
+  allfilesdata <- subset(allfilesdata, tolower(get(additional_set))==additional_set_id)
 }
 
 p <- ggplot(subset(allfilesdata, n %in% regions & file!="calibration"),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit) + scale_colour_manual(values = region_palette)

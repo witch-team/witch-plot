@@ -67,6 +67,30 @@ convert_stochastic_gdx <- function(allfilesdata){
 
 
 
+unit_conversion <- function(variable_name){
+  #automatic unit and conversion factor
+  mygdx <- gdx(paste(pathdir[1], filelist[1],".gdx",sep=""))
+  variable_description <- mygdx$variables$text[match(variable_name, mygdx$variables$name)]
+  unit_witch <- gsub(".*\\[(.*)\\].*", "\\1", variable_description)
+  unit_conversion_table <-"witch_unit plot_unit conversion_factor
+  TWh       EJ                 0.0036
+  T$        'billion USD'      1e3
+  T$/TWh    $/GJ               1
+  GtCe      GtCO2              3.67
+  TW        TW                 1
+  T$/GTon   $/tCO2             3667
+  GTonC     GtCO2              3.67
+  GtCe      GtCO2              3.67
+  "
+  unit_conversion_table <- read.table(textConnection(unit_conversion_table), sep="", head=T, dec=".")
+  unit_plot = unit_witch;unit_conversion=1 #by default, keep original
+  if(!is.na(match(unit_witch, unit_conversion_table$witch_unit))){
+    unit_plot <- as.character(unit_conversion_table$plot_unit[match(unit_witch, unit_conversion_table$witch_unit)])
+    unit_conversion <- unit_conversion_table$conversion_factor[match(unit_witch, unit_conversion_table$witch_unit)]}
+  return(list(unit=unit_plot, convert=unit_conversion))
+}
+
+
 
 
 

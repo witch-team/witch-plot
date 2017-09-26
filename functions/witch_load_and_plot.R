@@ -26,7 +26,6 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
         {
           tempdata <- data.table(mygdx[variable_name, field=variable_field])
           tempdata$file <- as.character(file)
-          tempdata$t <- as.numeric(tempdata$t)
           tempdata$pathdir <- basename(current_pathdir)
           if(!exists("allfilesdata")){allfilesdata=tempdata}else{allfilesdata <-rbind(allfilesdata,tempdata)}
           remove(tempdata)
@@ -55,8 +54,14 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
     #if $ value or USD value, apply USD deflator
     if(str_detect(unit, "$") | str_detect(unit, "USD")){allfilesdata$value <- allfilesdata$value * usd_deflator}
   
-    #get time frame needed        
-    allfilesdata <- subset(allfilesdata, allfilesdata$t <= yeartot(yearmax) & allfilesdata$t >= yeartot(yearmin))
+  
+    #get time frame needed
+    if(("t" %in% colnames(allfilesdata)) & !(variable_name=="t")){
+      #check if stochastic and if so convert "branch" to "file" element
+      allfilesdata <- convert_stochastic_gdx(allfilesdata)            
+      allfilesdata$t <- as.numeric(allfilesdata$t)
+      allfilesdata <- subset(allfilesdata, allfilesdata$t <= yeartot(yearmax) & allfilesdata$t >= yeartot(yearmin))    }
+
     
     #get reporting items to same structure
     if(any(colnames(allfilesdata)=="nrep"))
@@ -229,7 +234,6 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
         {
           tempdata <- data.table(mygdx[variable_name])
           tempdata$file <- as.character(file)
-          if("t" %in% colnames(tempdata)){tempdata$t <- as.numeric(tempdata$t)}
           if(length(pathdir)>=1){tempdata$pathdir <- tempdata$pathdir <- basename(current_pathdir)}
           if(!exists("allfilesdata")){allfilesdata=tempdata}else{allfilesdata <-rbind(allfilesdata,tempdata)}
           remove(tempdata)
@@ -239,8 +243,13 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
   }
   if(exists("allfilesdata")){
     allfilesdata$file  <- mapvalues(allfilesdata$file , from=filelist, to=scenlist)
-    if(("n" %in% colnames(allfilesdata)) & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F)}else{allfilesdata$n <- "World"}
     allfilesdata <- subset(allfilesdata, file %in% scenplot)
+    if(("t" %in% colnames(allfilesdata)) & !(variable_name=="t")){
+      #check if stochastic and if so convert "branch" to "file" element
+      allfilesdata <- convert_stochastic_gdx(allfilesdata)            
+      allfilesdata$t <- as.numeric(allfilesdata$t)
+    }
+    if(("n" %in% colnames(allfilesdata)) & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F)}else{allfilesdata$n <- "World"}
     #try adding historical values
     if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot, check_calibration=check_calibration)}
     assign(variable_name,allfilesdata,envir = .GlobalEnv)

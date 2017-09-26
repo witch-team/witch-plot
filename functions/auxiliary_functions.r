@@ -42,3 +42,32 @@ readkey <- function()
   cat ("Press [enter] to continue")
   line <- readline()
 }
+
+
+
+
+convert_stochastic_gdx <- function(allfilesdata){
+  for(.file in unique(allfilesdata$file)){
+    tempstochdata <- subset(allfilesdata, file==.file)
+    if('10_1' %in% tempstochdata$t){
+      tempstochdata_before_resolution <- subset(tempstochdata, !grepl("_", t))
+      tempstochdata <- subset(tempstochdata, grepl("_", t))
+      tempstochdata$file <- paste0(.file, "(b",str_sub(tempstochdata$t, -1),")")
+      branches <- unique(str_sub(tempstochdata$t, -1))
+      tempstochdata$t <- str_sub(tempstochdata$t, 1,2)
+      for(.branch in branches){
+        tempstochdata_before_resolution$file <- paste0(.file, "(b",.branch,")")
+        tempstochdata <-rbind(tempstochdata,tempstochdata_before_resolution)}
+    }
+    if(.file==unique(allfilesdata$file)[1]){allfilesdata_stoch_converted=tempstochdata}else{allfilesdata_stoch_converted <-rbind(allfilesdata_stoch_converted,tempstochdata)}
+  }
+  return(allfilesdata_stoch_converted)  
+}
+
+
+
+
+
+
+
+

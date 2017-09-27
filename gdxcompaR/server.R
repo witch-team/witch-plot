@@ -20,7 +20,7 @@ shinyServer(function(input, output, session) {
   mygdx <- gdx(paste(pathdir[1], filelist[1],".gdx",sep=""))
   list_of_variables <- c(all_items(mygdx)$variables, all_items(mygdx)$parameters)
   #now instead by hand
-  list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "l", "FPRICE", "emi_cap", "ctax", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "CUM_SAV")
+  list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "l", "FPRICE", "emi_cap", "ctax", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "CUM_SAV", "TEMP")
   
   #Scenario selector
   output$select_scenarios <- renderUI({
@@ -110,8 +110,8 @@ output$gdxompaRplot <- renderPlot({
   allfilesdata_global$n <- "World"
   allfilesdata <- rbind(allfilesdata, allfilesdata_global)
   
-  #scenarios
-  allfilesdata <- subset(allfilesdata, file %in% scenarios)
+  #scenarios, potentially add stochastic scenarios to show
+  allfilesdata <- subset(allfilesdata, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)"), "calibration"))
 
   #Unit conversion
   unit_conversion <- unit_conversion(variable)

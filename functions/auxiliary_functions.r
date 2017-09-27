@@ -76,7 +76,7 @@ unit_conversion <- function(variable_name, unit="", convert=1){
   mygdx <- gdx(paste(pathdir[1], filelist[1],".gdx",sep=""))
   if(variable_name %in% mygdx$variables$name){variable_description <- mygdx$variables$text[match(variable_name, mygdx$variables$name)]}
   if(variable_name %in% mygdx$parameters$name){variable_description <- mygdx$parameters$text[match(variable_name, mygdx$parameters$name)]}
-  unit_witch <- gsub(".*\\[(.*)\\].*", "\\1", variable_description)
+  unit_witch <- gsub(".*\\[(.*).*", "\\1", sub(" *\\].*", "", variable_description))
   if(is.na(unit_witch) | unit_witch==""){unit_witch="na"}
   unit_conversion_table <-"witch_unit plot_unit conversion_factor
   TWh       EJ                 0.0036

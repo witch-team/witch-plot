@@ -22,6 +22,11 @@ shinyServer(function(input, output, session) {
   #now instead by hand
   list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "l", "FPRICE", "emi_cap", "ctax", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "CUM_SAV")
   
+  #Scenario selector
+  output$select_scenarios <- renderUI({
+    selectInput("scenarios_selected", "Select scenarios", scenlist, size=length(scenlist), selectize = F, multiple = T, selected = scenlist)
+  })  
+  
   #Variable selector
   output$select_variable <- renderUI({
   selectInput("variable_selected", "Select variable", list_of_variables, size=1, selectize = F, multiple = F, selected = list_of_variables[1])
@@ -85,6 +90,7 @@ output$gdxompaRplot <- renderPlot({
   yearmax = input$yearmax
   additional_set_id <- input$additional_set_id_selected
   regions <- input$regions_selected
+  scenarios <- input$scenarios_selected
   
   #print(paste("after getting inputs", additional_set_id))
 
@@ -103,6 +109,9 @@ output$gdxompaRplot <- renderPlot({
   allfilesdata_global <- aggregate(value~t+file+pathdir, data=allfilesdata, sum)
   allfilesdata_global$n <- "World"
   allfilesdata <- rbind(allfilesdata, allfilesdata_global)
+  
+  #scenarios
+  allfilesdata <- subset(allfilesdata, file %in% scenarios)
 
   #Unit conversion
   unit_conversion <- unit_conversion(variable)

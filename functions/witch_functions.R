@@ -28,9 +28,7 @@ theme_set(theme_bw())
 show_numbers_2100 = FALSE
 ssp_grid = FALSE
 legend_position="bottom"    # "none", "bottom", or "right"
-usd_deflator = 1 #by default, all values in 2005 USD
-#usd_deflator = 108.686/91.987  #2014 USD
-#usd_deflator = 1.10774   #2010 USD
+
 
 ## End of Local Options ##
 

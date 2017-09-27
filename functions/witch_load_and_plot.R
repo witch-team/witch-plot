@@ -51,9 +51,9 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
     #print(str(allfilesdata))
     allfilesdata <- subset(allfilesdata, file %in% scenplot)
     #print(str(allfilesdata))
-    #if $ value or USD value, apply USD deflator
-    if(str_detect(unit, "$") | str_detect(unit, "USD")){allfilesdata$value <- allfilesdata$value * usd_deflator}
-  
+    
+    #unit conversion
+    unit_conversion <- unit_conversion(variable_name, unit, convert)
   
     #get time frame needed
     if(("t" %in% colnames(allfilesdata)) & !(variable_name=="t")){
@@ -84,7 +84,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       allfilesdata <- as.data.table(allfilesdata)
     }    
     allfilesdata[is.na(allfilesdata)] <- 0
-    allfilesdata$value = allfilesdata$value * as.numeric(convert)
+    allfilesdata$value = allfilesdata$value * unit_conversion$convert 
     #assign("test",allfilesdata,envir = .GlobalEnv)
     
     
@@ -115,7 +115,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       #if(ssp_grid){allfilesdata$ssp <- str_extract(allfilesdata$file, "ssp[1-5]")}
       #try for RCP:
       if(ssp_grid){allfilesdata <- ssptriple(allfilesdata); line_colour = "rcp"; line_type="spa"}
-      p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, colour=get(line_colour), linetype=get(line_type))) + geom_line(stat="identity", size=line_size) + xlab("year") +ylab(unit)
+      p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, colour=get(line_colour), linetype=get(line_type))) + geom_line(stat="identity", size=line_size) + xlab("year") +ylab(unit_conversion$unit)
       if(show_legend_title){p <- p + labs(linetype=line_type, colour=line_colour)}else{p <- p + theme(legend.title=element_blank())} 
       if(show_numbers_2100){p <- p + geom_text(data=subset(allfilesdata, t==20), aes(x=2100, y=value, label=round(value, 2)))}
       if(ssp_grid){p <- p + facet_grid(. ~ ssp)}
@@ -131,7 +131,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       if(length(pathdir)>=1){allfilesdata <- allfilesdata[, lapply(.SD, mean), by=c("t", "file", "pathdir")]}
       else{allfilesdata <- allfilesdata[, lapply(.SD, mean), by=c("t", "file")]}
       if(ssp_grid){allfilesdata <- ssptriple(allfilesdata); line_colour = "rcp"; line_type="spa"}
-      p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, colour=get(line_colour), linetype=get(line_type))) + geom_line(stat="identity", size=line_size) + xlab("year") +ylab(unit) + labs(linetype=line_type, colour=line_colour)
+      p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, colour=get(line_colour), linetype=get(line_type))) + geom_line(stat="identity", size=line_size) + xlab("year") +ylab(unit_conversion$unit) + labs(linetype=line_type, colour=line_colour)
       if(show_numbers_2100){p <- p + geom_text(data=subset(allfilesdata, t==20), aes(x=2100, y=value, label=round(value, 2)))}
       if(ssp_grid){p <- p + facet_grid(. ~ ssp)}
       if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
@@ -145,7 +145,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       if(ssp_grid){allfilesdata$ssp <- str_extract(allfilesdata$file, "ssp[1-5]")}
       # print(str(allfilesdata))
       # assign("test", allfilesdata)
-      p <- ggplot(subset(allfilesdata, n %in% regions),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", size=line_size) + xlab("year") +ylab(unit) + scale_colour_manual(values = region_palette)
+      p <- ggplot(subset(allfilesdata, n %in% regions),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", size=line_size) + xlab("year") +ylab(unit_conversion$unit) + scale_colour_manual(values = region_palette)
       if(ssp_grid){p <- p + facet_grid(. ~ ssp)}
       if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
       if(length(pathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}   

@@ -20,7 +20,7 @@ shinyServer(function(input, output, session) {
   mygdx <- gdx(paste(pathdir[1], filelist[1],".gdx",sep=""))
   list_of_variables <- c(all_items(mygdx)$variables, all_items(mygdx)$parameters)
   #now instead by hand
-  list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "l", "FPRICE", "emi_cap", "ctax", "MCOST_INV", "COST_EMI", "MCOST_EMI")
+  list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "l", "FPRICE", "emi_cap", "ctax", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "CUM_SAV")
   
   #Variable selector
   output$select_variable <- renderUI({
@@ -108,13 +108,15 @@ output$gdxompaRplot <- renderPlot({
   unit_conversion <- unit_conversion(variable)
   allfilesdata$value <- allfilesdata$value * unit_conversion$convert   
   
-  p <- ggplot(subset(allfilesdata, n %in% regions & file!="calibration"),aes(ttoyear(t),value,colour=n, line_type=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
+  p <- ggplot(subset(allfilesdata, n %in% regions & file!="calibration"),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
   p <- p + geom_line(data=subset(allfilesdata, n %in% regions & file=="calibration"),aes(ttoyear(t),value,colour=n), stat="identity", size=1.0)
+  #legends:
+  p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 1))
   if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
   if(line2005){p <- p + geom_vline(size=0.5,aes(xintercept=2005), linetype="solid", color="grey")}
   
   #format and print plot
-  print(p + labs(title=variable) + theme(text = element_text(size=16), legend.position="right", legend.direction = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()))
+  print(p + labs(title=variable))
   
   if(save_plot){saveplot(variable)}
   

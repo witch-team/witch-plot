@@ -67,26 +67,43 @@ convert_stochastic_gdx <- function(allfilesdata){
 
 
 
-unit_conversion <- function(variable_name){
+unit_conversion <- function(variable_name, unit="", convert=1){
+  #if unit is not "", keep its unit and convert using convert factor
+  if(unit!=""){
+    unit_plot <- unit; unit_conversion <- convert
+  }else{
   #automatic unit and conversion factor
   mygdx <- gdx(paste(pathdir[1], filelist[1],".gdx",sep=""))
-  variable_description <- mygdx$variables$text[match(variable_name, mygdx$variables$name)]
+  if(variable_name %in% mygdx$variables$name){variable_description <- mygdx$variables$text[match(variable_name, mygdx$variables$name)]}
+  if(variable_name %in% mygdx$parameters$name){variable_description <- mygdx$parameters$text[match(variable_name, mygdx$parameters$name)]}
   unit_witch <- gsub(".*\\[(.*)\\].*", "\\1", variable_description)
+  if(is.na(unit_witch) | unit_witch==""){unit_witch="na"}
   unit_conversion_table <-"witch_unit plot_unit conversion_factor
   TWh       EJ                 0.0036
   T$        'billion USD'      1e3
-  T$/TWh    $/GJ               1
+  T$/TWh    $/GJ               277777.777778
   GtCe      GtCO2              3.67
   TW        TW                 1
   T$/GTon   $/tCO2             3667
+  T$/GtCeq  $/tCO2             3667
   GTonC     GtCO2              3.67
   GtCe      GtCO2              3.67
+  na        na                 1   
+  'deg C above preindustrial levels'    °C    1
   "
   unit_conversion_table <- read.table(textConnection(unit_conversion_table), sep="", head=T, dec=".")
   unit_plot = unit_witch;unit_conversion=1 #by default, keep original
   if(!is.na(match(unit_witch, unit_conversion_table$witch_unit))){
     unit_plot <- as.character(unit_conversion_table$plot_unit[match(unit_witch, unit_conversion_table$witch_unit)])
     unit_conversion <- unit_conversion_table$conversion_factor[match(unit_witch, unit_conversion_table$witch_unit)]}
+  }
+  
+  #dollar deflator conversion if other base year than 2005
+  usd_deflator = 1 #by default, all values in 2005 USD
+  #usd_deflator = 108.686/91.987  #2014 USD
+  #usd_deflator = 1.10774   #2010 USD
+  if(str_detect(unit_plot, "$") | str_detect(unit_plot, "USD")){unit_conversion <- unit_conversion * usd_deflator}
+    
   return(list(unit=unit_plot, convert=unit_conversion))
 }
 

@@ -6,7 +6,7 @@ pathdir = paste0(main_directory, subdir)
 graphdir = paste0(pathdir[1], "graphs/") 
 
 #check if directory valid
-if(!dir.exists(pathdir)){stop("Please check the main directory and sub directory, including the trailing slash!")}
+if(any(!dir.exists(pathdir))){stop("Please check the main directory and sub directory, including the trailing slash!")}
 
 suppressPackageStartupMessages
 source('functions/get_libraries.R')
@@ -121,7 +121,7 @@ source('functions/energy_mix.R')
 source('functions/policy_cost.R')
 source('functions/add_historical_values.R')
 source('functions/report_globiom_variables.R')
-source('gdxcompaR/gdxcompaR_static.R')
+source('functions/gdxcompaR_static.R')
 
 
 

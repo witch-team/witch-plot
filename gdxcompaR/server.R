@@ -4,8 +4,6 @@ variable = "Q_FUEL"
 
 library(shiny)
 
-
-
 # Define server logic required to generate and plot a random distribution
 shinyServer(function(input, output, session) {
   
@@ -118,7 +116,7 @@ output$gdxompaRplot <- renderPlot({
   allfilesdata$value <- allfilesdata$value * unit_conversion$convert   
   
   p <- ggplot(subset(allfilesdata, n %in% regions & file!="calibration"),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
-  p <- p + geom_line(data=subset(allfilesdata, n %in% regions & file=="calibration"),aes(ttoyear(t),value,colour=n), stat="identity", size=1.0)
+  p <- p + geom_line(data=subset(allfilesdata, n %in% regions & file=="calibration"),aes(ttoyear(t),value,colour=n), stat="identity", size=1.0, linetype="solid")
   #legends:
   p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 1))
   if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ .)}

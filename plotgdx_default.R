@@ -7,13 +7,13 @@ main_directory <- "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_
 #main_directory = "U:\\SCAMBIO\\submission_cdlinks\\"
 
 #all directoried with trailing slash "/"!
-subdir = c("") #can be multiple directories
+subdir = c("emi_cap/") #can be multiple directories
 
 
 
 
-removepattern = c("results_") 
-restrict_files = "all_data_temp_ssp2_bau_stochastic" #"."
+removepattern = c("results_", "all_data_temp_") 
+restrict_files = "" #"."
 exclude_files = "report"
 
 #Name scenarios (otherwise it takes gdx filename)

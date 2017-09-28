@@ -1,9 +1,16 @@
-johplotR - various default plots and special tools to create graphs and figures based on WITCH model runs.
+witchplotR - ploting tools for the WITCH model
 
-Started in 2014 to have quick and reproducible sets of graphs for diagnostics, inspection, and publication. Happy to share and have people contributing to improve further.
+Started in 2014 by Johannes Emmerling to have quick and reproducible sets of graphs for diagnostics, inspection, and publication. Happy to share and have people contributing to improve further.
 Note that it is work in progress!!
 
+
 ## Main Functions and their arguments
+
+gdxcompaR
+
+  ShinyApp based dynamic comparison tool for multipleGDX files
+  Simply run gdxcompaR.R in the main directory specifying you WITCH and results folders in this file.
+
 
 get_witch_variable
  

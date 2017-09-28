@@ -2,6 +2,7 @@ library(shiny)
 
 # Define UI for application that plots random distributions 
 shinyUI(pageWithSidebar(
+
   
   # Application title
   headerPanel("gdxcompaR"),
@@ -32,6 +33,11 @@ shinyUI(pageWithSidebar(
   # Show the plot
   mainPanel(
     textOutput("varname"),
-    plotOutput("gdxompaRplot", width = "100%", height = "700px", hover=hoverOpts(id="plot_hover", delay = 100, delayType = "debounce"))
+    plotOutput("gdxompaRplot", width = "100%", height = "700px", hover=hoverOpts(id="plot_hover", delay = 100, delayType = "debounce")),
+    
+    tags$style(type="text/css",
+               ".shiny-output-error { visibility: hidden; }",
+               ".shiny-output-error:before { visibility: hidden; }")
+    
   )
 ))

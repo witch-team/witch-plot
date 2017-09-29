@@ -18,7 +18,7 @@ shinyServer(function(input, output, session) {
   mygdx <- gdx(paste(pathdir[1], filelist[1],".gdx",sep=""))
   list_of_variables <- c(all_items(mygdx)$variables, all_items(mygdx)$parameters)
   #now instead by hand
-  list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "l", "FPRICE", "emi_cap", "ctax", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "CUM_SAV", "TEMP")
+  list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "l", "FPRICE", "emi_cap", "ctax", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "CUM_SAV", "TEMP", "TRF")
   
   #Scenario selector
   output$select_scenarios <- renderUI({
@@ -103,8 +103,11 @@ output$gdxompaRplot <- renderPlot({
   }
   #time frame
   allfilesdata <- subset(allfilesdata, ttoyear(t)>=yearmin & ttoyear(t)<=yearmax)
+  
   #regional computations of World
-  allfilesdata_global <- aggregate(value~t+file+pathdir, data=allfilesdata, sum)
+  #now based on meta param to guess max, mean, sum
+  if(variable %in% default_meta_param()$parameter){find_aggregation = default_meta_param()[parameter==variable & type=="nagg"]$value}else{find_aggregation="sum"}
+  allfilesdata_global <- aggregate(value~t+file+pathdir, data=allfilesdata, find_aggregation)
   allfilesdata_global$n <- "World"
   allfilesdata <- rbind(allfilesdata, allfilesdata_global)
   
@@ -115,8 +118,13 @@ output$gdxompaRplot <- renderPlot({
   unit_conversion <- unit_conversion(variable)
   allfilesdata$value <- allfilesdata$value * unit_conversion$convert   
   
-  p <- ggplot(subset(allfilesdata, n %in% regions & file!="calibration"),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
-  p <- p + geom_line(data=subset(allfilesdata, n %in% regions & file=="calibration"),aes(ttoyear(t),value,colour=n), stat="identity", size=1.0, linetype="solid")
+  if(regions[1]=="World"){#if only World is displayed, show files with colors
+    p <- ggplot(subset(allfilesdata, n %in% regions & file!="calibration"),aes(ttoyear(t),value,colour=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + xlim(yearmin,yearmax)
+    p <- p + geom_line(data=subset(allfilesdata, n %in% regions & file=="calibration"),aes(ttoyear(t),value,colour=file), stat="identity", size=1.0, linetype="solid")
+  }else{
+    p <- ggplot(subset(allfilesdata, n %in% regions & file!="calibration"),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
+    p <- p + geom_line(data=subset(allfilesdata, n %in% regions & file=="calibration"),aes(ttoyear(t),value,colour=n), stat="identity", size=1.0, linetype="solid")
+  }
   #legends:
   p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 1))
   if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ .)}

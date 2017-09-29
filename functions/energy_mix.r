@@ -10,7 +10,7 @@ Primary_Energy_Mix <- function(PES_y="value", scenplot=scenlist, plot_only_histo
     #aggregate sub-categories
     setnames(Q_FUEL,"fuel", "j")
     TPES <- rbind(Q_FUEL, Q_EN)
-    TPES <- subset(TPES, j %in% c("oil", "coal", "gas", "uranium", "trbiofuel", "wbio", "advbio", "trbiomass") | j %in% c("elpv", "elcsp", "elhydro_new", "elhydro_old", "elback", "nelcoalabat", "elwindon", "elwindoff"))
+    TPES <- subset(TPES, j %in% c("oil", "coal", "gas", "uranium", "trbiofuel", "wbio", "advbio", "trbiomass") | j %in% c("elpv", "elcsp", "elhydro_new", "elhydro_old", "elback", "elwindon", "elwindoff"))
     TPES$category[TPES$j %in% c("oil")] = "Oil"
     TPES$category[TPES$j %in% c("gas")] = "Natural Gas"
     TPES$category[TPES$j %in% c("coal")] = "Coal"
@@ -93,7 +93,7 @@ Primary_Energy_Mix_Regional <- function(PES_y="value", regions=witch_regions, ye
     setnames(Q_FUEL,"fuel", "j")
     TPES <- rbind(Q_FUEL, Q_EN)
     TPES <- subset(TPES, n %in% regions)
-    TPES <- subset(TPES, j %in% c("oil", "coal", "gas", "uranium", "trbiofuel", "wbio", "advbio", "trbiomass") | j %in% c("elpv", "elcsp", "elhydro_new", "elhydro_old", "elback", "nelcoalabat", "elwindon", "elwindoff"))
+    TPES <- subset(TPES, j %in% c("oil", "coal", "gas", "uranium", "trbiofuel", "wbio", "advbio", "trbiomass") | j %in% c("elpv", "elcsp", "elhydro_new", "elhydro_old", "elback", "elwindon", "elwindoff"))
     TPES$category[TPES$j %in% c("oil")] = "Oil"
     TPES$category[TPES$j %in% c("gas")] = "Natural Gas"
     TPES$category[TPES$j %in% c("coal")] = "Coal"
@@ -168,8 +168,8 @@ Electricity_Mix <- function(Electricity_y="value", scenplot=scenlist){
     ELEC$category[ELEC$j %in% c("elwind")] = "Wind"
     ELEC$category[ELEC$j %in% c("elpb_new", "elpb_old")] = "Biomass w/o CCS"
     ELEC$category[ELEC$j %in% c("elbigcc")] = "Biomass w/ CCS"
-    ELEC$category[ELEC$j %in% c("elpc_new", "elpc_old")] = "Coal w/o CCS"
-    ELEC$category[ELEC$j %in% c("elcigcc")] = "Coal w/ CCS"
+    ELEC$category[ELEC$j %in% c("elpc_new", "elpc_old", "elpc_vint")] = "Coal w/o CCS"
+    ELEC$category[ELEC$j %in% c("elcigcc", "elpc_ccs", "elpc_oxy")] = "Coal w/ CCS"
     ELEC$category[ELEC$j %in% c("elgastr_new", "elgastr_old")] = "Gas w/o CCS"
     ELEC$category[ELEC$j %in% c("elgasccs")] = "Gas w/ CCS"
     ELEC$category[ELEC$j %in% c("eloil_new", "eloil_old")] = "Oil" 
@@ -233,8 +233,8 @@ Electricity_Mix_Regional <- function(Electricity_y="value", regions=witch_region
     ELEC$category[ELEC$j %in% c("elwind")] = "Wind"
     ELEC$category[ELEC$j %in% c("elpb_new", "elpb_old")] = "Biomass w/o CCS"
     ELEC$category[ELEC$j %in% c("elbigcc")] = "Biomass w/ CCS"
-    ELEC$category[ELEC$j %in% c("elpc_new", "elpc_old")] = "Coal w/o CCS"
-    ELEC$category[ELEC$j %in% c("elcigcc")] = "Coal w/ CCS"
+    ELEC$category[ELEC$j %in% c("elpc_new", "elpc_old", "elpc_vint")] = "Coal w/o CCS"
+    ELEC$category[ELEC$j %in% c("elcigcc", "elpc_ccs", "elpc_oxy")] = "Coal w/ CCS"
     ELEC$category[ELEC$j %in% c("elgastr_new", "elgastr_old")] = "Gas w/o CCS"
     ELEC$category[ELEC$j %in% c("elgasccs")] = "Gas w/ CCS"
     ELEC$category[ELEC$j %in% c("eloil_new", "eloil_old")] = "Oil" 

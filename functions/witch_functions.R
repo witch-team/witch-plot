@@ -120,7 +120,6 @@ source('functions/map_functions.R')
 source('functions/energy_mix.R')
 source('functions/policy_cost.R')
 source('functions/add_historical_values.R')
-source('functions/report_globiom_variables.R')
 source('functions/gdxcompaR_static.R')
 
 

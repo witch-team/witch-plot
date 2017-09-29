@@ -44,7 +44,7 @@ stop("Just load everything")
 
 
 #Main part, get data plots etc.
-Plot_Global_Emissions(show_ar5=TRUE, ar5_budget=1180) #Global GHG Emissions (AR5 2000 is CB of 2 degrees, 1180GtCO2 for "likely 2deg")
+Plot_Global_Emissions(show_ar5=TRUE, ar5_budget=1180, bauscen = ) #Global GHG Emissions (AR5 2000 is CB of 2 degrees, 1180GtCO2 for "likely 2deg")
 
 get_witch_variable("carbonprice", "Carbon Price", "na", "na", aggregation =  "global_mean")
 get_witch_variable("Q", "GDP", "iq", "y", aggregation = "global_sum")
@@ -88,7 +88,6 @@ Intensity_Plot(year=2050, region=c(regions_focus, "WORLD"), year0=2010)
 Sectoral_Emissions(regions=regions_focus)
 Policy_Cost(discount_rate=5, regions=regions_focus, bauscen = "bau", show_numbers=TRUE, tmax=10)
 
-get_globiom_variables(regions=regions_focus, varplot="ForestCover", varname="Forest Cover", varunit="%")  #plots forest cover
 
 
 

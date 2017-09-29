@@ -6,7 +6,7 @@
 Intensity_Plot <- function(year=2050, region="WORLD", year0=2010, scenplot=scenlist){
   get_witch_variable("tpes", "tpes", "na", "na", 0.0036, "EJ", "regional", plot=FALSE)
   setnames(tpes, "value", "PES")
-  get_witch_variable("Q_EMI", "Q_EMI", "e", "co2ind", 0.0036, "EJ", "regional", plot=FALSE)
+  get_witch_variable("Q_EMI", "Q_EMI", "e", "co2ffi", 0.0036, "EJ", "regional", plot=FALSE)
   setnames(Q_EMI, "value", "CO2")
   get_witch_variable("Q", "Q", "iq", "y", 1e3, "bln. USD", "regional", plot=FALSE)
   setnames(Q, "value", "GDP")
@@ -44,7 +44,7 @@ Intensity_Plot <- function(year=2050, region="WORLD", year0=2010, scenplot=scenl
 
 #Sectoral Emissions
 Sectoral_Emissions <- function(regions=witch_regions, scenplot=scenlist){
-get_witch_variable("Q_EMI", "CO2_FFI", "e", "co2ind", 3.67, "GtCO2", "regional", plot = F)
+get_witch_variable("Q_EMI", "CO2_FFI", "e", "co2ffi", 3.67, "GtCO2", "regional", plot = F)
 Q_EMI_FFI <- Q_EMI
 Q_EMI_FFI$sector="Fossil Fuels and Industrial"#FFI
 get_witch_variable("Q_EMI", "CO2_LU", "e", "co2lu", 3.67, "GtCO2", "regional", plot = F)
@@ -68,7 +68,7 @@ Mitigation_Sources <- function(regions=witch_regions, scenario_stringency_order)
   Q_EMI <- subset(Q_EMI, select=-pathdir)
   Q_EMI <- reshape(Q_EMI, timevar = "e",idvar = c("t", "n", "file"),direction = "wide")
   emi_sources= c("CO2FFI", "CCS", "CO2LU", "NON-CO2")
-  Q_EMI$CO2FFI <- Q_EMI$value.co2ind + Q_EMI$value.ccs
+  Q_EMI$CO2FFI <- Q_EMI$value.co2ffi + Q_EMI$value.ccs
   Q_EMI$CCS <- -Q_EMI$value.ccs
   Q_EMI$CO2LU <- Q_EMI$value.co2lu
   #Non-CO2 based on set
@@ -104,7 +104,7 @@ Mitigation_Sources <- function(regions=witch_regions, scenario_stringency_order)
 Carbon_Budget <- function(regions=witch_regions, scenario, plotname="CO2 Emissions Carbon Budget"){
   #add GLOBAL carbon budget for some regions and RoW based on one scenario
   #for now only CO2 with hist!
-  get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2ind", 44/12, "GtCO2", "regional", scenplot = scenario, plot = FALSE)
+  get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2ffi", 44/12, "GtCO2", "regional", scenplot = scenario, plot = FALSE)
   ALL_EMI <- Q_EMI
   ALL_REST_WOLD <- subset(ALL_EMI, !(n %in% regions))[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
   ALL_REST_WOLD$n <- "Rest_of_World"
@@ -254,7 +254,7 @@ Plot_Global_Emissions <- function(show_ar5=TRUE, ar5_budget=2000, bauscen="ssp2_
   Q_EMI <- as.data.frame(Q_EMI); Q_EMI_orig <- Q_EMI
   Q_EMI <- reshape(Q_EMI, timevar = "e",idvar = c("t", "n", "file", "pathdir"),direction = "wide")
   emi_sources= c("CO2FFI", "CCS", "CO2LU", "NON-CO2")
-  Q_EMI$CO2FFI <- Q_EMI$value.co2ind + Q_EMI$value.ccs
+  Q_EMI$CO2FFI <- Q_EMI$value.co2ffi + Q_EMI$value.ccs
   Q_EMI$CCS <- -Q_EMI$value.ccs
   Q_EMI$CO2LU <- Q_EMI$value.co2lu
   #Non-CO2 based on set
@@ -277,16 +277,16 @@ Plot_Global_Emissions <- function(show_ar5=TRUE, ar5_budget=2000, bauscen="ssp2_
   assign("Global_Emissions_Data", subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum)), envir = .GlobalEnv)  
  
   #add also abatement
-  Abatement <- dcast(Global_Emissions_Data, pathdir + t ~ file, value.var="GHG")
-  Emissions_BAU <- Abatement[bauscen]
-  for(abat_scen in scenplot){Abatement[abat_scen] <- -(Abatement[abat_scen]-Emissions_BAU)}
-  Abatement <- melt(Abatement, id.vars = c("pathdir", "t"), variable.name = "file")
-  Abatement$file <- as.character(Abatement$file)
-  Abatement <- subset(Abatement, file!=bauscen)
-  Abatement$value <- Abatement$value*44/12
-  ggplot(data=subset(Abatement, ttoyear(t) <= yearmax),aes(ttoyear(t),value, colour=file)) + geom_line(stat="identity") + xlab("") +ylab("GtCO2")
-  saveplot("Global Abatement", plotdata = Abatement)
-  assign("Global_Abatement_Data", Abatement, envir = .GlobalEnv)  
+  # Abatement <- dcast(Global_Emissions_Data, pathdir + t ~ file, value.var="GHG")
+  # Emissions_BAU <- Abatement[bauscen]
+  # for(abat_scen in scenplot){Abatement[abat_scen] <- -(Abatement[abat_scen]-Emissions_BAU)}
+  # Abatement <- melt(Abatement, id.vars = c("pathdir", "t"), variable.name = "file")
+  # Abatement$file <- as.character(Abatement$file)
+  # Abatement <- subset(Abatement, file!=bauscen)
+  # Abatement$value <- Abatement$value*44/12
+  # ggplot(data=subset(Abatement, ttoyear(t) <= yearmax),aes(ttoyear(t),value, colour=file)) + geom_line(stat="identity") + xlab("") +ylab("GtCO2")
+  # saveplot("Global Abatement", plotdata = Abatement)
+  # assign("Global_Abatement_Data", Abatement, envir = .GlobalEnv)  
 }
 
 

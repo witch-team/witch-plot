@@ -276,17 +276,20 @@ Plot_Global_Emissions <- function(show_ar5=TRUE, ar5_budget=2000, bauscen="ssp2_
   
   assign("Global_Emissions_Data", subset(aggregate(GHG~t+file+pathdir, data=ALL_EMI, sum)), envir = .GlobalEnv)  
  
-  #add also abatement
-  # Abatement <- dcast(Global_Emissions_Data, pathdir + t ~ file, value.var="GHG")
-  # Emissions_BAU <- Abatement[bauscen]
-  # for(abat_scen in scenplot){Abatement[abat_scen] <- -(Abatement[abat_scen]-Emissions_BAU)}
-  # Abatement <- melt(Abatement, id.vars = c("pathdir", "t"), variable.name = "file")
-  # Abatement$file <- as.character(Abatement$file)
-  # Abatement <- subset(Abatement, file!=bauscen)
-  # Abatement$value <- Abatement$value*44/12
-  # ggplot(data=subset(Abatement, ttoyear(t) <= yearmax),aes(ttoyear(t),value, colour=file)) + geom_line(stat="identity") + xlab("") +ylab("GtCO2")
-  # saveplot("Global Abatement", plotdata = Abatement)
-  # assign("Global_Abatement_Data", Abatement, envir = .GlobalEnv)  
+  #add also abatement (requires valid bauscen!!!)
+  if(bauscen %in% scenlist){ 
+  Abatement <- dcast(Global_Emissions_Data, pathdir + t ~ file, value.var="GHG")
+  Emissions_BAU <- Abatement[bauscen]
+  scen_stoch_plot <- colnames(Abatement)[3:length(colnames(Abatement))]
+  for(abat_scen in scen_stoch_plot){Abatement[abat_scen] <- -(Abatement[abat_scen]-Emissions_BAU)}
+  Abatement <- melt(Abatement, id.vars = c("pathdir", "t"), variable.name = "file")
+  Abatement$file <- as.character(Abatement$file)
+  Abatement <- subset(Abatement, file!=bauscen)
+  Abatement$value <- Abatement$value*44/12
+  ggplot(data=subset(Abatement, ttoyear(t) <= yearmax),aes(ttoyear(t),value, colour=file)) + geom_line(stat="identity") + xlab("") +ylab("GtCO2")
+  saveplot("Global Abatement", plotdata = Abatement)
+  assign("Global_Abatement_Data", Abatement, envir = .GlobalEnv)
+  }
 }
 
 

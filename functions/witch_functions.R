@@ -60,10 +60,10 @@ if(create_all_figures_pdf){pdf(paste(graphdir, "all_figures.pdf", sep=""), paper
 
 #Palettes for WITCH regions and regional aggregation
 get_witch_simple("conf")
-region_id <- subset(conf, file==scenlist[1] & V1=="regions")$V2
+region_id <- subset(conf, file==scenlist[1] & pathdir==pathdir[1] & V1=="regions")$V2
 get_witch_simple("n")
 get_witch_simple("t"); t_model<-unique(t$t)
-witch_regions <- subset(n, file==scenlist[1])$V1
+witch_regions <- subset(n, file==scenlist[1] & pathdir==pathdir[1])$V1
 if(!exists("display_regions")){display_regions <- witch_regions}
 region_palette_rainbow <- setNames(rainbow(length(witch_regions)), witch_regions) #just in case have a fall back colour
 region_palette_specific <- c(usa="darkblue", 

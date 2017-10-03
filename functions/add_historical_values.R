@@ -57,7 +57,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     #merge with variable
     if(check_calibration){
       #merge with variable, here just add with file="calibration" if check_calibration
-      .hist$file <- "calibration"
+      .hist$file <- "historical"
       #just multiply by the pathdir so it appears for each pathdir
       .hist_temp <- .hist
       for(pd in basename(pathdir))

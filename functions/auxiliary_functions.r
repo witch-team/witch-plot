@@ -100,12 +100,25 @@ unit_conversion <- function(variable_name, unit="", convert=1){
     unit_conversion <- unit_conversion_table$conversion_factor[match(unit_witch, unit_conversion_table$witch_unit)]}
   }
   
+  #Finally, for specific variables apply custom unit and conversion
+  unit_conversion_user_specific <-"varname plot_unit conversion_factor
+  tpes       EJ                 0.0036
+  tpes_kali  EJ                 0.0036
+  ei_kali    MJ/$               1     
+  "
+  unit_conversion_user_specific <- read.table(textConnection(unit_conversion_user_specific), sep="", head=T, dec=".")
+  if(variable_name %in% unit_conversion_user_specific$varname){
+    unit_plot <- unit_conversion_user_specific$plot_unit[unit_conversion_user_specific$varname==variable_name]
+    unit_conversion <- unit_conversion_user_specific$conversion_factor[unit_conversion_user_specific$varname==variable_name]
+  }
+  
+  
   #dollar deflator conversion if other base year than 2005
   usd_deflator = 1 #by default, all values in 2005 USD
   #usd_deflator = 108.686/91.987  #2014 USD
   #usd_deflator = 1.10774   #2010 USD
   if(str_detect(unit_plot, "$") | str_detect(unit_plot, "USD")){unit_conversion <- unit_conversion * usd_deflator}
-    
+  
   return(list(unit=unit_plot, convert=unit_conversion))
 }
 

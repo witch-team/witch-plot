@@ -2,8 +2,8 @@
 #v1: February 09th, 2016
 
 pathdir = paste0(main_directory, subdir)
-#Specify directory for graphs and data to be saved: by default: /graphs/ in first folder if multiple folders
-graphdir = paste0(pathdir[1], "graphs/") 
+#Specify directory for graphs and data to be saved: by default: /graphs/ in the folder
+graphdir = if(length(pathdir)>1){paste0(main_directory, "graphs/") }else{paste0(pathdir, "graphs/")}
 
 #check if directory valid
 if(any(!dir.exists(pathdir))){stop("Please check the main directory and sub directory, including the trailing slash!")}

@@ -380,25 +380,31 @@ Energy_Prices <- function(unit="GJ", scenplot=scenlist){
 
 
 
-Energy_Trade <- function(fuel="oil", scenplot=scenlist){
-  get_witch_variable("Q_OUT", "Extraction", "f", f, 1, "TWh", "regional", plot = F)
-  get_witch_variable("Q_FUEL", "Consumption", "fuel", fuel, 1, "TWh", "regional", plot = F)
+Energy_Trade <- function(fuelplot="oil", scenplot=scenlist, add_value=F){
+  get_witch_variable("Q_OUT", "Extraction", "f", fuelplot, 1, "TWh", "regional", plot = T)
+  get_witch_variable("Q_FUEL", "Consumption", "fuel", fuelplot, 1, "TWh", "regional", plot = T)
   NET_EXPORT <- Q_OUT
   setnames(NET_EXPORT, "value", "Extraction")
   NET_EXPORT <- merge(NET_EXPORT, Q_FUEL, by = c("t", "n", "file", "pathdir"))
   setnames(NET_EXPORT, "value", "Consumption")
   Energy_Prices(scenplot=scenlist)
-  NET_EXPORT <- merge(NET_EXPORT, subset(Energy_Price_Data, fuel==fuel), by = c("t", "file"), all.x = TRUE)
+  #get common time horizon
+  t_common <- intersect(unique(Q_OUT$t),unique(Q_FUEL$t)) #, Energy_Price_Data$t
+  NET_EXPORT <- subset(NET_EXPORT, t %in% t_common)
+  Energy_Price_Data <- subset(Energy_Price_Data, t %in% t_common & fuel==fuelplot);Energy_Price_Data$fuel <- NULL
+  NET_EXPORT <- merge(NET_EXPORT, Energy_Price_Data, by = c("t", "file"), all.x = TRUE)
   #volume in EJ, prices in $/GJ, value in billion USD
   NET_EXPORT$Net_Export_Volume <- (NET_EXPORT$Extraction - NET_EXPORT$Consumption) * 0.0036
   NET_EXPORT$Net_Export_Value <- ((NET_EXPORT$Extraction - NET_EXPORT$Consumption) * NET_EXPORT$energy_price) * 1e3
   NET_EXPORT$pathdir <- NULL
-  NET_EXPORT$f <- NULL
+  #NET_EXPORT$fuel <- NULL
   NET_EXPORT <- NET_EXPORT[!is.na(energy_price)]
   NET_EXPORT <- melt(NET_EXPORT, id.vars = c("t", "n", "file"))
-  
-  ggplot(subset(NET_EXPORT, file %in% scenplot & variable %in% c("Net_Export_Volume", "Net_Export_Value")),aes(ttoyear(t),value, fill=n)) + geom_area(stat="identity") + facet_grid(variable ~ file, scales = "free") + ylab("billion USD / EJ") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") + scale_fill_manual(values = region_palette)
-  saveplot(paste("Energy Trade:", fuel), plotdata = NET_EXPORT)
+  ggplot(subset(NET_EXPORT, file %in% scenplot & variable %in% c("Net_Export_Volume")),aes(ttoyear(t),value, fill=n)) + geom_area(stat="identity") + facet_grid(. ~ file, scales = "free") + ylab("EJ") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") + scale_fill_manual(values = region_palette)
+  if(add_value){
+    ggplot(subset(NET_EXPORT, file %in% scenplot & variable %in% c("Net_Export_Volume", "Net_Export_Value")),aes(ttoyear(t),value, fill=n)) + geom_area(stat="identity") + facet_grid(variable ~ file, scales = "free") + ylab("billion USD / EJ") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") + scale_fill_manual(values = region_palette)
+  }
+  saveplot(paste("Energy Trade:", fuelplot), plotdata = NET_EXPORT)
 }
 
 

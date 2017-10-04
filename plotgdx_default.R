@@ -4,16 +4,16 @@ rm(list = ls())
 witch_folder = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
 #main directory of your results files
 main_directory <- "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
-#main_directory = "U:\\SCAMBIO\\submission_cdlinks\\"
+main_directory = "U:\\SCAMBIO\\CBSTO\\"
 
 #all directoried with trailing slash "/"!
-subdir = c("emi_cap/") #can be multiple directories
+subdir = c("") #can be multiple directories
 
 
 
 
-removepattern = c("results_", "all_data_temp_") 
-restrict_files = "" #"."
+removepattern = c("results_", "all_data_temp_", "results_ssp2_") 
+restrict_files = "results_ssp2_bau" #"."
 exclude_files = "report"
 
 #Name scenarios (otherwise it takes gdx filename)
@@ -24,7 +24,7 @@ exclude_files = "report"
 #Special focus regions to report for
 #regions_focus = c("china", "india", "sasia", "easia", "indonesia")
 
-yearmin=1850
+yearmin=1980
 yearmax = 2100
 
 #Initialize default options, load all witch and other functions
@@ -49,7 +49,7 @@ Plot_Global_Emissions(show_ar5=TRUE, ar5_budget=1180, bauscen = "ssp2_bau") #Glo
 get_witch_variable("carbonprice", "Carbon Price", "na", "na", aggregation =  "global_mean")
 get_witch_variable("Q", "GDP", "iq", "y", aggregation = "global_sum")
 get_witch_variable("Q", "GDP", "iq", "y", aggregation = "regional")
-get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2", aggregation = "global_sum")
+get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2", aggregation = "global_sum", cumulative = T)
 get_witch_variable("TEMP", "Temperature", "m", "atm", aggregation = "global_mean")
 
 get_witch_variable("Q_EMI", "CCS_Emissions", "e", "ccs", aggregation = "global_sum")
@@ -58,7 +58,7 @@ get_witch_variable("tpes", "tpes", "na", "na", aggregation = "global_sum")
 
 get_witch_variable("Q_OUT", "Oil_Extraction", "f", "oil", aggregation = "regional")
 
-Energy_Trade(fuel = "oil")
+Energy_Trade(fuelplot = "oil")
 Energy_Prices(unit = "boe", scenplot = scenlist)
 
 #calibration

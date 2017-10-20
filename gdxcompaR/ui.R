@@ -24,6 +24,7 @@ shinyUI(pageWithSidebar(
                 value = 2100,
                 step  = 10),
     uiOutput("choose_additional_set"),
+    uiOutput("choose_additional_set2"),
     uiOutput("select_scenarios"),
     uiOutput("select_regions")
 ),

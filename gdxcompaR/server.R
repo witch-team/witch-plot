@@ -18,7 +18,7 @@ shinyServer(function(input, output, session) {
   mygdx <- gdx(paste(pathdir[1], filelist[1],".gdx",sep=""))
   list_of_variables <- c(all_items(mygdx)$variables, all_items(mygdx)$parameters)
   #now instead by hand
-  list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "l", "FPRICE", "emi_cap", "ctax", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "CUM_SAV", "TEMP", "TRF", "tpes_kali", "ei_kali")
+  list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "emi_cap", "ctax", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "CUM_SAV", "TEMP", "TRF", "tpes", "tpes_kali", "ei", "ei_kali", "Q_FEN", "Q_IN")
   
   #Scenario selector
   output$select_scenarios <- renderUI({
@@ -32,9 +32,10 @@ shinyServer(function(input, output, session) {
   variable_selected_reactive <- reactive({
     input$variable_selected
   })
+  
   #Display selected variable and set
   output$varname <- renderText({  
-    paste("Variable:",variable_selected_reactive()," Element:", input$additional_set_id_selected)
+    paste("Variable:",variable_selected_reactive()," Element 1:", input$additional_set_id_selected, " Element 2:", input$additional_set_id_selected2)
   }) 
   
 
@@ -58,14 +59,21 @@ output$gdxompaRplot <- renderPlot({
     allfilesdata <- get(variable)
     #print(str(allfilesdata))
     #get the name of the additional set
-    additional_set <- setdiff(colnames(allfilesdata), c("file", "pathdir", "t", "n", "value"))
+    additional_sets <- setdiff(colnames(allfilesdata), c("file", "pathdir", "t", "n", "value"))
     #extract additional set elements
-    if(length(additional_set)==0){additional_set="not available"; set_elements = "not available"}else if(length(additional_set)==1)
-    {set_elements <- unique(tolower(as.data.frame(allfilesdata)[, match(additional_set, colnames(allfilesdata))]))}
-    else if(length(additional_set)>1)
+    if(length(additional_sets)==0){additional_set="na"; set_elements = "na"; additional_set2="na"; set_elements2 = "na"}
+    else if(length(additional_sets)==1)
     {
-    #if more than one additional set (not yet working!)
-    variable <- list_of_variables[(match("Q", list_of_variables)+1)]
+      additional_set <- additional_sets[1]
+      set_elements <- unique(tolower(as.data.frame(allfilesdata)[, match(additional_set, colnames(allfilesdata))]))
+      additional_set2="na"; set_elements2 = "na"
+    }
+    else if(length(additional_sets)==2)
+    {
+      additional_set <- additional_sets[1]
+      set_elements <- unique(tolower(as.data.frame(allfilesdata)[, match(additional_set, colnames(allfilesdata))]))
+      additional_set2 <- additional_sets[2] 
+      set_elements2 <- unique(tolower(as.data.frame(allfilesdata)[, match(additional_set2, colnames(allfilesdata))]))
     }
  
 
@@ -81,25 +89,37 @@ output$gdxompaRplot <- renderPlot({
       selectInput("additional_set_id_selected", "Additional set element", set_elements, size=size_elements, selectize = F, multiple = F, selected = sel) 
       })  
     
+    #Selector for additional set
+    output$choose_additional_set2 <- renderUI({
+      sel2 <- input$additional_set_id_selected2
+      #print(paste("in setselector", sel))
+      size_elements2 <- min(length(set_elements2), 10)
+      selectInput("additional_set_id_selected2", "Additional set element 2", set_elements2, size=size_elements2, selectize = F, multiple = F, selected = sel2) 
+    })  
 
       
   #get input from sliders/buttons
   yearmin = input$yearmin
   yearmax = input$yearmax
   additional_set_id <- input$additional_set_id_selected
+  additional_set_id2 <- input$additional_set_id_selected2
   regions <- input$regions_selected
   scenarios <- input$scenarios_selected
-  
-  #print(paste("after getting inputs", additional_set_id))
+
 
   
   # SUBSET data and PLOT
   
   #choose additional selected element
-  if(additional_set_id!="not available"){
+  if(additional_set_id!="na"){
     allfilesdata[[additional_set]] <- tolower(allfilesdata[[additional_set]]) # to fix erroneous gams cases (y and Y etc.)
     allfilesdata <- subset(allfilesdata, get(additional_set)==additional_set_id)
     allfilesdata[[additional_set]] <- NULL #remove additional set column
+  }
+  if(additional_set_id2!="na"){
+    allfilesdata[[additional_set2]] <- tolower(allfilesdata[[additional_set2]]) # to fix erroneous gams cases (y and Y etc.)
+    allfilesdata <- subset(allfilesdata, get(additional_set2)==additional_set_id2)
+    allfilesdata[[additional_set2]] <- NULL #remove additional set column
   }
   #time frame
   allfilesdata <- subset(allfilesdata, ttoyear(t)>=yearmin & ttoyear(t)<=yearmax)

@@ -40,8 +40,14 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
       .hist <- .hist[j!="elsolwind"]
       .hist <- rbind(.hist, .pv, .csp, .wind)
       .hist$j <- mapvalues(.hist$j, from=c("elnuclear", "elpc", "elpb", "elgastr", "elhydro", "eloil"), to=c("elnuclear_old", "elpc_old", "elpb_old", "elgastr_old", "elhydro_old", "eloil_old"))
-      
     }
+    
+    if(item=="q_fen_valid_weo")
+    {
+      setnames(.hist, "sec", "z")
+      setnames(.hist, "fuel", "fr")
+    }
+    
     if(item=="q_in_valid_weo") #add fuel column
     {
       .hist$fuel <- "oil"

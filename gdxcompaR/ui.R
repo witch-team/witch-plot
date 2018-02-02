@@ -20,7 +20,7 @@ shinyUI(pageWithSidebar(
     sliderInput("yearmax", 
                 "End year:", 
                 min = 1970,
-                max = 2100, 
+                max = 2150, 
                 value = 2100,
                 step  = 10),
     uiOutput("choose_additional_set"),

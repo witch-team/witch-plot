@@ -255,6 +255,7 @@ Plot_Global_Emissions <- function(show_ar5=TRUE, ar5_budget=2000, bauscen="ssp2_
   Q_EMI <- reshape(Q_EMI, timevar = "e",idvar = c("t", "n", "file", "pathdir"),direction = "wide")
   emi_sources= c("CO2FFI", "CCS", "CO2LU", "NON-CO2")
   Q_EMI$CO2FFI <- Q_EMI$value.co2ffi + Q_EMI$value.ccs
+  Q_EMI$CO2FFI <- Q_EMI$value.co2ind + Q_EMI$value.ccs #for old naming (deprecated)
   Q_EMI$CCS <- -Q_EMI$value.ccs
   Q_EMI$CO2LU <- Q_EMI$value.co2lu
   #Non-CO2 based on set

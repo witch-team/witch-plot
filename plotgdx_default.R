@@ -1,10 +1,10 @@
 rm(list = ls())
 #all directoried with trailing slash "/"!
 #Where you're WITCH code is located
-witch_folder = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
+witch_folder = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch_cba/"
 #main directory of your results files
-main_directory <- "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
-main_directory = "U:\\SCAMBIO\\CBSTO\\"
+main_directory <- "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch_cba/"
+main_directory = "U:\\SCAMBIO\\discount_rate\\"
 
 #all directoried with trailing slash "/"!
 subdir = c("") #can be multiple directories
@@ -12,9 +12,9 @@ subdir = c("") #can be multiple directories
 
 
 
-removepattern = c("results_", "all_data_temp_", "results_ssp2_") 
-restrict_files = "results_ssp2_bau" #"."
-exclude_files = "report"
+removepattern = c("results_SRM_damF_", "all_data_temp_", "results_ssp2_", "ssp2_bau_startboost_") 
+restrict_files = "" #"."
+exclude_files = "db"
 
 #Name scenarios (otherwise it takes gdx filename)
 #scenlist <- c("REF", "INDC_2C", "INDC_2C_TRADE", "INDC", "INDC_TRADE", "OPT_2C")
@@ -109,6 +109,9 @@ source('functions/close_functions.R') #finishes PDF, shows welfare
 
 
 
+writewitchcsv("l")
+writewitchcsv("education")		
+writewitchcsv("quintiles")		
 
 
 

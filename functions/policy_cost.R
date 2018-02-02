@@ -4,7 +4,7 @@
 Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", regions="WORLD", show_numbers=TRUE, scenplot=scenlist, measure="GDP", suffix=""){
   if(!(bauscen %in% scenlist)){stop("For policy costs define an existing BAU scenario")}
   get_witch_simple("Q")
-  Q$value <- Q$value * usd_deflator    #Apply deflator
+  #Q$value <- Q$value * usd_deflator    #Apply deflator
   Q <- subset(Q, (t %in% t_model))
   if(measure=="GDP"){GDP <- subset(Q, iq=="y")}
   if(measure=="Consumption"){GDP <- subset(Q, iq=="cc")}
@@ -59,7 +59,8 @@ if(measure=="Consumption"){Q <- subset(Q, iq=="cc")}
 Q$iq <- NULL
 Q <- subset(Q, t %in% seq(1,30))
 #add emission reduction and PES costs to get full gross GDP
-get_witch_simple("COST_FUEL")
+#get_witch_simple("COST_FUEL")
+get_witch_simple("COST_PES"); COST_FUEL <- COST_PES; setnames(COST_FUEL, "f", "fuel") #deprecated!!
 get_witch_simple("COST_EMI")
 get_witch_simple("SRM_COST"); setnames(SRM_COST, "value", "SRM_COST")
 COST_EMI$e <- NULL;
@@ -180,7 +181,7 @@ saveplot(paste0(measure, " loss decomposition", suffix), plotdata=DAM_DECOMP_NPV
 Carbon_Price <- function(scenplot=scenlist){
   get_witch_simple("carbonprice")
   carbonprice <- subset(carbonprice, file %in% scenplot)
-  carbonprice$value <- carbonprice$value * usd_deflator    #Apply deflator
+  #carbonprice$value <- carbonprice$value * usd_deflator    #Apply deflator
   p <- ggplot(subset(carbonprice, t==20 & n=="usa")) + geom_bar(position=position_dodge(), stat="identity",aes(file, value*1e3/(44/12), fill=file), show.legend = TRUE) +ylab("$/tCO2") + theme(legend.position="bottom",legend.direction="horizontal")+ guides(fill=guide_legend(title=NULL, nrow = 1))
   if(length(pathdir) > 1){p <- p + facet_grid(. ~ pathdir)}
   saveplot("Global Carbon Price 2100")

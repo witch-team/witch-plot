@@ -18,7 +18,7 @@ shinyServer(function(input, output, session) {
   mygdx <- gdx(paste(pathdir[1], filelist[1],".gdx",sep=""))
   list_of_variables <- c(all_items(mygdx)$variables, all_items(mygdx)$parameters)
   #now instead by hand
-  list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "emi_cap", "ctax", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "CUM_SAV", "TEMP", "TRF", "tpes", "tpes_kali", "ei", "ei_kali", "Q_FEN", "Q_IN")
+  list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "emi_cap", "ctax", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "CUM_SAV", "TEMP", "TRF", "tpes", "tpes_kali", "ei", "ei_kali", "Q_FEN", "Q_IN", "ykali")
   
   #Scenario selector
   output$select_scenarios <- renderUI({

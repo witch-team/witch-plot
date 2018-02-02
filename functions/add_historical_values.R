@@ -5,6 +5,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   display_years = "model"#historical" #"model" #"historical"
   
   .gdx <- gdx(paste0(witch_folder, "data_", region_id, "/data_historical_values.gdx"))
+  if(varname=="quintiles"){.gdx <- gdx(paste0(witch_folder, "data_", region_id, "/data_mod_inequality.gdx"))}
   valid_suffix <- "_valid"  #for CO2IND emissions, set it to 
   if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"}
   if(!is.na(pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name))){
@@ -15,12 +16,16 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     #get set dependency based on WITCH variable
     #colnames(.hist) <- setdiff(colnames(variable), c("file", "pathdir"))
     #better: get it from /built/!!!
-    .gdxiso3 <- gdx(paste0(witch_folder, "input/build/data_historical_values.gdx"))
-    colnames(.hist) <-colnames(.gdxiso3[item])	
-    #in built global data have set "global", but in input folder it gets converted to iso3, so:
-    colnames(.hist) <- gsub("global", "iso3", colnames(.hist))
-    #add "World" if no country level data but global
-    if(!("iso3" %in% colnames(.hist))){.hist$n = "World"}else{setnames(.hist, "iso3", "n")}
+    if(varname=="quintiles"){
+      colnames(.hist) <- c("year", "n", "dist", "value")
+    }else{
+      .gdxiso3 <- gdx(paste0(witch_folder, "input/build/data_historical_values.gdx")); colnames(.hist) <-colnames(.gdxiso3[item])	
+      #in built global data have set "global", but in input folder it gets converted to iso3, so:
+      colnames(.hist) <- gsub("global", "iso3", colnames(.hist))
+      #add "World" if no country level data but global
+      if(!("iso3" %in% colnames(.hist))){.hist$n = "World"}else{setnames(.hist, "iso3", "n")}
+    } 
+
     setnames(.hist, "year", "t")
     
     #adjust time unit to model

@@ -29,7 +29,7 @@ Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", re
   PC_annual_relative <- subset(GDP, t<=tmax&t>=tmin); PC_annual_relative$rel_cost <- PC_annual_relative$"GDP Loss"/PC_annual_relative$"bau";
   p <- ggplot(subset(PC_annual_relative, n %in% regions & file!=bauscen)) + geom_line(aes(ttoyear(t), rel_cost*100, color=file), show.legend = TRUE) +ylab(paste("% of", measure)) + xlab("") + theme(legend.position="bottom",legend.direction="horizontal") + guides(fill=guide_legend(title=NULL, nrow = 1))
   if(length(pathdir) > 1){p <- p + facet_grid(. ~ pathdir)}
-  if(regions[1] != "WORLD"){p <- p + facet_grid(. ~ n)}
+  if(regions[1] != "WORLD" & (length(regions)>1)){p <- p + facet_grid(. ~ n)}
   saveplot(paste0("Policy Cost Yearly (", measure, ")", suffix), plotdata=subset(PC_annual_relative, n %in% regions & file!=bauscen))
   #now compute also discounted NPV value
   Policy_Cost <- subset(GDP, t<=tmax&t>=tmin)[, lapply(.SD, sum), by=c("n", "file", "pathdir") , .SDcols = c("GDP_Loss_discounted", "GDP_MER_discounted")]

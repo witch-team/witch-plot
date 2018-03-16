@@ -205,15 +205,7 @@ default_meta_param <- function(){
 
 
 
-#function to save variable in CSV
-writewitchcsv <- function(varname){		
-  data <- get_witch_simple(varname)
-  data$pathdir <- NULL;data$file <- NULL		
-  data$t <- ttoyear(data$t)		
-  data <- subset(data, t >= 1980)
-  data <- dcast(data, formula = as.formula(paste(paste(setdiff(colnames(data), c("n", "value")), collapse = " + "), "~ n")))		
-  write.csv(data, file=paste0(graphdir, varname, ".csv"), row.names = FALSE)		
-}		
+
 
 
 

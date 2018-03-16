@@ -80,6 +80,8 @@ source('functions/energy_mix.R')
 source('functions/policy_cost.R')
 source('functions/add_historical_values.R')
 source('functions/gdxcompaR_static.R')
+source('functions/export_variables.R')
+
 
 
 

@@ -3,11 +3,19 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   
   #have to decide what to do with years with both model and historical data
   display_years = "model"#historical" #"model" #"historical"
+
+  valid_suffix <- "_valid"
+  if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"} #for CO2IND emissions, set it to 
   
-  .gdx <- gdx(paste0(witch_folder, "data_", region_id, "/data_historical_values.gdx"))
-  if(varname=="quintiles"){.gdx <- gdx(paste0(witch_folder, "data_", region_id, "/data_mod_inequality.gdx"))}
-  valid_suffix <- "_valid"  #for CO2IND emissions, set it to 
-  if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"}
+  #check which GDX file to use
+  gdxhistlist <- c(paste0(witch_folder, "data_", region_id, "/data_historical_values.gdx"),
+                 paste0(witch_folder, "data_", region_id, "/data_historical_values_special.gdx"),
+  paste0(witch_folder, "data_", region_id, "/data_mod_inequality.gdx"))
+  for(.gdxname in gdxhistlist){
+    .gdx <- gdx(.gdxname)
+    if(!is.na(pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name))){break}
+  }
+  
   if(!is.na(pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name))){
     print(paste0("Historical values added for '", varname, "'."))
     item <- .gdx$parameters$name[pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name)]
@@ -17,13 +25,13 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     #colnames(.hist) <- setdiff(colnames(variable), c("file", "pathdir"))
     #better: get it from /built/!!!
     if(varname=="quintiles"){
-      colnames(.hist) <- c("year", "n", "dist", "value")
+      colnames(.hist) <- c("year", "n", "dist", "value") #todo: based on build file!!
     }else{
-      .gdxiso3 <- gdx(paste0(witch_folder, "input/build/data_historical_values.gdx")); colnames(.hist) <-colnames(.gdxiso3[item])	
+      .gdxiso3 <- gdx(paste0(witch_folder, "input/build/", basename(.gdxname))); 
+      colnames(.hist) <-colnames(.gdxiso3[item])	
       #in built global data have set "global", but in input folder it gets converted to iso3, so:
-      colnames(.hist) <- gsub("global", "iso3", colnames(.hist))
-      #add "World" if no country level data but global
-      if(!("iso3" %in% colnames(.hist))){.hist$n = "World"}else{setnames(.hist, "iso3", "n")}
+      colnames(.hist) <- gsub("global", "iso3", colnames(.hist)) #add "World" if no country level data but global
+      if(!("iso3" %in% colnames(.hist))){.hist$n = "World"}else{colnames(.hist) <- gsub("iso3", "n", colnames(.hist))}
     } 
 
     setnames(.hist, "year", "t")

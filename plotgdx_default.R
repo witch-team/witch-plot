@@ -6,13 +6,13 @@ witch_folder = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_COD
 main_directory <- "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
 
 #all directoried with trailing slash "/"!
-subdir = c("") #can be multiple directories
+subdir = c("inequality/") #can be multiple directories
 
 
 
 
-removepattern = c("results_") 
-restrict_files = "results" #"."
+removepattern = c("results_", "_calib") 
+restrict_files = "ineqpop" #"."
 exclude_files = "db"
 
 #Name scenarios (otherwise it takes gdx filename)
@@ -72,7 +72,8 @@ Policy_Cost(discount_rate=5, regions=regions_focus, bauscen = "ssp2_bau", show_n
 source('functions/close_functions.R') #finishes PDF, shows welfare
 
 
-
+#export multiple variables as time series panel dataset "witch_dataset_long.csv"
+write_witch_data_csv(c("l", "ykali", "education", "quintiles", "migration"))
 
 
 

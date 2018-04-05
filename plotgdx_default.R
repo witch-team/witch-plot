@@ -33,7 +33,7 @@ source('functions/witch_functions.R')
 
 #gdxcompaR including historical data
 #gdxcompaR_static("Q_EN", additional_set="j", additional_set_id="el", convert=.0036, unit="EJ", regions=witch_regions)
-library(shiny);runApp(appDir = "gdxcompaR") #Standard gdxcompaR based on typical variables etc.
+#library(shiny);runApp(appDir = "gdxcompaR") #Standard gdxcompaR based on typical variables etc.
 
 stop("Just load everything")
 
@@ -73,9 +73,9 @@ source('functions/close_functions.R') #finishes PDF, shows welfare
 
 
 #export multiple variables as time series panel dataset "witch_dataset_long.csv"
-write_witch_data_csv(c("l", "ykali", "education", "quintiles", "migration"))
-
-
+write_witch_data_csv(c("l", "ykali", "education", "quantiles", "migration", "CLIMATE_REGION"), years = seq(1960, 2100, 20))
+#Full ISO3 dataset (based on "build" folder)
+write_witch_historical_iso3_dataset()
 
 
 

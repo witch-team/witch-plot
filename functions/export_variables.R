@@ -8,7 +8,10 @@ write_witch_data_csv <- function(vars, years = "all", wide_region=FALSE){
     data$t <- ttoyear(data$t); setnames(data, "t", "year")
     data$variable <- .var
     set_dep <- setdiff(colnames(data), c("file", "n", "year", "variable", "value"))
-    if(length(set_dep)>0){setnames(data, set_dep, paste0("V", seq(1:length(set_dep))))}
+    if(length(set_dep)>0){
+      for(.set in setdep) data[[.set]] <- tolower(data[[.set]]) #ensure lower case of all set elements   
+      setnames(data, set_dep, paste0("V", seq(1:length(set_dep))))
+      }
     if(.var==vars[1]){allvars <- data}else{allvars <- rbind(allvars, data, fill=T)}
   }
   allvars <- as.data.table(allvars)
@@ -20,15 +23,20 @@ write_witch_data_csv <- function(vars, years = "all", wide_region=FALSE){
 }		
 
 
-write_witch_historical_iso3_dataset <- function(maxsetdep=2){
+write_witch_historical_iso3_dataset <- function(maxsetdep=3){
   #SPECIAL historical dataset
   data_historical_values_special <- gdx(file.path(witch_folder,'input','build',"data_historical_values_special.gdx"))
   data_historical_values_special_allvars <- batch_extract(data_historical_values_special$parameters$name, files = file.path(witch_folder,'input','build',"data_historical_values_special.gdx"))
   data_historical_values_special_allvars <- lapply(data_historical_values_special_allvars, FUN=function(data) data[-c(ncol(data))]) #remove gdx filename
-  same_length_and_sets <- function(data, maxsetdep=2){
+  same_length_and_sets <- function(data){
+    data <- as.data.table(data)
     setdep <- setdiff(colnames(data), c("iso3", "year", "value"))
-    if(length(setdep)>0) setnames(data, setdep, paste0("V",seq(1,length(setdep))))
-    for(s in seq(min(length(setdep)+1,maxsetdep), maxsetdep)) data[paste0("V",s)] <- NA
+    if(length(setdep)>0){
+      for(.set in setdep) data[[.set]] <- tolower(data[[.set]]) #ensure lower case of all set elements      
+      setnames(data, setdep, paste0("V",seq(1,length(setdep))))
+      
+    } 
+    for(s in seq(1, maxsetdep)) if(is.null(data[[paste0("V",s)]])) data[[paste0("V",s)]] <- NA
     return(data)
   }
   data_historical_values_special_allvars <- lapply(data_historical_values_special_allvars, same_length_and_sets)
@@ -41,7 +49,6 @@ write_witch_historical_iso3_dataset <- function(maxsetdep=2){
     }
   }
   allvars_special <- allvars
-  
   #Standard historical dataset
   data_historical_values <- gdx(file.path(witch_folder,'input','build',"data_historical_values.gdx"))
   data_historical_values_allvars <- batch_extract(data_historical_values$parameters$name, files = file.path(witch_folder,'input','build',"data_historical_values.gdx"))

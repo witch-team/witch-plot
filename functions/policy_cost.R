@@ -6,7 +6,7 @@ Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", re
   get_witch_simple("Q")
   #Q$value <- Q$value * usd_deflator    #Apply deflator
   Q <- subset(Q, (t %in% t_model))
-  if(measure=="GDP"){GDP <- subset(Q, iq=="y")}
+  if(measure=="GDP"){GDP <- subset(Q, tolower(iq)=="y")}
   if(measure=="Consumption"){GDP <- subset(Q, iq=="cc")}
   GDP$iq <- NULL
   bau <- subset(GDP, file==bauscen); setnames(bau, "value", "bau"); bau$file <- NULL

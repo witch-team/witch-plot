@@ -6,6 +6,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
 
   valid_suffix <- "_valid"
   if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"} #for CO2IND emissions, set it to 
+  if(varname=="quantiles"){valid_suffix <- "_valid_swiid"} #for quantiles, set it to 
   
   #check which GDX file to use
   gdxhistlist <- c(paste0(witch_folder, "data_", region_id, "/data_historical_values.gdx"),

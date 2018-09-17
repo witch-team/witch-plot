@@ -2,7 +2,7 @@
 
 
 
-witchmap <- function(variable_report, file_report, t_report=20, scale_min=0, scale_max=0, mapcolor="Reds", map_name="map", map_legend="Legend", plot_witch_regions=FALSE, add_region_names=FALSE, add_bars=FALSE){
+witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scale_min=0, scale_max=0, mapcolor="Reds", map_name="map", map_legend="Legend", plot_witch_regions=FALSE, add_region_names=FALSE, add_bars=FALSE){
   
   #Palettes: Diverging: BrBG, PiYG, PRGn, PuOr, RdBu, RdGy, RdYlBu, RdYlGn, Spectral
   #Palettes: Qualitative: Accent, Dark2, Paired, Pastel1, Pastel2, Set1, Set2, Set3
@@ -98,7 +98,7 @@ witchmap <- function(variable_report, file_report, t_report=20, scale_min=0, sca
   axis.title.x=element_blank(),axis.title.y=element_blank(), panel.grid.major=element_blank(),plot.background=element_blank(), panel.grid.minor=element_blank()) +
   scale_fill_manual(values = region_palette)
   #Add centers
-  p <- p + geom_text(data=region_centers, aes(long, lat, label = n), size=4)
+  p <- p + theme(legend.position = "none")
   print(p)
   savemap(map_name)  
   print("Region centers and distances:")

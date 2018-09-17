@@ -11,6 +11,7 @@ yeartot <- function(year){t=(as.numeric(as.character(year)) - 2000) / 5; return(
 saveplot <- function(plotname, width=7, height=5, text_size=10, plotdata=NULL, suffix="", transparent=FALSE, add_title=TRUE){
   if(figure_format!="png"){transparent = FALSE}
   if(figure_format=="pdf"){plot_device=cairo_pdf}else{plot_device=figure_format}
+  if(figure_format=="eps"){plot_device=cairo_ps}
   #device=cairo_pdf makes PDFs work with greek symbols etc.
   if("t" %in% colnames(plotdata)){plotdata$t <- ttoyear(plotdata$t)}
   if(!exists("legend_position")){legend_position = "bottom"}

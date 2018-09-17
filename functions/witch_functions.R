@@ -10,7 +10,7 @@ if(any(!dir.exists(pathdir))){stop("Please check the main directory and sub dire
 
 suppressPackageStartupMessages
 source('functions/get_libraries.R')
-pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'gdata', 'taRifx', 'reshape2', 'ggplot2', 'scales', 'RColorBrewer', 'plyr', 'openxlsx', 'gsubfn')
+pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'gdata', 'taRifx', 'reshape2', 'ggplot2', 'scales', 'RColorBrewer', 'plyr', 'dplyr', 'openxlsx', 'gsubfn', 'tidyverse')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 
@@ -42,7 +42,7 @@ filelist = gsub(".gdx","",list.files(path=pathdir[1], full.names = FALSE, patter
 filelist = filelist[str_detect(filelist, restrict_files)]
 filelist = filelist[!str_detect(filelist, exclude_files)]
 if(length(filelist)==0){stop("No GDX files found.")}
-if(!exists("scenlist")){.tmp <- filelist; for(rm in removepattern){.tmp <- gsub(rm,"",.tmp)}; scenlist <- .tmp;}
+if(!exists("scenlist")){scenlist <- gsub(paste(removepattern, collapse="|"), "", filelist)}
 if(!exists("scenplot_global_order")){scenplot_global_order = seq(1:length(scenlist))}
 print("GDX Files:")
 print(filelist)
@@ -66,11 +66,23 @@ get_witch_simple("t"); t_model<-unique(t$t)
 witch_regions <- subset(n, file==scenlist[1] & pathdir==pathdir[1])$V1
 if(!exists("display_regions")){display_regions <- witch_regions}
 region_palette_rainbow <- setNames(rainbow(length(witch_regions)), witch_regions) #just in case have a fall back colour
-region_palette_specific <- c(usa="darkblue",Usa="darkblue",oldeuro="blue", neweuro="cornflowerblue",kosau="darkgreen",Kosau="darkgreen",cajaz="chartreuse4",Cajaz="chartreuse4",te="gold2",Te="gold2",mena="darkgoldenrod4",Mena="darkgoldenrod4",ssa="goldenrod",Ssa="goldenrod",sasia="darkorange2","South Asia"="darkorange2",china="deeppink3",PRC="deeppink3",easia="orangered",ESEAP="orangered",laca="#fbb714",Laca="#fbb714",india="#fbf003",India="#fbf003",europe="blue",Europe="blue",indonesia="darkseagreen",Indonesia="darkseagreen",Rest_of_World="grey48",chinaw="darkorange",chinac="darkorange2",chinae="darkorange4",italy="green",mexico="slateblue2",brazil="tomato4",canada="blueviolet",jpnkor="lightsalmon3",oceania="forestgreen",southafrica="indianred3",seasia="orangered",World="black")
+region_palette_specific <- c(usa="darkblue",Usa="darkblue",oldeuro="blue", neweuro="cornflowerblue",kosau="darkgreen",Kosau="darkgreen",cajaz="chartreuse4",Cajaz="chartreuse4",te="gold2",Te="gold2",mena="darkgoldenrod4",Mena="darkgoldenrod4",ssa="goldenrod",Ssa="goldenrod",sasia="darkorange2","South Asia"="darkorange2",china="deeppink3",PRC="deeppink3",easia="orangered",ESEAP="orangered",laca="#fbb714",Laca="#fbb714",india="#fbf003",India="#fbf003",europe="blue",Europe="blue",indonesia="lightsalmon3",Indonesia="lightsalmon3",Rest_of_World="grey48",chinaw="darkorange",chinac="darkorange2",chinae="darkorange4",italy="green",mexico="slateblue2",brazil="tomato4",canada="blueviolet",jpnkor="darkseagreen",oceania="forestgreen",southafrica="indianred3",seasia="orangered",World="black")
 region_palette <- region_palette_specific #c(region_palette_specific, region_palette_rainbow)
 if(!exists("regions_focus")){regions_focus <- witch_regions}
 print(paste("Regional aggregation:", region_id))
 witch_colors_alphabetic <- c("chartreuse4", "deeppink3", "orangered", "khaki1", "darkgreen", "gold", "darkgoldenrod4", "cornflowerblue", "blue", "darkorange2", "goldenrod", "gold2", "darkblue")
+
+witch_name_short <- function(witch_name){
+  witch_name  <- gsub("indonesia", "IDN", witch_name)
+  witch_name_shortened <- substr(toupper(witch_name), 1, 3)
+  witch_name_shortened <- gsub("MEN", "MEA", witch_name_shortened)
+  witch_name_shortened <- gsub("SOU", "ZAF", witch_name_shortened)
+  witch_name_shortened <- gsub("CHI", "CHN", witch_name_shortened)
+  witch_name_shortened <- gsub("TE", "TEC", witch_name_shortened)
+  return(witch_name_shortened)
+}
+region_palette_specific_short <- region_palette_specific; names(region_palette_specific_short) <- witch_name_short(names(region_palette_specific))
+
 
 
 #load specialized functions
@@ -79,7 +91,6 @@ source('functions/map_functions.R')
 source('functions/energy_mix.R')
 source('functions/policy_cost.R')
 source('functions/add_historical_values.R')
-source('functions/gdxcompaR_static.R')
 source('functions/export_variables.R')
 
 

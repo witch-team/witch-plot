@@ -1,9 +1,9 @@
 rm(list = ls())
 #all directoried with trailing slash "/"!
 #Where you're WITCH code is located
-witch_folder = "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
+witch_folder = "C:/Users/Emmerling/Documents/Dropbox (CMCC)/FEEM/WITCH_CODING/witch/"
 #main directory of your results files
-main_directory <- "C:/Users/Emmerling/Documents/Dropbox/Professional/FEEM/WITCH_CODING/witch/"
+main_directory <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/FEEM/CD-LINKS/Burden sharing/Follow-Up Paper/gdx/"
 #main_directory <- "U:/SCAMBIO/cb_stochastic/"
 #all directoried with trailing slash "/"!
 subdir = c("") #can be multiple directories, if same filenames

@@ -12,3 +12,4 @@ vignettes/*.html
 vignettes/*.pdf
 !plotgdx_default.R
 .httr-oauth
+.Rproj.user

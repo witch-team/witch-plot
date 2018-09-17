@@ -95,7 +95,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
     
     if(cumulative)
     {
-      allfilesdata <- subset(allfilesdata, round(t) == t ) #to only keep every five years to get right cumulative, if historical data
+      allfilesdata <- subset(allfilesdata, round(t) == t & t>=1 ) #to only keep every five years to get right cumulative, if historical data
       allfilesdata <- allfilesdata[,list(value,t,value_cumulative=cumsum(value)*5-value*5),list(n, file, pathdir)]
       allfilesdata$value <- allfilesdata$value_cumulative 
       allfilesdata$value_cumulative <- NULL

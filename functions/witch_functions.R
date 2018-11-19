@@ -10,7 +10,7 @@ if(any(!dir.exists(pathdir))){stop("Please check the main directory and sub dire
 
 suppressPackageStartupMessages
 source('functions/get_libraries.R')
-pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'gdata', 'taRifx', 'reshape2', 'ggplot2', 'scales', 'RColorBrewer', 'plyr', 'dplyr', 'openxlsx', 'gsubfn', 'tidyverse')
+pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'gdata', 'taRifx', 'reshape2', 'ggplot2', 'scales', 'RColorBrewer', 'plyr', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 
@@ -83,7 +83,32 @@ witch_name_short <- function(witch_name){
 }
 region_palette_specific_short <- region_palette_specific; names(region_palette_specific_short) <- witch_name_short(names(region_palette_specific))
 
-
+witch_region_names <-"n,longname
+canada,Canada
+jpnkor,Japan-Korea
+oceania,Oceania
+indonesia,Indonesia
+southafrica,South Africa
+brazil,Brazil
+mexico,Mexico
+china,China
+india,India
+te,Transition Economies
+ssa,Sub-Saharan Africa
+laca,Latin America-Caribbean
+sasia,South Asia
+seasia,South East Asia
+mena,Middle East-North Africa
+europe,Europe
+usa,United States of America
+easia,East Asia
+kosau,South-Korea and Australia
+cajaz,Canada Japan New-Zealand,
+neweuro,Eastern Europe
+oldeuro,Western Europe"
+witch_region_names <- read.table(textConnection(witch_region_names), sep=",", head=T, dec=".")
+region_palette_longnames <- region_palette
+names(region_palette_longnames) <- mapvalues(names(region_palette), as.character(witch_region_names$n), paste0(as.character(witch_region_names$longname), " (",as.character(witch_region_names$n),")"), warn_missing = F)
 
 #load specialized functions
 source('functions/special_plots.R')

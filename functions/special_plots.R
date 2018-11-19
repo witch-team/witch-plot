@@ -7,6 +7,8 @@ Intensity_Plot <- function(year=2050, region="WORLD", year0=2010, scenplot=scenl
   get_witch_variable("tpes", "tpes", "na", "na", 0.0036, "EJ", "regional", plot=FALSE)
   setnames(tpes, "value", "PES")
   get_witch_variable("Q_EMI", "Q_EMI", "e", "co2", 0.0036, "EJ", "regional", plot=FALSE)
+  #now only ffi!!!
+  #get_witch_variable("Q_EMI", "Q_EMI", "e", "co2ffi", 0.0036, "EJ", "regional", plot=FALSE)
   setnames(Q_EMI, "value", "CO2")
   get_witch_variable("Q", "Q", "iq", "y", 1e3, "bln. USD", "regional", plot=FALSE)
   setnames(Q, "value", "GDP")
@@ -21,14 +23,17 @@ Intensity_Plot <- function(year=2050, region="WORLD", year0=2010, scenplot=scenl
   
   Intensity <- subset(Intensity, n %in% region)
   
-  Intensity$CI=Intensity$CO2/Intensity$PES
-  Intensity$EI=Intensity$PES/Intensity$GDP
+  Intensity$CI=Intensity$CO2/Intensity$PES *1e6 #gCO2eq/MJ
+  Intensity$EI=Intensity$PES/Intensity$GDP *1e3 #MJ/$
   
   Intensity_2010 <- subset(Intensity, t==yeartot(year0))
   Intensity_t <- subset(Intensity, t==yeartot(year))
   
-  Intensity_t$CI_change <- (((Intensity_t$CI/Intensity_2010$CI)**(1/((year-year0))))-1)*100
   Intensity_t$EI_change <- (((Intensity_t$EI/Intensity_2010$EI)**(1/((year-year0))))-1)*100
+  Intensity_t$CI_change <- (((Intensity_t$CI/Intensity_2010$CI)**(1/((year-year0))))-1)*100
+  #to avoid issues when negative values
+  #Intensity_t$CI_change <- (sign(Intensity_t$CI-Intensity_2010$CI))*(((1+(abs(Intensity_t$CI-Intensity_2010$CI)/abs(Intensity_2010$CI)))**(1/((year-year0))))-1)*100
+  
   
   Intensity_t <- subset(Intensity_t, file %in% scenplot)
   if(region[1]=="WORLD"){

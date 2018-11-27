@@ -34,7 +34,7 @@ shinyUI(pageWithSidebar(
   # Show the plot
   mainPanel(
     textOutput("varname"),
-    plotOutput("gdxompaRplot", width = "100%", height = "700px", hover=hoverOpts(id="plot_hover", delay = 100, delayType = "debounce")),
+    plotOutput("gdxompaRplot", width = "100%", height = "1000px", hover=hoverOpts(id="plot_hover", delay = 100, delayType = "debounce")),
     
     tags$style(type="text/css",
                ".shiny-output-error { visibility: hidden; }",

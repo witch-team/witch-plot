@@ -8,9 +8,9 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"} #for CO2IND emissions, set it to 
   if(varname=="quantiles"){valid_suffix <- "_valid_swiid"} #for quantiles, set it to 
   
-  #check which GDX file to use
-  gdxhistlist <- c(paste0(witch_folder, "data_", region_id, "/data_historical_values.gdx"),
-                 paste0(witch_folder, "data_", region_id, "/data_historical_values_special.gdx"))
+  #check which GDX file to use (all files that start with data_historical*.gdx)
+  gdxhistlist <- list.files(path=paste0(witch_folder, "data_", region_id), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
+  
   for(.gdxname in gdxhistlist){
     .gdx <- gdx(.gdxname)
     if(!is.na(pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name))){break}

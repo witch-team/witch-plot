@@ -1,25 +1,23 @@
 rm(list = ls())
 #all directoried with trailing slash "/"!
 #Where you're WITCH code is located
-witch_folder = "C:/Users/Emmerling/Documents/Dropbox (CMCC)/FEEM/WITCH_CODING/witch-cdlinks/"
-#main directory of your results files
-main_directory <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/FEEM/WITCH_CODING/witch-cdlinks/"
+witch_folder = "C:/Users/Emmerling/Documents/Dropbox (CMCC)/FEEM/WITCH_CODING/witchcourse/"
 
+#main directory of your results files
+main_directory <- witch_folder # by default, the witch source folder
+#main_directory <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/FEEM/WITCH_CODING/witch-cdlinks/"
 #all directoried with trailing slash "/"!
 subdir = c("") #can be multiple directories
 
 
-
-
 removepattern = c("results_", "_calib", "_bau", "ssp2_") 
-restrict_files = "results_NPi2020" #"."
+restrict_files = "results_" #"."
 exclude_files = "db"
 
 #Name scenarios (otherwise it takes gdx filename)
 #scenlist <- c("REF", "INDC_2C", "INDC_2C_TRADE", "INDC", "INDC_TRADE", "OPT_2C")
-# select which scenarios are used,potentially change the order, by default, all scenarios are used
+#Select which scenarios are used,potentially change the order, by default, all scenarios are used
 #scenplot_global_order <- c(5,3,1)
-
 #Special focus regions to report for
 #regions_focus = c("china", "india", "sasia", "easia", "indonesia")
 
@@ -30,9 +28,8 @@ yearmax = 2100
 source('functions/witch_functions.R')
 
 
-
-#gdxcompaR including historical data
-#library(shiny);runApp(appDir = "gdxcompaR") #Standard gdxcompaR based on typical variables etc.
+#gdxcompaR
+library(shiny);runApp(appDir = "gdxcompaR") #Standard gdxcompaR based on typical variables etc.
 
 stop("Just load everything")
 

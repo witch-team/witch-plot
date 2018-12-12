@@ -1,8 +1,7 @@
 rm(list = ls())
 #all directoried with trailing slash "/"!
 #Where you're WITCH code is located
-witch_folder = "C:/Users/Emmerling/Documents/Dropbox (CMCC)/FEEM/WITCH_CODING/witchcourse/"
-
+witch_folder = "../witch_fresh/"
 #main directory of your results files
 main_directory <- witch_folder # by default, the witch source folder
 #main_directory <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/FEEM/WITCH_CODING/witch-cdlinks/"
@@ -28,8 +27,8 @@ yearmax = 2100
 source('functions/witch_functions.R')
 
 
-#gdxcompaR
-library(shiny);runApp(appDir = "gdxcompaR") #Standard gdxcompaR based on typical variables etc.
+#gdxcompaR (Standard gdxcompaR based on typical variables, otherwise edit in gdxcompaR/server.R)
+runApp(appDir = "gdxcompaR")
 
 stop("Just load everything")
 

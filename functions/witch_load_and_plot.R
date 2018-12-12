@@ -44,7 +44,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
     
     #TRY: adding historical values
     #assign("test",allfilesdata,envir = .GlobalEnv)
-    if(historical){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot)}
+    if(historical){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot, verbose=T)}
     
     #clean data, edit sets, convert, replace NAs
     #print(scenplot)
@@ -251,7 +251,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
     }
     if(("n" %in% colnames(allfilesdata)) & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F)}else{allfilesdata$n <- "World"}
     #try adding historical values
-    if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot, check_calibration=check_calibration)}
+    if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot, check_calibration=check_calibration, verbose=F)}
     assign(variable_name,allfilesdata,envir = .GlobalEnv)
   }
   #return(allfilesdata)

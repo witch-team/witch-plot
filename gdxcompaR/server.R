@@ -2,7 +2,7 @@
 variable = "Q_FUEL"
 
 
-library(shiny)
+require(shiny)
 
 # Define server logic required to generate and plot a random distribution
 shinyServer(function(input, output, session) {
@@ -18,7 +18,7 @@ shinyServer(function(input, output, session) {
   mygdx <- gdx(paste(pathdir[1], filelist[1],".gdx",sep=""))
   list_of_variables <- c(all_items(mygdx)$variables, all_items(mygdx)$parameters)
   #now instead by hand
-  list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "emi_cap", "ctax", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "CUM_SAV", "TEMP", "TRF", "tpes", "tpes_kali", "ei", "ei_kali", "Q_FEN", "Q_IN", "ykali", "l")
+  list_of_variables <- c("l", "Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "CUM_SAV", "TEMP", "TRF","Q_FEN", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "ctax")
   
   #Scenario selector
   output$select_scenarios <- renderUI({
@@ -53,7 +53,7 @@ shinyServer(function(input, output, session) {
 output$gdxompaRplot <- renderPlot({
 
     variable <- input$variable_selected
-    
+    if(is.null(variable)) variable <- "l"
     #get data updated
     get_witch_simple(variable, check_calibration=TRUE)
     allfilesdata <- get(variable)
@@ -105,11 +105,15 @@ output$gdxompaRplot <- renderPlot({
   additional_set_id2 <- input$additional_set_id_selected2
   regions <- input$regions_selected
   scenarios <- input$scenarios_selected
-
-
+  
+  #in case they have not yet been set, set to defult values
+  if(is.null(regions)) regions <- display_regions
+  if(is.null(additional_set_id)) additional_set_id <- set_elements[1]
+  if((additional_set!="na" & additional_set_id=="na") | !(additional_set_id %in% set_elements)) additional_set_id <- set_elements[1] 
+  if(is.null(additional_set_id2)) additional_set_id2 <- set_elements2[1]
+  if((additional_set2!="na" & additional_set_id2=="na") | !(additional_set_id2 %in% set_elements2)) additional_set_id2 <- set_elements2[1] 
   
   # SUBSET data and PLOT
-  
   #choose additional selected element
   if(additional_set_id!="na"){
     allfilesdata[[additional_set]] <- tolower(allfilesdata[[additional_set]]) # to fix erroneous gams cases (y and Y etc.)
@@ -121,6 +125,7 @@ output$gdxompaRplot <- renderPlot({
     allfilesdata <- subset(allfilesdata, get(additional_set2)==additional_set_id2)
     allfilesdata[[additional_set2]] <- NULL #remove additional set column
   }
+  
   #time frame
   allfilesdata <- subset(allfilesdata, ttoyear(t)>=yearmin & ttoyear(t)<=yearmax)
   
@@ -129,7 +134,7 @@ output$gdxompaRplot <- renderPlot({
   if(variable %in% default_meta_param()$parameter){find_aggregation = default_meta_param()[parameter==variable & type=="nagg"]$value}else{find_aggregation="sum"}
   allfilesdata_global <- aggregate(value~t+file+pathdir, data=allfilesdata, find_aggregation)
   allfilesdata_global$n <- "World"
-  allfilesdata <- rbind(allfilesdata, allfilesdata_global)
+  allfilesdata <- rbind(allfilesdata, allfilesdata_global[,c("t","n","value","file", "pathdir")])
   
   #scenarios, potentially add stochastic scenarios to show
   allfilesdata <- subset(allfilesdata, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)"), "historical"))

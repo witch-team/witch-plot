@@ -1,5 +1,5 @@
 
-add_historical_values <- function(variable, varname=deparse(substitute(variable)), scenplot=scenlist, check_calibration=FALSE){
+add_historical_values <- function(variable, varname=deparse(substitute(variable)), scenplot=scenlist, check_calibration=FALSE, verbose=T){
   
   #have to decide what to do with years with both model and historical data
   display_years = "model"#historical" #"model" #"historical"
@@ -7,6 +7,8 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   valid_suffix <- "_valid"
   if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"} #for CO2IND emissions, set it to 
   if(varname=="quantiles"){valid_suffix <- "_valid_swiid"} #for quantiles, set it to 
+  if(varname=="K_EN"){valid_suffix <- "_valid_platts_tot"} #for quantiles, set it to 
+  
   
   #check which GDX file to use (all files that start with data_historical*.gdx)
   gdxhistlist <- list.files(path=paste0(witch_folder, "data_", region_id), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
@@ -17,7 +19,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   }
   
   if(!is.na(pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name))){
-    print(paste0("Historical values added for '", varname, "'."))
+    if(verbose) print(paste0("Historical values added for '", varname, "'."))
     item <- .gdx$parameters$name[pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name)]
     .hist <- as.data.table(.gdx[item]) 
     
@@ -67,8 +69,13 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
       .hist$jfed <- mapvalues(.hist$jfed, from=c("elnuclear", "elpc", "elpb", "elgastr", "eloil"), to=c("elnuclear_old", "elpc_old", "elpb_old", "elgastr_old", "eloil_old"))
     }
     
-    
-    
+    if(item=="k_en_valid_platts_tot")
+    {
+      .hist$j <- mapvalues(.hist$j, from=c("elnuclear", "elpc", "elpb", "elgastr", "eloil"), to=c("elnuclear_old", "elpc_old", "elpb_old", "elgastr_old", "eloil_old"))
+      setnames(.hist, "j", "jreal")
+    }
+ 
+       
     #merge with variable
     if(check_calibration){
       #merge with variable, here just add with file="calibration" if check_calibration

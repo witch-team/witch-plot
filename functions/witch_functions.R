@@ -1,5 +1,7 @@
 #Author: Johannes Emmerling
 #v1: February 09th, 2016
+witch_folder <- normalizePath(witch_folder)
+main_directory <- normalizePath(main_directory)
 
 pathdir = paste0(main_directory, subdir)
 #Specify directory for graphs and data to be saved: by default: /graphs/ in the folder
@@ -10,7 +12,7 @@ if(any(!dir.exists(pathdir))){stop("Please check the main directory and sub dire
 
 suppressPackageStartupMessages
 source('functions/get_libraries.R')
-pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'gdata', 'taRifx', 'reshape2', 'ggplot2', 'scales', 'RColorBrewer', 'plyr', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr')
+pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'gdata', 'taRifx', 'reshape2', 'ggplot2', 'scales', 'RColorBrewer', 'plyr', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'shiny')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 

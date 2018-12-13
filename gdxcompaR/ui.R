@@ -1,11 +1,12 @@
 library(shiny)
+library(shinythemes)
 
-# Define UI for application that plots random distributions 
-shinyUI(pageWithSidebar(
+# Define UI
+shinyUI(fluidPage(theme = shinytheme("superhero"), pageWithSidebar(
 
   
   # Application title
-  headerPanel("gdxcompaR"),
+  headerPanel("WITCH - gdxcompaR"),
   
   # Sidebar with a slider of years and set elements
   sidebarPanel(
@@ -33,12 +34,9 @@ shinyUI(pageWithSidebar(
   
   # Show the plot
   mainPanel(
-    textOutput("varname"),
-    plotOutput("gdxompaRplot", width = "100%", height = "800px", hover=hoverOpts(id="plot_hover", delay = 100, delayType = "debounce")),
+    h1(textOutput("varname")),
+    plotOutput("gdxompaRplot", width = "100%", height = "800px", hover=hoverOpts(id="plot_hover", delay = 100, delayType = "debounce"))
     
-    tags$style(type="text/css",
-               ".shiny-output-error { visibility: hidden; }",
-               ".shiny-output-error:before { visibility: hidden; }")
     
   )
-))
+)))

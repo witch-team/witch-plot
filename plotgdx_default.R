@@ -34,7 +34,7 @@ stop("Just load everything")
 
 
 #Main part, get data plots etc.
-Plot_Global_Emissions(show_ar5=TRUE, ar5_budget=1180, bauscen = "ssp2_bau") #Global GHG Emissions (AR5 2000 is CB of 2 degrees, 1180GtCO2 for "likely 2deg")
+Plot_Global_Emissions(show_ar5=TRUE, ar5_budget=1180, bauscen = "bau") #Global GHG Emissions (AR5 2000 is CB of 2 degrees, 1180GtCO2 for "likely 2deg")
 get_witch_variable("carbonprice", "Carbon Price", "na", "na", aggregation =  "global_mean")
 get_witch_variable("Q", "GDP", "iq", "y", aggregation = "global_sum")
 get_witch_variable("Q", "GDP", "iq", "y", aggregation = "regional")
@@ -51,16 +51,14 @@ get_witch_variable("Q_OUT", "Oil_Extraction", "f", "oil", aggregation = "regiona
 regions_focus <- c("china")
 Energy_Trade(fuelplot = "oil")
 Energy_Prices(unit = "boe", scenplot = scenlist)
-Primary_Energy_Mix(PES_y = "value") 
-Primary_Energy_Mix_Regional(PES_y = "value", regions = regions_focus, years = seq(1990, 2050, 5), plot_type = "area")
-Electricity_Mix(Electricity_y = "value")
-Electricity_Mix_Regional(Electricity_y = "value", regions = regions_focus, years = seq(1990, 2050, 1), plot_type = "area")
+Primary_Energy_Mix(PES_y = "value", regions = regions_focus, years = seq(1990, 2050, 5), plot_type = "area")
+Electricity_Mix(Electricity_y = "value", regions = regions_focus, years = seq(1990, 2050, 5), plot_type = "area")
 
 
 #Mitigation_Decomposition(regions=regions_focus, scenario_stringency_order = c("DIAG-Base", "DIAG-C30-gr5"), scen_short=c("Base", "C30-gr5"), plotname="Mitigation Decomposition")
 Investment_Plot(regions=regions_focus)
 Sectoral_Emissions(regions=regions_focus)
-Policy_Cost(discount_rate=5, regions=regions_focus, bauscen = "ssp2_bau", show_numbers=TRUE, tmax=10)
+Policy_Cost(discount_rate=5, regions=regions_focus, bauscen = "bau", show_numbers=TRUE, tmax=10)
 
 
 

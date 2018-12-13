@@ -62,6 +62,7 @@ if(create_all_figures_pdf){pdf(paste(graphdir, "all_figures.pdf", sep=""), paper
 
 #Palettes for WITCH regions and regional aggregation
 get_witch_simple("conf")
+if(length(unique(subset(conf, V1=="regions")$V2))>1) stop("Different regional aggregations across results files.")
 region_id <- subset(conf, file==scenlist[1] & pathdir==pathdir[1] & V1=="regions")$V2
 get_witch_simple("n")
 get_witch_simple("t"); t_model<-unique(t$t)

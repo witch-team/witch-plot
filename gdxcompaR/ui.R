@@ -34,9 +34,11 @@ shinyUI(fluidPage(theme = shinytheme("superhero"), pageWithSidebar(
   
   # Show the plot
   mainPanel(
-    h1(textOutput("varname")),
-    plotOutput("gdxompaRplot", width = "100%", height = "800px", hover=hoverOpts(id="plot_hover", delay = 100, delayType = "debounce"))
-    
-    
+    tabsetPanel(type = "tabs",
+                tabPanel("gdxcompaR", h2(textOutput("varname")),plotOutput("gdxompaRplot", width = "100%", height = "800px", hover=hoverOpts(id="plot_hover", delay = 100, delayType = "debounce"))),
+                tabPanel("Energy Mix", h2("Energy Mix"),plotOutput("energymixplot", width = "100%", height = "800px")),
+                tabPanel("Electricity Mix", h2("Electricity Mix"),plotOutput("electricitymixplot", width = "100%", height = "800px"))
+
+    )
   )
 )))

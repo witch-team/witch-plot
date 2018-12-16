@@ -24,10 +24,6 @@ write_witch_data_csv <- function(vars, years = "all", wide_region=FALSE){
 
 
 write_witch_historical_iso3_dataset <- function(maxsetdep=3){
-  #SPECIAL historical dataset
-  data_historical_values_special <- gdx(file.path(witch_folder,'input','build',"data_historical_values_special.gdx"))
-  data_historical_values_special_allvars <- batch_extract(data_historical_values_special$parameters$name, files = file.path(witch_folder,'input','build',"data_historical_values_special.gdx"))
-  data_historical_values_special_allvars <- lapply(data_historical_values_special_allvars, FUN=function(data) data[-c(ncol(data))]) #remove gdx filename
   same_length_and_sets <- function(data){
     data <- as.data.table(data)
     setdep <- setdiff(colnames(data), c("iso3", "year", "value"))
@@ -39,31 +35,39 @@ write_witch_historical_iso3_dataset <- function(maxsetdep=3){
     for(s in seq(1, maxsetdep)) if(is.null(data[[paste0("V",s)]])) data[[paste0("V",s)]] <- NA
     return(data)
   }
-  data_historical_values_special_allvars <- lapply(data_historical_values_special_allvars, same_length_and_sets)
-  for (.var in names(data_historical_values_special_allvars)){
-    if("iso3" %in% colnames(data_historical_values_special_allvars[[.var]])){
-    .df <- data_historical_values_special_allvars[[.var]]
-    .df$variable <- .var
-    setcolorder(.df, c("variable", "iso3", "year", paste0("V",seq(1,maxsetdep)), "value"))
-    if(.var==names(data_historical_values_special_allvars)[1]){allvars <- .df}else{allvars <- rbind(allvars, .df)}
-    }
-  }
-  allvars_special <- allvars
   #Standard historical dataset
   data_historical_values <- gdx(file.path(witch_folder,'input','build',"data_historical_values.gdx"))
   data_historical_values_allvars <- batch_extract(data_historical_values$parameters$name, files = file.path(witch_folder,'input','build',"data_historical_values.gdx"))
   data_historical_values_allvars <- lapply(data_historical_values_allvars, FUN=function(data) data[-c(ncol(data))]) #remove gdx filename
   data_historical_values_allvars <- lapply(data_historical_values_allvars, same_length_and_sets)
-  for (.var in names(data_historical_values_allvars)){
+  iso3vars <- setdiff(names(data_historical_values_allvars), "temp_valid_hadcrut4")
+  for (.var in iso3vars){
     if("iso3" %in% colnames(data_historical_values_allvars[[.var]])){
     print(paste("Processing",.var))
     .df <- data_historical_values_allvars[[.var]]
     .df$variable <- .var
     setcolorder(.df, c("variable", "iso3", "year", paste0("V",seq(1,maxsetdep)), "value"))
-    if(.var==names(data_historical_values_allvars)[1]){allvars <- .df}else{allvars <- rbind(allvars, .df)}
+    if(.var==iso3vars[1]){allvars <- .df}else{allvars <- rbind(allvars, .df)}
+    }
+  }
+  
+  #SPECIAL historical dataset if exists
+  if(file.exists(file.path(witch_folder,'input','build',"data_historical_values_special.gdx"))){
+  data_historical_values_special <- gdx(file.path(witch_folder,'input','build',"data_historical_values_special.gdx"))
+  data_historical_values_special_allvars <- batch_extract(data_historical_values_special$parameters$name, files = file.path(witch_folder,'input','build',"data_historical_values_special.gdx"))
+  data_historical_values_special_allvars <- lapply(data_historical_values_special_allvars, FUN=function(data) data[-c(ncol(data))]) #remove gdx filename
+  data_historical_values_special_allvars <- lapply(data_historical_values_special_allvars, same_length_and_sets)
+  for (.var in names(data_historical_values_special_allvars)){
+    if("iso3" %in% colnames(data_historical_values_special_allvars[[.var]])){
+      .df <- data_historical_values_special_allvars[[.var]]
+      .df$variable <- .var
+      setcolorder(.df, c("variable", "iso3", "year", paste0("V",seq(1,maxsetdep)), "value"))
+      if(.var==names(data_historical_values_special_allvars)[1]){allvars_special <- .df}else{allvars_special <- rbind(allvars_special, .df)}
     }
   }
   allvars <- rbind(allvars, allvars_special)
+  }#close special data adding
+
   #write dataset
   write.csv(allvars, file=paste0(graphdir, "witch_historical_iso3_dataset", ".csv"), row.names = FALSE)	
 }

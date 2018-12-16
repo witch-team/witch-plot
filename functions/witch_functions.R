@@ -12,7 +12,7 @@ if(any(!dir.exists(pathdir))){stop("Please check the main directory and sub dire
 
 suppressPackageStartupMessages
 source('functions/get_libraries.R')
-pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'gdata', 'taRifx', 'reshape2', 'ggplot2', 'scales', 'RColorBrewer', 'plyr', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'shiny', 'shinythemes')
+pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'taRifx', 'reshape2', 'ggplot2', 'scales', 'RColorBrewer', 'plyr', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'shiny', 'shinythemes')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 
@@ -20,7 +20,6 @@ require_gdxtools()
 #Sys.setenv(R_ZIPCMD= "C:/apps/Rtools/bin/zip")   
 
 ## Local Options ##
-create_all_figures_pdf = FALSE
 figure_format="png"
 export_plotdata = FALSE  #save data for each graph also as EXCEL files
 historical = TRUE  #add historical data where available
@@ -58,7 +57,6 @@ print(scenlist)
 #create directory for graphs
 if (!dir.exists(graphdir)){dir.create(graphdir)} 
 if(file.exists(paste(graphdir, "all_figures.pdf", sep=""))){(file.remove(paste(graphdir, "all_figures.pdf", sep="")))}
-if(create_all_figures_pdf){pdf(paste(graphdir, "all_figures.pdf", sep=""), paper="a4r")}
 
 #Palettes for WITCH regions and regional aggregation
 get_witch_simple("conf")

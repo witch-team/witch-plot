@@ -2,7 +2,7 @@
 add_historical_values <- function(variable, varname=deparse(substitute(variable)), scenplot=scenlist, check_calibration=FALSE, verbose=T){
   
   #have to decide what to do with years with both model and historical data
-  display_years = "model"#historical" #"model" #"historical"
+  display_years = "historical"#historical" #"model" #"historical"
 
   valid_suffix <- "_valid"
   if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"} #for CO2IND emissions, set it to 

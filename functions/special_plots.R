@@ -3,7 +3,7 @@
 # Intensity Plot for EI/CI
 # Policy Costs
 
-Intensity_Plot <- function(year=2050, region="WORLD", year0=2010, scenplot=scenlist){
+Intensity_Plot <- function(year=2050, region="World", year0=2010, scenplot=scenlist){
   get_witch_variable("tpes", "tpes", "na", "na", 0.0036, "EJ", "regional", plot=FALSE)
   setnames(tpes, "value", "PES")
   get_witch_variable("Q_EMI", "Q_EMI", "e", "co2", 0.0036, "EJ", "regional", plot=FALSE)
@@ -14,29 +14,21 @@ Intensity_Plot <- function(year=2050, region="WORLD", year0=2010, scenplot=scenl
   setnames(Q, "value", "GDP")
   Intensity <- merge(tpes, Q_EMI, by=c("t", "file", "pathdir", "n"))
   Intensity <- merge(Intensity, Q, by=c("t", "file", "pathdir", "n"))
-  
   Intensity_World <- Intensity; Intensity_World$n <- NULL
   Intensity_World <- Intensity_World[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
-  Intensity_World$n <- "WORLD"
-  
+  Intensity_World$n <- "World"
   Intensity <- rbind(Intensity, Intensity_World)
-  
   Intensity <- subset(Intensity, n %in% region)
-  
   Intensity$CI=Intensity$CO2/Intensity$PES *1e6 #gCO2eq/MJ
   Intensity$EI=Intensity$PES/Intensity$GDP *1e3 #MJ/$
-  
   Intensity_2010 <- subset(Intensity, t==yeartot(year0))
   Intensity_t <- subset(Intensity, t==yeartot(year))
-  
   Intensity_t$EI_change <- (((Intensity_t$EI/Intensity_2010$EI)**(1/((year-year0))))-1)*100
   Intensity_t$CI_change <- (((Intensity_t$CI/Intensity_2010$CI)**(1/((year-year0))))-1)*100
   #to avoid issues when negative values
   #Intensity_t$CI_change <- (sign(Intensity_t$CI-Intensity_2010$CI))*(((1+(abs(Intensity_t$CI-Intensity_2010$CI)/abs(Intensity_2010$CI)))**(1/((year-year0))))-1)*100
-  
-  
   Intensity_t <- subset(Intensity_t, file %in% scenplot)
-  if(region[1]=="WORLD"){
+  if(region[1]=="World"){
     ggplot() + geom_point(data=Intensity_t, mapping=aes(x=CI_change, y=EI_change, color=file), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change, ", year0,"-",year)) + ylab(paste0("Energy Intensity Change, ", year0,"-",year)) + guides(color=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")# + ylim(-1, +1) + xlim(-1, +1)
   }else{
     ggplot() + geom_point(data=Intensity_t, mapping=aes(x=CI_change, y=EI_change, colour=n, shape=file), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change, ", year0,"-",year)) + ylab(paste0("Energy Intensity Change, ", year0,"-",year)) + guides(color=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")# + ylim(-2, 0) + xlim(-0.5, +0.2)
@@ -124,6 +116,7 @@ Global_Emissions_Stacked <- function(regions=witch_regions, scenario, plotname="
 
 
 Investment_Plot <- function(regions=witch_regions, scenplot=scenlist){
+  if(regions[1]=="World") regions <- witch_regions
   get_witch_simple("I_EN", scenplot = scenplot); I_EN_orig <- I_EN
   get_witch_simple("I_RD", scenplot = scenplot); I_RD_orig <- I_RD
   #I_RD <- subset(I_RD, rd=="en"); I_RD$rd <- NULL;
@@ -131,17 +124,14 @@ Investment_Plot <- function(regions=witch_regions, scenplot=scenlist){
   #I_EN$type = "Energy Supply"
   #I_RD$type = "Energy Efficiency"
   #Investment_Energy <- rbind(I_EN, I_RD)
-
   #I_RD plot
   I_RD$rd  <- mapvalues(I_RD$rd , from=unique(I_RD$rd), to=c("Energy Efficiency", "Advanced Biofuels", "Batteries"))
   I_RD <- subset(I_RD, rd!="Batteries")
-  ggplot(subset(I_RD, ttoyear(t)<=yearmax & n %in% regions)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value*1e3, linetype=rd, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("Billion USD") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + guides(linetype=guide_legend(title=NULL)) 
-  saveplot("Investment in RnD", plotdata=subset(I_RD, ttoyear(t)<=yearmax & n %in% regions))
-  
+  plot_rd <- ggplot(subset(I_RD, ttoyear(t)<=yearmax & n %in% regions)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value*1e3, linetype=rd, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("Billion USD") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + guides(linetype=guide_legend(title=NULL)) 
+  #saveplot("Investment in RnD", plotdata=subset(I_RD, ttoyear(t)<=yearmax & n %in% regions))
   #Investment in Energy Supply
-  ggplot(subset(I_EN, ttoyear(t)<=yearmax & n %in% regions)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value*1e3, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("Billion USD") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + guides(linetype=guide_legend(title=NULL)) 
-  saveplot("Investment in Energy Supply", plotdata=subset(I_EN, ttoyear(t)<=yearmax & n %in% regions))
-  
+  plot_supply <- ggplot(subset(I_EN, ttoyear(t)<=yearmax & n %in% regions)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value*1e3, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("Billion USD") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + guides(linetype=guide_legend(title=NULL)) 
+  #saveplot("Investment in Energy Supply", plotdata=subset(I_EN, ttoyear(t)<=yearmax & n %in% regions))
   #now get global energy investment picture
   #I_EN <- NULL
   #get_witch_simple("I_EN", scenplot = scenlist)
@@ -163,28 +153,19 @@ Investment_Plot <- function(regions=witch_regions, scenplot=scenlist){
   I_RD <- I_RD_orig
   I_RD$rd  <- mapvalues(I_RD$rd , from=unique(I_RD$rd), to=c("Energy Efficiency", "Advanced Biofuels", "Batteries"))
   #I_RD <- subset(I_RD, rd!="Batteries")
-  
-  #I_RD <- rbind(I_RD, I_TRANSPORT_lowcarbon)
-  #year factor, to be checked!!
-  #I_RD$value <- I_RD$value * 5;  #since it seems verrrry low!!!
-  
-  
   get_witch_simple("I_OUT", scenplot = scenplot)
   I_OUT <- subset(I_OUT, f=="oil");setnames(I_OUT, "f", "category")
   I_OUT$category <- "Oil Extraction"
   setnames(I_RD, "rd", "category")
   I_OUT$sector <- "Fuel supply"; I_EN_categorized$sector <- "Power supply"; I_RD$sector <- "Energy RnD"
   Investment_Energy <- rbind(I_EN_categorized, I_RD, I_OUT)
-  
-  
   Investment_Energy <- subset(Investment_Energy, t>=3 & t<=10)
-  
-  Investment_Energy_global <- aggregate(value~sector+category+file+pathdir, data=subset(Investment_Energy, n %in% regions), sum)
+  Investment_Energy_global <- aggregate(value~sector+category+file+pathdir, data=subset(Investment_Energy, n %in% regions), sum)  
   Investment_Energy_global$value <-   Investment_Energy_global$value*5 
 
-  ggplot(subset(Investment_Energy_global),aes(file,value, fill=category)) + geom_bar(stat="identity", position = "stack") + ylab("Trillion USD (2015-2050)") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") + facet_wrap( ~ sector, scales = "fixed")  + scale_x_discrete(limits=scenplot) + scale_fill_brewer(palette="Spectral")
+  ggplot(subset(Investment_Energy_global),aes(file,value, fill=category)) + geom_bar(stat="identity", position = "stack") + ylab("Trillion USD annually, (2015-2050)") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") + facet_wrap( ~ sector, scales = "fixed")  + scale_x_discrete(limits=scenplot) + scale_fill_brewer(palette="Spectral")
   #+ scale_fill_manual(values=c("#0000FF", "#000066", "#FFFF00", "#666600","#00FF00", "#006600", "#FF0000", "#660000"))
-  saveplot("Investments Developing Asia, 2015-2050", plotdata=Investment_Energy_global)
+  saveplot("Investment Plot Global", plotdata=Investment_Energy_global)
 }
 
 

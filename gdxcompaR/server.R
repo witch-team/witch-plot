@@ -89,6 +89,7 @@ shinyServer(function(input, output, session) {
 
     # MAIN CODE FOR PLOT GENERATION  
     output$gdxompaRplot <- renderPlot({
+      assign("historical", input$add_historical, envir = .GlobalEnv)
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
       #get data
@@ -196,8 +197,40 @@ shinyServer(function(input, output, session) {
       Electricity_Mix(Electricity_y = "value", regions = regions[1], years = seq(yearmin, yearmax, 1), plot_type = "area", scenplot = scenarios)
     })
   
-  
-  
+    output$investmentplot <- renderPlot({
+      #get input from sliders/buttons
+      yearmin = input$yearmin
+      yearmax = input$yearmax
+      additional_set_selected <- input$additional_set_id_selected
+      additional_set_selected2 <- input$additional_set_id_selected2
+      regions <- input$regions_selected
+      scenarios <- input$scenarios_selected
+      Investment_Plot(regions="World", scenplot = scenarios)
+    })
+    
+    output$policycostplot <- renderPlot({
+      #get input from sliders/buttons
+      yearmin = input$yearmin
+      yearmax = input$yearmax
+      additional_set_selected <- input$additional_set_id_selected
+      additional_set_selected2 <- input$additional_set_id_selected2
+      regions <- input$regions_selected
+      scenarios <- input$scenarios_selected
+      Policy_Cost(discount_rate=5, regions=regions, bauscen = scenarios[1], show_numbers=TRUE, tmax=yeartot(yearmax))
+    })
+    
+    output$intensityplot <- renderPlot({
+      #get input from sliders/buttons
+      yearmin = input$yearmin
+      yearmax = input$yearmax
+      additional_set_selected <- input$additional_set_id_selected
+      additional_set_selected2 <- input$additional_set_id_selected2
+      regions <- input$regions_selected
+      scenarios <- input$scenarios_selected
+      Intensity_Plot(year=yearmax, region=regions, year0=2010)
+    })
+    
+
   
   
   

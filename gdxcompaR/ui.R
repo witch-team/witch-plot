@@ -27,7 +27,8 @@ shinyUI(fluidPage(theme = shinytheme("superhero"), pageWithSidebar(
     uiOutput("choose_additional_set"),
     uiOutput("choose_additional_set2"),
     uiOutput("select_scenarios"),
-    uiOutput("select_regions")
+    uiOutput("select_regions"),
+    checkboxInput("add_historical", "Add historical values", FALSE)
 ),
     
 
@@ -37,7 +38,10 @@ shinyUI(fluidPage(theme = shinytheme("superhero"), pageWithSidebar(
     tabsetPanel(type = "tabs", id = "tabs",
                 tabPanel("gdxcompaR", id = "gdxcompaR", h2(textOutput("varname")),plotOutput("gdxompaRplot", width = "100%", height = "80vh", hover=hoverOpts(id="plot_hover", delay = 100, delayType = "debounce"))),
                 tabPanel("Energy Mix", id = "Energy Mix", h2("Energy Mix"),plotOutput("energymixplot", width = "100%", height = "80vh")),
-                tabPanel("Electricity Mix", id = "Electricity Mix", h2("Electricity Mix"),plotOutput("electricitymixplot", width = "100%", height = "80vh"))
+                tabPanel("Electricity Mix", id = "Electricity Mix", h2("Electricity Mix"),plotOutput("electricitymixplot", width = "100%", height = "80vh")),
+                tabPanel("Investment", id = "Investment", h2("Investment"),plotOutput("investmentplot", width = "100%", height = "80vh")),
+                tabPanel("Policy Cost", id = "Policy Cost", h2("Policy Cost"),p("Select BAU scenario under 'scenarios'."),plotOutput("policycostplot", width = "100%", height = "80vh")),
+                tabPanel("Intensity Plot", id = "Intensity Plot", h2("Energy and Carbon Intensity"),plotOutput("intensityplot", width = "100%", height = "80vh"))
 
     )
   )

@@ -1,7 +1,7 @@
 # Compute Policy Costs and Carbon Prices
 
 
-Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", regions="WORLD", show_numbers=TRUE, scenplot=scenlist, measure="GDP", suffix=""){
+Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", regions="World", show_numbers=TRUE, scenplot=scenlist, measure="GDP", suffix=""){
   if(!(bauscen %in% scenlist)){stop("For policy costs define an existing BAU scenario")}
   get_witch_simple("Q")
   #Q$value <- Q$value * usd_deflator    #Apply deflator
@@ -22,15 +22,15 @@ Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", re
   GDP$file <- as.factor(GDP$file)
   GDP_WORLD <- GDP; GDP_WORLD$n <- NULL
   GDP_WORLD <- GDP_WORLD[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
-  GDP_WORLD$n <- "WORLD"
+  GDP_WORLD$n <- "World"
   GDP <- rbind(GDP, GDP_WORLD)
   GDP$t <- as.numeric(GDP$t)
   #PC over time plot (NOT discounted!)
   PC_annual_relative <- subset(GDP, t<=tmax&t>=tmin); PC_annual_relative$rel_cost <- PC_annual_relative$"GDP Loss"/PC_annual_relative$"bau";
   p <- ggplot(subset(PC_annual_relative, n %in% regions & file!=bauscen)) + geom_line(aes(ttoyear(t), rel_cost*100, color=file), show.legend = TRUE) +ylab(paste("% of", measure)) + xlab("") + theme(legend.position="bottom",legend.direction="horizontal") + guides(fill=guide_legend(title=NULL, nrow = 1))
   if(length(pathdir) > 1){p <- p + facet_grid(. ~ pathdir)}
-  if(regions[1] != "WORLD" & (length(regions)>1)){p <- p + facet_grid(. ~ n)}
-  saveplot(paste0("Policy Cost Yearly (", measure, ")", suffix), plotdata=subset(PC_annual_relative, n %in% regions & file!=bauscen))
+  if(regions[1] != "World" & (length(regions)>1)){p <- p + facet_grid(. ~ n)}
+  #saveplot(paste0("Policy Cost Yearly (", measure, ")", suffix), plotdata=subset(PC_annual_relative, n %in% regions & file!=bauscen))
   #now compute also discounted NPV value
   Policy_Cost <- subset(GDP, t<=tmax&t>=tmin)[, lapply(.SD, sum), by=c("n", "file", "pathdir") , .SDcols = c("GDP_Loss_discounted", "GDP_MER_discounted")]
   Policy_Cost$PC = 100*Policy_Cost$GDP_Loss_discounted / Policy_Cost$GDP_MER_discounted
@@ -39,7 +39,7 @@ Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", re
   assign("POLCOST", Policy_Cost, envir = .GlobalEnv) 
   p <- ggplot(subset(Policy_Cost, n %in% regions & file!=bauscen)) + geom_bar(position=position_dodge(), stat="identity",aes(file, PC, fill=file), show.legend = TRUE) +ylab(paste("% of", measure, "(NPV)")) + xlab("") + theme(legend.position="bottom",legend.direction="horizontal") + guides(fill=guide_legend(title=NULL, nrow = 1))
   if(length(pathdir) > 1){p <- p + facet_grid(. ~ pathdir)}
-  if(regions[1] != "WORLD"){p <- p + facet_grid(. ~ n)}
+  if(regions[1] != "World"){p <- p + facet_grid(. ~ n)}
   if(show_numbers){p <- p + geom_text(data=subset(Policy_Cost, n %in% regions & file!=bauscen), aes(x=file, y=PC+0.1, label=paste0(round(PC, 1),"%")))}
   p <- p  + theme(axis.ticks = element_blank(), axis.text.x = element_blank())
   saveplot(paste0("Policy Cost (", measure, ")", suffix), plotdata=subset(Policy_Cost, n %in% regions & file!=bauscen))
@@ -50,7 +50,7 @@ Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", re
 
 
 
-Policy_Cost_Decomposition <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", coopbauscen=F, regions="WORLD", show_numbers=TRUE, scenplot=scenlist, measure="GDP", suffix=""){
+Policy_Cost_Decomposition <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", coopbauscen=F, regions="World", show_numbers=TRUE, scenplot=scenlist, measure="GDP", suffix=""){
 get_witch_simple("dam_rep")
 dam_rep <- dcast(dam_rep, formula = t + n + file + pathdir ~ V3)
 get_witch_simple("Q")
@@ -130,7 +130,7 @@ DAM_DECOMP$file <- as.factor(DAM_DECOMP$file)
 DAM_DECOMP <- as.data.table(DAM_DECOMP)
 DAM_DECOMP_WORLD <- DAM_DECOMP; DAM_DECOMP_WORLD$n <- NULL
 DAM_DECOMP_WORLD <- DAM_DECOMP_WORLD[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
-DAM_DECOMP_WORLD$n <- "WORLD"
+DAM_DECOMP_WORLD$n <- "World"
 DAM_DECOMP <- rbind(DAM_DECOMP, DAM_DECOMP_WORLD)
 assign("DAM_DECOMP", DAM_DECOMP, envir = .GlobalEnv)
 
@@ -161,7 +161,7 @@ assign("DAM_DECOMP_NPV", DAM_DECOMP_NPV, envir = .GlobalEnv)
 print(ggplot(subset(DAM_DECOMP_NPV, n %in% regions & file!=bauscen)) + geom_bar(position=position_dodge(), stat="identity",aes(file, value, fill=variable), show.legend = TRUE) +ylab(paste("% of", measure, "(NPV)")) + xlab("") + theme(legend.position="bottom",legend.direction="horizontal") + guides(fill=guide_legend(title=NULL, nrow = 1)))
 p <- ggplot(subset(DAM_DECOMP_NPV, n %in% regions & file!=bauscen)) + geom_bar(position=position_stack(), stat="identity",aes(file, value, fill=variable), show.legend = TRUE) +ylab(paste("% of", measure, "(NPV)")) + xlab("") + theme(legend.position="bottom",legend.direction="horizontal") + guides(fill=guide_legend(title=NULL, nrow = 1))
 if(length(pathdir) > 1){p <- p + facet_grid(. ~ pathdir)}
-if(regions[1] != "WORLD"){p <- p + facet_grid(. ~ n)}
+if(regions[1] != "World"){p <- p + facet_grid(. ~ n)}
 if(show_numbers){p <- p + geom_text(data=subset(DAM_DECOMP_NPV, n %in% regions & file!=bauscen & variable==tail(unique(DAM_DECOMP_NPV$variable), n=1)), aes(x=file, y=total+0.1, label=paste0(round(total, 1),"%")))}
 #p <- p  + theme(axis.ticks = element_blank(), axis.text.x = element_blank())
 saveplot(paste0(measure, " loss decomposition", suffix), plotdata=DAM_DECOMP_NPV)

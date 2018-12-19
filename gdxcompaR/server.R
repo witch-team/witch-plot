@@ -86,6 +86,9 @@ shinyServer(function(input, output, session) {
     })
     
 
+    #Additional selector for specific Panels
+
+    
 
     # MAIN CODE FOR PLOT GENERATION  
     output$gdxompaRplot <- renderPlot({
@@ -183,7 +186,9 @@ shinyServer(function(input, output, session) {
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
       scenarios <- input$scenarios_selected
-      Primary_Energy_Mix(PES_y = "value", regions = regions[1], years = seq(yearmin, yearmax, 1), plot_type = "area", scenplot = scenarios)
+      mix_plot_type_selected <- input$mix_plot_type_selected
+      mix_y_value_selected <- input$mix_y_value_selected
+      Primary_Energy_Mix(PES_y = mix_y_value_selected, regions = regions[1], years = seq(yearmin, yearmax, 1), plot_type = mix_plot_type_selected, scenplot = scenarios)
     })
     
     output$electricitymixplot <- renderPlot({
@@ -194,7 +199,9 @@ shinyServer(function(input, output, session) {
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
       scenarios <- input$scenarios_selected
-      Electricity_Mix(Electricity_y = "value", regions = regions[1], years = seq(yearmin, yearmax, 1), plot_type = "area", scenplot = scenarios)
+      mix_plot_type_selected <- input$mix_plot_type_selected
+      mix_y_value_selected <- input$mix_y_value_selected
+      Electricity_Mix(Electricity_y = mix_y_value_selected, regions = regions[1], years = seq(yearmin, yearmax, 1), plot_type = mix_plot_type_selected, scenplot = scenarios)
     })
   
     output$investmentplot <- renderPlot({

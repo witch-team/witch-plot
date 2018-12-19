@@ -30,10 +30,17 @@ Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(2005, 2
     }
     assign("PES_MIX",TPES,envir = .GlobalEnv)
     if(PES_y=="share"){TPES <- ddply(TPES, c("t", "file", "n", "pathdir"), transform, value=value/(sum(value))*100)}
-    p <- ggplot(data=subset(TPES, ttoyear(t) %in% years & file %in% scenplot),aes(ttoyear(t),value, fill=category))
-    if(plot_type=="area"){p <- p + geom_area(stat="identity")}else{p <- p + geom_bar(stat="identity") + scale_x_continuous(breaks=years)}
-    p <- p + ylab("EJ") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") +  scale_fill_manual(values=c("green", "black", "blue", "chocolate2", "red", "brown", "yellow", "gold1"))     
+    p <- ggplot(data=subset(TPES, ttoyear(t) %in% years & file %in% scenplot))
+    if(plot_type=="area"){
+      p <- p + geom_area(aes(ttoyear(t),value, fill=category), stat="identity") + scale_fill_manual(values=c("green", "black", "blue", "chocolate2", "red", "brown", "yellow", "gold1"))
+    }else if(plot_type=="bar"){
+      p <- p + geom_bar(aes(ttoyear(t),value, fill=category), stat="identity") + scale_fill_manual(values=c("green", "black", "blue", "chocolate2", "red", "brown", "yellow", "gold1")) #+ scale_x_continuous(breaks=years)
+    }else if(plot_type=="line"){
+      p <- p + geom_line(aes(ttoyear(t),value, color=category), stat="identity", size=2) + scale_color_manual(values=c("green", "black", "blue", "chocolate2", "red", "brown", "yellow", "gold1"))
+    }
+    p <- p + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom")   
     p <- p + facet_grid(n ~ file, scales="free")
+    if(PES_y=="share"){p <- p + ylab("%")}else{p <- p + ylab("EJ")}
     legend_position_old = legend_position; assign("legend_position", "bottom", envir = .GlobalEnv)
     saveplot(plot_name,plotdata=subset(TPES, ttoyear(t) %in% years & file %in% scenplot))
     assign("legend_position", legend_position_old, envir = .GlobalEnv) 
@@ -97,10 +104,17 @@ Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(20
     }
     assign("ELEC_MIX",ELEC,envir = .GlobalEnv)
     if(Electricity_y=="share"){ELEC <- ddply(ELEC, c("t", "file", "n", "pathdir"), transform, value=value/(sum(value))*100)}
-    p <- ggplot(data=subset(ELEC, ttoyear(t) %in% years  & file %in% scenplot),aes(ttoyear(t),value, fill=category))
-    p <- p + ylab("EJ") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") +  scale_fill_manual(values=c("Solar"="yellow", "Hydro"="blue", "Nuclear"="cyan", "Wind"="orange", "Coal w/ CCS"="dimgrey", "Coal w/o CCS"="black", "Gas w/ CCS"="brown2", "Gas w/o CCS"="brown", "Oil"="darkorchid4", "Biomass w/ CCS"="green",  "Biomass w/o CCS"="darkgreen"))
-    if(plot_type=="area"){p <- p + geom_area(stat="identity")}else{p <- p + geom_bar(stat="identity") + scale_x_continuous(breaks=years)}
+    p <- ggplot(data=subset(ELEC, ttoyear(t) %in% years  & file %in% scenplot))
+    p <- p + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom")
+    if(plot_type=="area"){
+      p <- p + geom_area(aes(ttoyear(t),value, fill=category), stat="identity") + scale_fill_manual(values=c("Solar"="yellow", "Hydro"="blue", "Nuclear"="cyan", "Wind"="orange", "Coal w/ CCS"="dimgrey", "Coal w/o CCS"="black", "Gas w/ CCS"="brown2", "Gas w/o CCS"="brown", "Oil"="darkorchid4", "Biomass w/ CCS"="green",  "Biomass w/o CCS"="darkgreen"))
+    }else if(plot_type=="bar"){
+      p <- p + geom_bar(aes(ttoyear(t),value, fill=category), stat="identity") +scale_fill_manual(values=c("Solar"="yellow", "Hydro"="blue", "Nuclear"="cyan", "Wind"="orange", "Coal w/ CCS"="dimgrey", "Coal w/o CCS"="black", "Gas w/ CCS"="brown2", "Gas w/o CCS"="brown", "Oil"="darkorchid4", "Biomass w/ CCS"="green",  "Biomass w/o CCS"="darkgreen")) #+ scale_x_continuous(breaks=years)
+    }else if(plot_type=="line"){
+      p <- p + geom_line(aes(ttoyear(t),value, color=category), stat="identity", size=2) + scale_color_manual(values=c("Solar"="yellow", "Hydro"="blue", "Nuclear"="cyan", "Wind"="orange", "Coal w/ CCS"="dimgrey", "Coal w/o CCS"="black", "Gas w/ CCS"="brown2", "Gas w/o CCS"="brown", "Oil"="darkorchid4", "Biomass w/ CCS"="green",  "Biomass w/o CCS"="darkgreen"))
+    }
     p <- p + facet_grid(n ~ file, scales="free")
+    if(Electricity_y=="share"){p <- p + ylab("%")}else{p <- p + ylab("EJ")}
     legend_position_old = legend_position; assign("legend_position", "bottom", envir = .GlobalEnv)
     saveplot(plot_name, plotdata=subset(ELEC, ttoyear(t) %in% years  & file %in% scenplot))
     assign("legend_position", legend_position_old, envir = .GlobalEnv) 

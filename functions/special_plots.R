@@ -3,12 +3,10 @@
 # Intensity Plot for EI/CI
 # Policy Costs
 
-Intensity_Plot <- function(year=2050, region="World", year0=2010, scenplot=scenlist){
+Intensity_Plot <- function(years=c(2050, 2100), regions="World", year0=2010, scenplot=scenlist){
   get_witch_variable("tpes", "tpes", "na", "na", 0.0036, "EJ", "regional", plot=FALSE)
   setnames(tpes, "value", "PES")
-  get_witch_variable("Q_EMI", "Q_EMI", "e", "co2", 0.0036, "EJ", "regional", plot=FALSE)
-  #now only ffi!!!
-  #get_witch_variable("Q_EMI", "Q_EMI", "e", "co2ffi", 0.0036, "EJ", "regional", plot=FALSE)
+  get_witch_variable("Q_EMI", "Q_EMI", "e", "co2", 3.667, "GtCO2", "regional", plot=FALSE)
   setnames(Q_EMI, "value", "CO2")
   get_witch_variable("Q", "Q", "iq", "y", 1e3, "bln. USD", "regional", plot=FALSE)
   setnames(Q, "value", "GDP")
@@ -18,24 +16,25 @@ Intensity_Plot <- function(year=2050, region="World", year0=2010, scenplot=scenl
   Intensity_World <- Intensity_World[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
   Intensity_World$n <- "World"
   Intensity <- rbind(Intensity, Intensity_World)
-  Intensity <- subset(Intensity, n %in% region)
-  Intensity$CI=Intensity$CO2/Intensity$PES *1e6 #gCO2eq/MJ
-  Intensity$EI=Intensity$PES/Intensity$GDP *1e3 #MJ/$
-  Intensity_2010 <- subset(Intensity, t==yeartot(year0))
-  Intensity_t <- subset(Intensity, t==yeartot(year))
-  Intensity_t$EI_change <- (((Intensity_t$EI/Intensity_2010$EI)**(1/((year-year0))))-1)*100
-  Intensity_t$CI_change <- (((Intensity_t$CI/Intensity_2010$CI)**(1/((year-year0))))-1)*100
-  #to avoid issues when negative values
-  #Intensity_t$CI_change <- (sign(Intensity_t$CI-Intensity_2010$CI))*(((1+(abs(Intensity_t$CI-Intensity_2010$CI)/abs(Intensity_2010$CI)))**(1/((year-year0))))-1)*100
+  Intensity <- subset(Intensity, n %in% regions)
+  Intensity$CI=Intensity$CO2/Intensity$PES *1e3 #gCO2/MJ (from GTCO2eq/EJ)
+  Intensity$EI=Intensity$PES/Intensity$GDP *1e3 #MJ/$ (from EJ/billion $)
+  Intensity_t <- subset(Intensity, t %in% yeartot(c(years, year0)))
+  Intensity_t <- Intensity_t %>% group_by("pathdir", "file", "n") %>% mutate(CI_change=(((CI/CI[t==yeartot(year0)])**(1/(ttoyear(t)-year0)))-1)*100, EI_change=(((EI/EI[t==yeartot(year0)])**(1/(ttoyear(t)-year0)))-1)*100) %>% as.data.frame()
   Intensity_t <- subset(Intensity_t, file %in% scenplot)
-  if(region[1]=="World"){
-    ggplot() + geom_point(data=Intensity_t, mapping=aes(x=CI_change, y=EI_change, color=file), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change, ", year0,"-",year)) + ylab(paste0("Energy Intensity Change, ", year0,"-",year)) + guides(color=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")# + ylim(-1, +1) + xlim(-1, +1)
-  }else{
-    ggplot() + geom_point(data=Intensity_t, mapping=aes(x=CI_change, y=EI_change, colour=n, shape=file), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change, ", year0,"-",year)) + ylab(paste0("Energy Intensity Change, ", year0,"-",year)) + guides(color=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")# + ylim(-2, 0) + xlim(-0.5, +0.2)
-  }
-  saveplot("CI_EI_Improvement", plotdata=Intensity_t, add_title = F)
+  if(regions[1]=="World"){
+    p_imp <- ggplot() + geom_point(data=subset(Intensity_t, ttoyear(t)!=year0+1e3), mapping=aes(x=CI_change, y=EI_change, color=file, shape=as.character(ttoyear(t))), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change")) + ylab(paste0("Energy Intensity Change")) + guides(color=guide_legend(title=NULL), shape=guide_legend(title=NULL)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")
+    p_ciei <- ggplot() + geom_point(data=subset(Intensity_t), mapping=aes(x=CI, y=EI, color=file, shape=as.character(ttoyear(t))), size=6) + xlab(paste0("Carbon Intensity [gCO2/MJ]")) + ylab(paste0("Energy Intensity [MJ/$]")) + guides(color=guide_legend(title=NULL), shape=guide_legend(title=NULL)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")
+    }else{
+    Intensity_t <- subset(Intensity_t, t==yeartot(years[1])) #for regional results only first year!
+    p_imp <- ggplot() + geom_point(data=Intensity_t, mapping=aes(x=CI_change, y=EI_change, colour=n, shape=file), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change")) + ylab(paste0("Energy Intensity Change")) + guides(color=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")
+    p_ciei <- ggplot() + geom_point(data=subset(Intensity_t), mapping=aes(x=CI, y=EI, color=n, shape=file), size=6) + xlab(paste0("Carbon Intensity [gCO2eq/MJ]")) + ylab(paste0("Energy Intensity [MJ/$]")) + guides(color=guide_legend(title=NULL), shape=guide_legend(title=NULL)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")
+    }
+  ggarrange(p_ciei, p_imp, common.legend = T, align="h", legend = "bottom") #requires ggpubr
+  saveplot("CI_EI_plot", add_title = F, width = 10, height = 5)
   assign("CI_EI_Improvement", Intensity_t, envir = .GlobalEnv)
-}
+}  
+  
 
 
 

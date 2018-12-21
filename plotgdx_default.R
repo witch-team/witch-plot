@@ -56,7 +56,7 @@ Energy_Prices(unit = "boe", scenplot = scenlist)
 Primary_Energy_Mix(PES_y = "value", regions = regions_focus, years = seq(1990, 2050, 5), plot_type = "area")
 Electricity_Mix(Electricity_y = "value", regions = regions_focus, years = seq(1990, 2050, 5), plot_type = "area")
 
-Intensity_Plot(year=2050, region="World", year0=2010)
+Intensity_Plot(years = c(2050,2100), regions="World", year0=2010, scenplot = scenlist)
 Global_Emissions_Stacked(scenario = scenlist[1])
 
 #Mitigation_Decomposition(regions=regions_focus, scenario_stringency_order = c("DIAG-Base", "DIAG-C30-gr5"), scen_short=c("Base", "C30-gr5"), plotname="Mitigation Decomposition")

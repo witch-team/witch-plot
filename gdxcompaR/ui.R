@@ -28,7 +28,7 @@ shinyUI(fluidPage(theme = shinytheme("superhero"), pageWithSidebar(
     uiOutput("choose_additional_set2"),
     uiOutput("select_scenarios"),
     uiOutput("select_regions"),
-    checkboxInput("add_historical", "Add historical values", FALSE)
+    checkboxInput("add_historical", "Add historical values", value = TRUE)
 ),
     
 

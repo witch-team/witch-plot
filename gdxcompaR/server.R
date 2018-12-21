@@ -234,7 +234,7 @@ shinyServer(function(input, output, session) {
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
       scenarios <- input$scenarios_selected
-      Intensity_Plot(year=yearmax, region=regions, year0=2010)
+      Intensity_Plot(years=c(yearmax, yearmax-50), regions = regions, year0=2010, scenplot = scenarios)
     })
     
 

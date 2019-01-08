@@ -58,13 +58,16 @@ print(scenlist)
 if (!dir.exists(graphdir)){dir.create(graphdir)} 
 if(file.exists(paste(graphdir, "all_figures.pdf", sep=""))){(file.remove(paste(graphdir, "all_figures.pdf", sep="")))}
 
+#get time or stochastic mapping
+get_witch_simple("t"); t_model<-unique(t$t)
+
 #Palettes for WITCH regions and regional aggregation
 get_witch_simple("conf")
-if(length(unique(subset(conf, V1=="regions")$V2))>1) stop("Different regional aggregations across results files.")
+if(length(unique(subset(conf, V1=="regions")$V2))>1) print("Be careful: not all results files were run with the same regional aggregation!")
 region_id <- subset(conf, file==scenlist[1] & pathdir==pathdir[1] & V1=="regions")$V2
 get_witch_simple("n")
-get_witch_simple("t"); t_model<-unique(t$t)
-witch_regions <- subset(n, file==scenlist[1] & pathdir==pathdir[1])$V1
+witch_regions <- unique(n$V1)
+
 if(!exists("display_regions")){display_regions <- witch_regions}
 region_palette_rainbow <- setNames(rainbow(length(witch_regions)), witch_regions) #just in case have a fall back colour
 region_palette_specific <- c(usa="darkblue",Usa="darkblue",oldeuro="blue", neweuro="cornflowerblue",kosau="darkgreen",Kosau="darkgreen",cajaz="chartreuse4",Cajaz="chartreuse4",te="gold2",Te="gold2",mena="darkgoldenrod4",Mena="darkgoldenrod4",ssa="goldenrod",Ssa="goldenrod",sasia="darkorange2","South Asia"="darkorange2",china="deeppink3",PRC="deeppink3",easia="orangered",ESEAP="orangered",laca="#fbb714",Laca="#fbb714",india="#fbf003",India="#fbf003",europe="blue",Europe="blue",indonesia="lightsalmon3",Indonesia="lightsalmon3",Rest_of_World="grey48",chinaw="darkorange",chinac="darkorange2",chinae="darkorange4",italy="green",mexico="slateblue2",brazil="tomato4",canada="blueviolet",jpnkor="darkseagreen",oceania="forestgreen",southafrica="indianred3",seasia="orangered",World="black")

@@ -28,7 +28,7 @@ shinyUI(fluidPage(theme = shinytheme("superhero"), pageWithSidebar(
     uiOutput("choose_additional_set2"),
     uiOutput("select_scenarios"),
     uiOutput("select_regions"),
-    checkboxInput("add_historical", "Add historical values", value = TRUE)
+    checkboxInput("add_historical", "Add historical values", value = T)
 ),
     
 
@@ -37,6 +37,7 @@ shinyUI(fluidPage(theme = shinytheme("superhero"), pageWithSidebar(
   mainPanel(
     tabsetPanel(type = "tabs", id = "tabs",
                 tabPanel("gdxcompaR", id = "gdxcompaR", h2(textOutput("varname")),plotOutput("gdxompaRplot", width = "100%", height = "80vh", hover=hoverOpts(id="plot_hover", delay = 100, delayType = "debounce"))),
+                tabPanel("Diagnostics", id = "Diagnostics", h2("Diagnostics of model runs"),plotOutput("Diagnostics", width = "100%", height = "80vh")),
                 tabPanel("Energy Mix", id = "Energy Mix", 
                          selectInput("mix_y_value_selected", "Plot value or share:", c("value", "share") , size=1, selectize = F, multiple = F, selected = "value"), 
                          selectInput("mix_plot_type_selected", "Plot Type:", c("area", "line", "bar") , size=1, selectize = F, multiple = F, selected = "area"),
@@ -47,7 +48,8 @@ shinyUI(fluidPage(theme = shinytheme("superhero"), pageWithSidebar(
                          h2("Electricity Mix"),plotOutput("electricitymixplot", width = "100%", height = "80vh")),
                 tabPanel("Investment", id = "Investment", h2("Investment"),plotOutput("investmentplot", width = "100%", height = "80vh")),
                 tabPanel("Policy Cost", id = "Policy Cost", h2("Policy Cost"),p("Select BAU scenario under 'scenarios'."),plotOutput("policycostplot", width = "100%", height = "80vh")),
-                tabPanel("Intensity Plot", id = "Intensity Plot", h2("Energy and Carbon Intensity"),plotOutput("intensityplot", width = "100%", height = "80vh"))
+                tabPanel("Intensity Plot", id = "Intensity Plot", h2("Energy and Carbon Intensity"),plotOutput("intensityplot", width = "100%", height = "80vh")),
+                tabPanel("Impact Map", id = "Impact Map", h2("GDP Impact [% loss wrt BAU]"),plotOutput("impactmap", width = "100%", height = "80vh"))
 
     )
   )

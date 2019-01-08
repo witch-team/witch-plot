@@ -35,6 +35,10 @@ runApp(appDir = "gdxcompaR")
 stop("Just load everything")
 
 
+
+
+diagnostics_plots() #Basic diagnostic plots
+
 #Main part, get data plots etc.
 Plot_Global_Emissions(show_ar5=TRUE, ar5_budget=1180, bauscen = "bau") #Global GHG Emissions (AR5 2000 is CB of 2 degrees, 1180GtCO2 for "likely 2deg")
 get_witch_variable("carbonprice", "Carbon Price", "na", "na", aggregation =  "global_mean")
@@ -46,6 +50,8 @@ get_witch_variable("Q_EMI", "CCS_Emissions", "e", "ccs", aggregation = "global_s
 get_witch_variable("Q_EMI", "CCS_Emissions_Stored", "e", "ccs", aggregation = "global_sum", cumulative = T)
 get_witch_variable("tpes", "tpes", "na", "na", aggregation = "global_sum")
 get_witch_variable("Q_OUT", "Oil_Extraction", "f", "oil", aggregation = "regional")
+
+
 
 
 
@@ -64,11 +70,18 @@ Investment_Plot(regions=regions_focus)
 Sectoral_Emissions(regions=regions_focus)
 Policy_Cost(discount_rate=5, regions=regions_focus, bauscen = "bau", show_numbers=TRUE, tmax=10)
 
+#Impact Map
+t_map = 20; bau_scen = scenlist[1]
+get_witch_simple("Q")
+impact_map_data <- Q %>% filter(iq=="y" & t==t_map) %>% group_by(n, pathdir) %>% mutate(value = -((value/sum(value[file==bau_scen]))-1)*100) %>% filter(is.finite(value))
+witchmap(impact_map_data, file_report=scenlist[2], t_report=t_map, mapcolor="Reds", map_name="Impact Map", map_legend = "GDP loss [%]")
+
 
 #export multiple variables as time series panel dataset "witch_dataset_long.csv"
 #write_witch_data_csv(c("l", "ykali"), years = seq(1960, 2100, 20))
 #Full ISO3 dataset (based on "build" folder)
 #write_witch_historical_iso3_dataset()
+
 
 
 

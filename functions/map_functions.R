@@ -3,16 +3,10 @@
 
 
 witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scale_min=0, scale_max=0, mapcolor="Reds", map_name="map", map_legend="Legend", plot_witch_regions=FALSE, add_region_names=FALSE, add_bars=FALSE){
-  
   #Palettes: Diverging: BrBG, PiYG, PRGn, PuOr, RdBu, RdGy, RdYlBu, RdYlGn, Spectral
   #Palettes: Qualitative: Accent, Dark2, Paired, Pastel1, Pastel2, Set1, Set2, Set3
   #Palettes: Sequential: Blues, BuGn, BuPu, GnBu, Greens, Greys, Oranges, OrRd, PuBu, PuBuGn, PuRd, Purples, RdPu, Reds, YlGn, YlGnBu, YlOrBr, YlOrRd
-  
-  
-  
-  #library(ggplot2)
   library(rworldmap)
-  #library(data.table)
   savemap <- function(plotname){ggsave(filename=paste(graphdir,as.character(gsub(" ", "_", plotname)),"_map.png", sep=""), plot = last_plot() + labs(title=""), width=14, height=6)}
   # Get World data
   Nations <- data.table(map_data("world"))
@@ -29,8 +23,10 @@ witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scal
   Nations[,ISO3 := rwmGetISO3(region),by=c("region")]
   #unique(Nations[is.na(ISO3),region]) # List of non-match
   
-  #now WITCH regions
-  mod.countries.filename = paste0(witch_folder, "data_", region_id, "/regions.inc")
+  #now get WITCH regions
+  get_witch_simple("conf", scenplot = file_report)
+  region_id_map <- subset(conf, pathdir==pathdir[1] & V1=="regions")$V2
+  mod.countries.filename = paste0(witch_folder, "data_", region_id_map, "/regions.inc")
   # Read mod_countries
   mod.countries = readLines(mod.countries.filename)
   mod.countries = mod.countries[mod.countries!=""]                                  # Remove empty lines
@@ -53,8 +49,6 @@ witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scal
   Nations = merge(Nations,witch_data_on_iso3,by=c("ISO3"))
   #get center location:
   region_centers <- aggregate(cbind(long, lat) ~ n, data=subset(Nations), FUN=function(x)mean(x+360)-360);
-  
-  
   if(!plot_witch_regions){
   if(scale_min==0){scale_min = min(data_for_map_n$value); scale_max = max(data_for_map_n$value)}
   World.map <- ggplot(Nations, aes(x = long, y = lat))
@@ -73,16 +67,10 @@ witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scal
     if(add_bars!=FALSE){
     p <- p + geom_point(data=data_bars, aes(long, lat, size = value), color="deeppink3") + scale_size_continuous()#limits=c(1,8), range = c(1, 16), guide = guide_legend(title = ""))# + scale_size_area(min_size=1, max_size = 5) #+ scale_size_continuous(from=c(1), to=c(5)) #
     }
- 
   if(add_region_names){p <- p + geom_text(data=region_centers, aes(long, lat, label = n), size=4)}
-  
   #limit to Europe:   coord_cartesian(xlim = c(-10,33), ylim = c(36,73)) +
   print(p)
   savemap(map_name)
-  #optionally add also a bar chart
-  p_bar <- ggplot(data_bars, aes(n, value, fill=n)) + geom_bar(stat="identity") + scale_fill_manual(values = region_palette)
-  saveplot(paste0(map_name, " (bar chart)"))
-  
   }
   
   #Map of WITCH regional mapping:
@@ -90,8 +78,6 @@ witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scal
   World.map <- ggplot(Nations, aes(x = long, y = lat))
   Country.layer <- c(geom_polygon(data = Nations, aes(x = long, y = lat, group = group, fill=n)))
   Borders.layer <- c(geom_path(data = Nations, aes(x = long, y = lat, group = group), color="darkgray", size=0.1))  
-  
- 
   p <- World.map + Country.layer + Borders.layer +
   theme_minimal() + labs(x = "", y =  "") +
   theme(axis.line=element_blank(), axis.text.x=element_blank(), axis.text.y=element_blank(),axis.ticks=element_blank(),

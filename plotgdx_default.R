@@ -1,27 +1,23 @@
 rm(list = ls())
 #all directoried with trailing slash "/"!
-#Where you're WITCH code is located
-witch_folder = "../witch/"
+witch_folder = "../witch/" #Where you're WITCH code is located
 #main directory of your results files
 main_directory <- witch_folder # by default, the witch source folder
 #main_directory <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/FEEM/WITCH_CODING/witch-cdlinks/"
-#all directoried with trailing slash "/"!
 subdir = c("") #can be multiple directories
 
 
 removepattern = c("results_", "_calib", "_bau", "ssp2_") 
-restrict_files = "results_" #"."
-exclude_files = "db"
+restrict_files = c("results_", "witch17") #"."
+exclude_files = c("db", "all_data_temp")
+
+yearmin = 1980
+yearmax = 2100
 
 #Name scenarios (otherwise it takes gdx filename)
 #scenlist <- c("REF", "INDC_2C", "INDC_2C_TRADE", "INDC", "INDC_TRADE", "OPT_2C")
 #Select which scenarios are used,potentially change the order, by default, all scenarios are used
 #scenplot_global_order <- c(5,3,1)
-#Special focus regions to report for
-#regions_focus = c("china", "india", "sasia", "easia", "indonesia")
-
-yearmin=1980
-yearmax = 2100
 
 #Initialize default options, load all witch and other functions
 source('functions/witch_functions.R')
@@ -40,7 +36,7 @@ stop("Just load everything")
 diagnostics_plots() #Basic diagnostic plots
 
 #Main part, get data plots etc.
-Plot_Global_Emissions(show_ar5=TRUE, ar5_budget=1180, bauscen = "bau") #Global GHG Emissions (AR5 2000 is CB of 2 degrees, 1180GtCO2 for "likely 2deg")
+Plot_Global_Emissions(show_ar5=TRUE, ar5_budget=1180, bauscen = "bau")
 get_witch_variable("carbonprice", "Carbon Price", "na", "na", aggregation =  "global_mean")
 get_witch_variable("Q", "GDP", "iq", "y", aggregation = "global_sum")
 get_witch_variable("Q", "GDP", "iq", "y", aggregation = "regional")
@@ -54,9 +50,11 @@ get_witch_variable("Q_OUT", "Oil_Extraction", "f", "oil", aggregation = "regiona
 
 
 
-
-# Energy Special Plot
+#Special Plots:
+#Special focus regions to report for
 regions_focus <- c("china")
+
+
 Energy_Trade(fuelplot = "oil")
 Energy_Prices(unit = "boe", scenplot = scenlist)
 Primary_Energy_Mix(PES_y = "value", regions = regions_focus, years = seq(1990, 2050, 5), plot_type = "area")

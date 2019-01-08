@@ -30,7 +30,7 @@ Intensity_Plot <- function(years=c(2050, 2100), regions="World", year0=2010, sce
     p_imp <- ggplot() + geom_point(data=Intensity_t, mapping=aes(x=CI_change, y=EI_change, colour=n, shape=file), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change")) + ylab(paste0("Energy Intensity Change")) + guides(color=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")
     p_ciei <- ggplot() + geom_point(data=subset(Intensity_t), mapping=aes(x=CI, y=EI, color=n, shape=file), size=6) + xlab(paste0("Carbon Intensity [gCO2eq/MJ]")) + ylab(paste0("Energy Intensity [MJ/$]")) + guides(color=guide_legend(title=NULL), shape=guide_legend(title=NULL)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")
     }
-  ggarrange(p_ciei, p_imp, common.legend = T, align="h", legend = "bottom") #requires ggpubr
+  ggarrange(p_ciei, p_imp, common.legend = T, align="h", legend = "bottom")
   saveplot("CI_EI_plot", add_title = F, width = 10, height = 5)
   assign("CI_EI_Improvement", Intensity_t, envir = .GlobalEnv)
 }  

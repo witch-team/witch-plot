@@ -24,8 +24,7 @@ diagnostics_plots <- function(scenplot=scenlist){
   price_iter$siter <- as.numeric(gsub("i", "", price_iter$siter))
   price_iter <- price_iter %>% group_by(run, siter, V3, file, pathdir, n) %>% mutate(value = value / mean(value[1])) %>% as.data.frame() #convert in starting all from 1
   plot_prices <- ggplot(price_iter) + geom_line(data=subset(price_iter, V3=="nip"), aes(ttoyear(t), value, alpha=siter, group=siter), color="red") + facet_grid(. ~ file) + ylab("Prices") + xlab("") +  scale_y_log10() + geom_line(data=subset(price_iter, V3=="oil"), aes(ttoyear(t), value, alpha=siter, group=siter), color="black") + facet_grid(. ~ file) + ylab("Prices") + xlab("") + theme(legend.position="none")
-  
-  require(ggpubr)
+
   ggarrange(plot_time, plot_iterations + theme(strip.background = element_blank(), strip.text = element_blank()) , plot_convergence + theme(strip.background = element_blank(), strip.text = element_blank()) , plot_prices + theme(strip.background = element_blank(), strip.text = element_blank()) , nrow = 4)
   
   }

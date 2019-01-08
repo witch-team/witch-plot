@@ -1,6 +1,3 @@
-library(shiny)
-library(shinythemes)
-
 # Define UI
 shinyUI(fluidPage(theme = shinytheme("superhero"), pageWithSidebar(
 

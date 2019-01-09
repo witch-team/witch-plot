@@ -33,7 +33,7 @@ shinyUI(fluidPage(theme = shinytheme("superhero"), pageWithSidebar(
   # Show the plot
   mainPanel(
     tabsetPanel(type = "tabs", id = "tabs",
-                tabPanel("gdxcompaR", id = "gdxcompaR", h2(textOutput("varname")),plotOutput("gdxompaRplot", width = "100%", height = "80vh", hover=hoverOpts(id="plot_hover", delay = 100, delayType = "debounce"))),
+                tabPanel("gdxcompaR", id = "gdxcompaR", h2(textOutput("varname")),plotOutput("gdxompaRplot", width = "100%", height = "80vh")),
                 tabPanel("Diagnostics", id = "Diagnostics", h2("Diagnostics of model runs"),plotOutput("Diagnostics", width = "100%", height = "80vh")),
                 tabPanel("Energy Mix", id = "Energy Mix", 
                          selectInput("mix_y_value_selected", "Plot value or share:", c("value", "share") , size=1, selectize = F, multiple = F, selected = "value"), 

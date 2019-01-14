@@ -22,7 +22,6 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     if(verbose) print(paste0("Historical values added for '", varname, "'."))
     item <- .gdx$parameters$name[pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name)]
     .hist <- as.data.table(.gdx[item]) 
-    
     #get set dependency based on WITCH variable
     #colnames(.hist) <- setdiff(colnames(variable), c("file", "pathdir"))
     #better: get it from /built/!!!
@@ -30,15 +29,26 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     colnames(.hist) <- colnames(.gdxiso3[item])	
     #in built global data have set "global", but in input folder it gets converted to iso3, so:
     colnames(.hist) <- gsub("global", "iso3", colnames(.hist)) #add "World" if no country level data but global
-      if(!("iso3" %in% colnames(.hist))){.hist$n = "World"}else{colnames(.hist) <- gsub("iso3", "n", colnames(.hist))}
-
+    if(!("iso3" %in% colnames(.hist))){.hist$n = "World"}else{colnames(.hist) <- gsub("iso3", "n", colnames(.hist))}
     setnames(.hist, "year", "t")
-    
     #adjust time unit to model
     .hist$t <- yeartot(.hist$t)
     t_historical<-unique(.hist$t)
     #adjust scenario names
     .hist$n  <- mapvalues(.hist$n , from=witch_regions, to=display_regions, warn_missing = F)
+    
+    
+    #if check_calibration, add validation as data points!
+    if(check_calibration){
+      .gdx_validation <- gdx(paste0(witch_folder, "data_", region_id, "/data_validation.gdx"))
+      .hist_validation <- as.data.table(.gdx_validation[item])
+      colnames(.hist_validation) <- colnames(.hist)
+      .hist_validation$file <- "validation"
+      #for the historical set, uswe "historical"
+      .hist$file <- "historical"
+      .hist <- rbind(.hist,.hist_validation)
+    }
+
 
     #special case where categories do not match exactly
     if(item=="q_en_valid_weo")
@@ -78,8 +88,6 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
        
     #merge with variable
     if(check_calibration){
-      #merge with variable, here just add with file="calibration" if check_calibration
-      .hist$file <- "historical"
       #just multiply by the pathdir so it appears for each pathdir
       .hist_temp <- .hist
       for(pd in basename(pathdir))

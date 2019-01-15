@@ -13,6 +13,16 @@ shinyServer(function(input, output, session) {
     #now instead by hand
     list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "CUM_SAV", "TEMP", "TRF","Q_FEN", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l")
     # preload additional set elements for all variables
+    #combine_old_new_j
+    filter_old_new_j <- function(set_elements){
+      combine_old_new_j = TRUE
+      if(combine_old_new_j){
+        set_elements <- gsub(paste(c("_old", "_new", "_late"), collapse = "|"), "", set_elements)
+        set_elements <- unique(set_elements)
+      }
+      return(set_elements)
+    }
+    
     additional_set_list <- list(); additional_set_list2 <- list()
     for(var in list_of_variables){
       additional_sets <- setdiff(names(mygdx[var]), c("t", "n", "value"))
@@ -21,14 +31,17 @@ shinyServer(function(input, output, session) {
       {
         additional_set <- additional_sets[1]
         set_elements <- unique(tolower(mygdx[var][, match(additional_set, colnames(mygdx[var]))]))
+        if(var %in% varlist_combine_old_new_j) set_elements <- filter_old_new_j(set_elements)
         additional_set2="na"; set_elements2 = "na"
       }
       else if(length(additional_sets)==2)
       {
         additional_set <- additional_sets[1]
         set_elements <- unique(tolower(mygdx[var][, match(additional_set, colnames(mygdx[var]))]))
+        if(var %in% varlist_combine_old_new_j) set_elements <- filter_old_new_j(set_elements)
         additional_set2 <- additional_sets[2] 
         set_elements2 <- unique(tolower(mygdx[var][, match(additional_set2, colnames(mygdx[var]))]))
+        if(var %in% varlist_combine_old_new_j) set_elements2 <- filter_old_new_j(set_elements2)
       }
       lv <- list(var=list(additional_set_id=additional_set, set_elements=set_elements)); names(lv) <- var
       additional_set_list = c(additional_set_list, lv)

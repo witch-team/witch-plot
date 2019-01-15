@@ -60,7 +60,6 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
       #now replace in original data
       .hist <- .hist[j!="elsolwind"]
       .hist <- rbind(.hist, .pv, .csp, .wind)
-      .hist$j <- mapvalues(.hist$j, from=c("elnuclear", "elpc", "elpb", "elgastr", "elhydro", "eloil"), to=c("elnuclear_old", "elpc_old", "elpb_old", "elgastr_old", "elhydro_old", "eloil_old"))
     }
     
     if(item=="q_fen_valid_weo")
@@ -76,12 +75,10 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
       .hist[jfed=="elpc"]$fuel <- "coal"
       .hist[jfed=="elpb"]$fuel <- "wbio"
       .hist[jfed=="elnuclear"]$fuel <- "uranium"
-      .hist$jfed <- mapvalues(.hist$jfed, from=c("elnuclear", "elpc", "elpb", "elgastr", "eloil"), to=c("elnuclear_old", "elpc_old", "elpb_old", "elgastr_old", "eloil_old"))
     }
     
     if(item=="k_en_valid_platts_tot")
     {
-      .hist$j <- mapvalues(.hist$j, from=c("elnuclear", "elpc", "elpb", "elgastr", "eloil"), to=c("elnuclear_old", "elpc_old", "elpb_old", "elgastr_old", "eloil_old"))
       setnames(.hist, "j", "jreal")
     }
  
@@ -131,6 +128,6 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     }
   else
     {
-    return(variable)
+    return(as.data.table(variable))
     }
 }

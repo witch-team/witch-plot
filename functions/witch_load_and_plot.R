@@ -250,6 +250,17 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
       allfilesdata$t <- as.numeric(allfilesdata$t)
     }
     if(("n" %in% colnames(allfilesdata)) & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F)}else{allfilesdata$n <- "World"}
+
+    #combine _old, _new, _late to one unit in case present
+    combine_old_new_j = TRUE
+    if(combine_old_new_j & (variable_name %in% varlist_combine_old_new_j)){
+    j_set <- str_subset(names(allfilesdata), "^j")  
+    if(length(j_set)>0){
+    #if Q_EN, REMOVE old, new etc. to avoid double counting
+    if(variable_name=="Q_EN") allfilesdata <- allfilesdata %>% filter(!str_detect(get(j_set), paste(c("_old", "_new", "_late"), collapse = "|")))   
+    allfilesdata <- allfilesdata %>% mutate(!!j_set := gsub(paste(c("_old", "_new", "_late"), collapse = "|"), "", get(j_set))) %>% group_by_at(setdiff(names(allfilesdata), "value")) %>% summarize(value = sum(value)) %>% as.data.frame()
+    }}
+    
     #try adding historical values
     if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot, check_calibration=check_calibration, verbose=F)}
     assign(variable_name,allfilesdata,envir = .GlobalEnv)

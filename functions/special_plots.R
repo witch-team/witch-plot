@@ -136,9 +136,9 @@ Investment_Plot <- function(regions=witch_regions, scenplot=scenlist){
   #get_witch_simple("I_EN", scenplot = scenlist)
   I_EN <- I_EN_orig
   get_witch_simple("I_EN_GRID", scenplot = scenplot)
-  I_EN_Renewables <- aggregate(value~n+t+file+pathdir, data=subset(I_EN, jinv %in% c("elpv", "elcsp", "elwindon", "elwindoff", "elhydro_new")), sum);I_EN_Renewables$category <- "Renewables"
-  I_EN_FossilFuels <- aggregate(value~n+t+file+pathdir, data=subset(I_EN, jinv %in% c("elpc_new", "eloil_new", "elgastr_new", "elpb_new")), sum);I_EN_FossilFuels$category <- "Fossil Fuels"
-  I_EN_Nuclear <- aggregate(value~n+t+file+pathdir, data=subset(I_EN, jinv %in% c("elnuclear_new")), sum);I_EN_Nuclear$category <- "Nuclear"
+  I_EN_Renewables <- aggregate(value~n+t+file+pathdir, data=subset(I_EN, jinv %in% c("elpv", "elcsp", "elwindon", "elwindoff", "elhydro")), sum);I_EN_Renewables$category <- "Renewables"
+  I_EN_FossilFuels <- aggregate(value~n+t+file+pathdir, data=subset(I_EN, jinv %in% c("elpc", "eloil", "elgastr", "elpb")), sum);I_EN_FossilFuels$category <- "Fossil Fuels"
+  I_EN_Nuclear <- aggregate(value~n+t+file+pathdir, data=subset(I_EN, jinv %in% c("elnuclear")), sum);I_EN_Nuclear$category <- "Nuclear"
   I_EN_CCS <- aggregate(value~n+t+file+pathdir, data=subset(I_EN, jinv %in% c("elcigcc", "elgasccs", "elbigcc", "nelcoalccs")), sum);I_EN_CCS$category <- "Fossils with CCS"
   I_EN_GRID$jinv <- "grid"; I_EN <- rbind(I_EN, I_EN_GRID)
   I_EN_TDS <- aggregate(value~n+t+file+pathdir, data=subset(I_EN, jinv %in% c("elstorage", "grid")), sum);I_EN_TDS$category <- "Grid&Storage"

@@ -1,67 +1,29 @@
 #get all the WITCH variables
-get_witch_variable <- function(variable_name, variable_name_save=variable_name, additional_set="na", additional_set_id="na", convert=1, unit="", aggregation="regional", cumulative=FALSE, plot=TRUE, bar="", bar_x="time", bar_y="value", bar_setvalues="", bar_colors="", regions=witch_regions, scenplot=scenlist, variable_field="l"){
+get_witch_variable <- function(variable_name, variable_name_save=variable_name, additional_set="na", additional_set_id="na", convert=1, unit="", aggregation="regional", cumulative=FALSE, plot=TRUE, bar="", bar_x="time", bar_y="value", bar_setvalues="", bar_colors="", regions=witch_regions, scenplot=scenlist){
   #aggregation=none: no graph is created no aggregation performed, just loads the element
   #some default values, maybe not even needed to customize
   #removepattern="results_"
   #ssp_grid = FALSE
   #DEBUG:
   #variable_name="Q_OUT"; variable_name_save=variable_name; additional_set="f"; additional_set_id="oil"; convert=1; unit=""; aggregation="regional"; cumulative=FALSE; plot=TRUE; bar=""; bar_x="time"; bar_y="value"; bar_setvalues=""; bar_colors=""; regions=witch_regions; scenplot=scenlist; variable_field="l"; current_pathdir = pathdir[1]; file <- filelist[1];
-  
-  if(exists("allfilesdata")){rm(allfilesdata)}
-  
   line_size = 1.5;
-  
   show_legend_title = F
-  
   if(additional_set_id=="all"){plot=FALSE}
   line_colour = "file"; line_type="pathdir"; #defaults for colour and linetype aesthetics
-  
   variable_name_save=as.character(gsub("_", " ", variable_name_save))
-  for (current_pathdir in pathdir){
-    for (file in filelist){
-      if(file.exists(paste(current_pathdir, file,".gdx",sep=""))){
-        #read data from GDX file
-        mygdx <- gdx(paste(current_pathdir, file,".gdx",sep=""))
-        if(is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$parameters) | is.element(variable_name, all_items(mygdx)$sets) | is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$equations))
-        {
-          tempdata <- data.table(mygdx[variable_name, field=variable_field])
-          tempdata$file <- as.character(file)
-          tempdata$pathdir <- basename(current_pathdir)
-          if(!exists("allfilesdata")){allfilesdata=tempdata}else{allfilesdata <-rbind(allfilesdata,tempdata)}
-          remove(tempdata)
-        }
-      }
-    } # close file loop
-    
-  } #close pathdir loop
-  #if it is containted in at least one file, process data and plot
+  
+  #CALL MAIN READING FUNCTION
+  allfilesdata <- get_witch_simple(variable_name, results = "return")
   
   if(exists("allfilesdata")){
-    allfilesdata$file  <- mapvalues(allfilesdata$file , from=filelist, to=scenlist)
-   #regional mapping or global variable
-    if(("n" %in% colnames(allfilesdata))){allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F)}else{allfilesdata$n <- "World"}
-    
-    
-    #TRY: adding historical values
-    #assign("test",allfilesdata,envir = .GlobalEnv)
-    if(historical){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot, verbose=T)}
-    
+  
     #clean data, edit sets, convert, replace NAs
-    #print(scenplot)
-    #print(str(allfilesdata))
     allfilesdata <- subset(allfilesdata, file %in% scenplot)
-    #print(str(allfilesdata))
-    
     #unit conversion
     unit_conversion <- unit_conversion(variable_name, unit, convert)
   
     #get time frame needed
-    if(("t" %in% colnames(allfilesdata)) & !(variable_name=="t")){
-      #check if stochastic and if so convert "branch" to "file" element
-      allfilesdata <- convert_stochastic_gdx(allfilesdata)            
-      allfilesdata$t <- as.numeric(allfilesdata$t)
-      allfilesdata <- subset(allfilesdata, allfilesdata$t <= yeartot(yearmax) & allfilesdata$t >= yeartot(yearmin))    }
-
+    if(("t" %in% colnames(allfilesdata)) & !(variable_name=="t")) allfilesdata <- subset(allfilesdata, allfilesdata$t <= yeartot(yearmax) & allfilesdata$t >= yeartot(yearmin))
     
     #get reporting items to same structure
     if(any(colnames(allfilesdata)=="nrep"))
@@ -223,7 +185,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
 
 # only load GDX and process basically
 
-get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE){
+get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign"){
   if(exists("allfilesdata")){rm(allfilesdata)}
   variable_name_save=as.character(gsub("_", " ", variable_name_save))
   for (current_pathdir in pathdir){
@@ -263,8 +225,9 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
     
     #try adding historical values
     if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot, check_calibration=check_calibration, verbose=F)}
-    assign(variable_name,allfilesdata,envir = .GlobalEnv)
+    
+    if(results=="assign") assign(variable_name,allfilesdata,envir = .GlobalEnv)
+    if(results=="return") return(allfilesdata)
   }
-  #return(allfilesdata)
 }
 

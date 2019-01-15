@@ -9,14 +9,14 @@ Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(2005, 2
     #aggregate sub-categories
     setnames(Q_FUEL,"fuel", "j")
     TPES <- rbind(Q_FUEL, Q_EN)
-    TPES <- subset(TPES, j %in% c("oil", "coal", "gas", "uranium", "trbiofuel", "wbio", "advbio", "trbiomass") | j %in% c("elpv", "elcsp", "elhydro_new", "elhydro_old", "elback", "elwindon", "elwindoff"))
+    TPES <- subset(TPES, j %in% c("oil", "coal", "gas", "uranium", "trbiofuel", "wbio", "advbio", "trbiomass") | j %in% c("elpv", "elcsp", "elhydro", "elback", "elwindon", "elwindoff"))
     TPES$category[TPES$j %in% c("oil")] = "Oil"
     TPES$category[TPES$j %in% c("gas")] = "Natural Gas"
     TPES$category[TPES$j %in% c("coal")] = "Coal"
     TPES$category[TPES$j %in% c("uranium", "elback")] = "Nuclear"
     TPES$category[TPES$j %in% c("trbiofuel", "wbio", "advbio", "trbiomass")] = "Biomass"
     TPES$category[TPES$j %in% c("elpv", "elcsp")] = "Solar"
-    TPES$category[TPES$j %in% c("elhydro_new", "elhydro_old")] = "Hydro"
+    TPES$category[TPES$j %in% c("elhydro")] = "Hydro"
     TPES$category[TPES$j %in% c("elwindon", "elwindoff")] = "Wind"
     #order categories for plots
     PES_Categories <- c("Oil", "Coal", "Natural Gas", "Nuclear", "Biomass", "Hydro", "Wind", "Solar")
@@ -65,31 +65,31 @@ Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(20
     JFED <- merge(Q_IN, csi, by = c("t", "n", "file", "pathdir", "fuel", "jfed"), all=TRUE)
     #take efficiency for EL into account
     #add csi for historical (seems to be 1!)
-    JFED$csi[is.na(JFED$csi) & JFED$jfed=="elpc_old"] <- 0.45
-    JFED$csi[is.na(JFED$csi) & JFED$jfed=="eloil_old"] <- 0.3529
-    JFED$csi[is.na(JFED$csi) & JFED$jfed=="elgastr_old"] <- 0.4554
-    JFED$csi[is.na(JFED$csi) & JFED$jfed=="elpb_old"] <- 1
+    JFED$csi[is.na(JFED$csi) & JFED$jfed=="elpc"] <- 0.45
+    JFED$csi[is.na(JFED$csi) & JFED$jfed=="eloil"] <- 0.3529
+    JFED$csi[is.na(JFED$csi) & JFED$jfed=="elgastr"] <- 0.4554
+    JFED$csi[is.na(JFED$csi) & JFED$jfed=="elpb"] <- 1
     JFED$csi[is.na(JFED$csi)] <- 1
     JFED$value <- JFED$value * JFED$csi
     JFED$csi <- NULL
     JFED$fuel <- NULL
     setnames(JFED, "jfed", "j")
     get_witch_variable("Q_EN", "Q_EN", "jreal", "all", 0.0036, "EJ", "regional", plot=FALSE)
-    Q_EN <- subset(Q_EN, j %in% c("elpv", "elcsp", "elnuclear_old", "elnuclear_new", "elwind", "elhydro_new", "elhydro_old"))
+    Q_EN <- subset(Q_EN, j %in% c("elpv", "elcsp", "elnuclear", "elnuclear", "elwind", "elhydro", "elhydro"))
     ELEC <- rbind(Q_EN, JFED)
     ELEC[is.na(ELEC)] <- 0 #get rid of NAs to avoid sums not being correct, mainly from historical data!
     #aggregate sub-categories
-    ELEC$category[ELEC$j %in% c("elnuclear_old", "elnuclear_new")] = "Nuclear"
+    ELEC$category[ELEC$j %in% c("elnuclear")] = "Nuclear"
     ELEC$category[ELEC$j %in% c("elpv", "elcsp")] = "Solar"
-    ELEC$category[ELEC$j %in% c("elhydro_new", "elhydro_old")] = "Hydro"
+    ELEC$category[ELEC$j %in% c("elhydro")] = "Hydro"
     ELEC$category[ELEC$j %in% c("elwind")] = "Wind"
-    ELEC$category[ELEC$j %in% c("elpb_new", "elpb_old")] = "Biomass w/o CCS"
+    ELEC$category[ELEC$j %in% c("elpb")] = "Biomass w/o CCS"
     ELEC$category[ELEC$j %in% c("elbigcc")] = "Biomass w/ CCS"
-    ELEC$category[ELEC$j %in% c("elpc_new", "elpc_old", "elpc_vint")] = "Coal w/o CCS"
+    ELEC$category[ELEC$j %in% c("elpc")] = "Coal w/o CCS"
     ELEC$category[ELEC$j %in% c("elcigcc", "elpc_ccs", "elpc_oxy")] = "Coal w/ CCS"
-    ELEC$category[ELEC$j %in% c("elgastr_new", "elgastr_old")] = "Gas w/o CCS"
+    ELEC$category[ELEC$j %in% c("elgastr")] = "Gas w/o CCS"
     ELEC$category[ELEC$j %in% c("elgasccs")] = "Gas w/ CCS"
-    ELEC$category[ELEC$j %in% c("eloil_new", "eloil_old")] = "Oil" 
+    ELEC$category[ELEC$j %in% c("eloil")] = "Oil" 
     #remove other categories, important!!!
     ELEC <- subset(ELEC, !is.na(ELEC$category))
     #order categories for plots

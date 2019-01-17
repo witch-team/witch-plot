@@ -12,7 +12,7 @@ if(any(!dir.exists(pathdir))){stop("Please check the main directory and sub dire
 
 suppressPackageStartupMessages
 source('functions/get_libraries.R')
-pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'taRifx', 'reshape2', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'plyr', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'shiny', 'shinythemes', 'rworldmap')
+pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'taRifx', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'shiny', 'shinythemes', 'rworldmap')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 

@@ -20,10 +20,11 @@ diagnostics_plots <- function(scenplot=scenlist){
     ifelse(t>3600,paste0(formatC(t %/% (60*60) %% 24, width = 2, format = "d", flag = "0"),":"),""),
     paste0(formatC(t %/% 60 %% 60, width = 2, format = "d", flag = "0"),":",formatC(t %% 60, width = 2, format = "d", flag = "0"))
   )}
-  plot_time <- ggplot(runs) + geom_bar(aes(pathdir, total_time/60), stat = "identity") + facet_grid(. ~ file) + ylab("Total duration (minutes)") + xlab("") + geom_text(aes(x=pathdir, y=total_time/60+10, label=time_dhms(total_time)))
+  plot_time <- ggplot(runs) + geom_bar(aes(run, total_time/60), stat = "identity") + facet_grid(. ~ file) + ylab("Total duration (minutes)") + xlab("") + geom_text(aes(x=run, y=total_time/60+10, label=time_dhms(total_time)))
   
-  iterations <- iterations %>% mutate(ONI=ifelse(!is.na(optimal), "Optimal", ifelse(is.na(feasible), "Infeasible", "Nonoptimal")), one=1)
-  plot_iterations <- ggplot(iterations) + geom_tile(aes(pathdir, one, fill=ONI, group=one), stat = "identity", position = "stack") + facet_grid(. ~ file) + ylab("Iterations") + scale_fill_manual(values = c("Optimal"="darkgreen", "Nonoptimal"="yellow", "Infeasible"="red")) + xlab("") + theme(legend.position="none")
+  iterations <- iterations %>% mutate(ONI=ifelse(!is.na(optimal), "Optimal", ifelse(is.na(feasible), "Infeasible", "Nonoptimal")), one=1) %>% mutate(siter=as.numeric(gsub("i","", siter))) %>% arrange(pathdir, file, run, siter)
+  
+  plot_iterations <- ggplot(iterations) + geom_tile(aes(run, one, fill=ONI, group=one), stat = "identity", position = "stack") + facet_grid(. ~ file) + ylab("Iterations") + scale_fill_manual(values = c("Optimal"="darkgreen", "Nonoptimal"="yellow", "Infeasible"="red")) + xlab("") + theme(legend.position="none")
   
   
   allerr$siter <- as.numeric(gsub("i", "", allerr$siter))

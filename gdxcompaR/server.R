@@ -3,7 +3,6 @@ shinyServer(function(input, output, session) {
   
     #some global flags
     save_plot = FALSE
-    line2005 = TRUE
     verbose = FALSE
     
     
@@ -11,7 +10,7 @@ shinyServer(function(input, output, session) {
     mygdx <- gdx(paste(file.path(pathdir[1], filelist[1]),".gdx",sep=""))
     list_of_variables <- c(all_items(mygdx)$variables, all_items(mygdx)$parameters)
     #now instead by hand
-    list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "OMEGA", "TEMP", "TRF","Q_FEN", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l")
+    list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "OMEGA", "TEMP", "TRF","Q_FEN", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l", "mu", "emi_sys", "Q_EMI_OUT", "csi")
     # preload additional set elements for all variables
     #combine_old_new_j
     filter_old_new_j <- function(set_elements){
@@ -104,6 +103,7 @@ shinyServer(function(input, output, session) {
     # MAIN CODE FOR PLOT GENERATION  
     output$gdxompaRplot <- renderPlot({
       assign("historical", input$add_historical, envir = .GlobalEnv)
+      ylim_zero <- input$ylim_zero
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
       #get data
@@ -169,6 +169,7 @@ shinyServer(function(input, output, session) {
       
       if(regions[1]=="World" | length(regions)==1){#if only World is displayed or only one region, show files with colors
         p <- ggplot(subset(allfilesdata, n %in% regions & (file!="historical" & file!="validation")),aes(ttoyear(t),value,colour=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + xlim(yearmin,yearmax)
+        if(ylim_zero) p <- p + ylim(0, NA)
         p <- p + geom_line(data=subset(allfilesdata, n %in% regions & file=="historical"),aes(ttoyear(t),value,colour=file), stat="identity", size=1.0, linetype="solid")
         p <- p + geom_point(data=subset(allfilesdata, n %in% regions & file=="validation"),aes(ttoyear(t),value,colour=file), size=4.0, shape=18)
         #legends:
@@ -182,7 +183,6 @@ shinyServer(function(input, output, session) {
         
       }
       if(length(pathdir)!=1){p <- p + facet_grid(. ~ pathdir)}
-      if(line2005){p <- p + geom_vline(size=0.5,aes(xintercept=2005), linetype="solid", color="grey")}
       
       #format and print plot
       print(p + labs(title=variable))

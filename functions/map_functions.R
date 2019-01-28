@@ -25,7 +25,7 @@ witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scal
   #now get WITCH regions
   get_witch_simple("conf", scenplot = file_report)
   region_id_map <- subset(conf, pathdir==pathdir[1] & V1=="regions")$V2
-  mod.countries.filename = paste0(witch_folder, "data_", region_id_map, "/regions.inc")
+  mod.countries.filename = file.path(witch_folder, paste0("data_", region_id_map), "regions.inc")
   # Read mod_countries
   mod.countries = readLines(mod.countries.filename)
   mod.countries = mod.countries[mod.countries!=""]                                  # Remove empty lines

@@ -101,7 +101,7 @@ unit_conversion <- function(variable_name, unit="", convert=1){
     unit_plot <- unit; unit_conversion <- convert
   }else{
   #automatic unit and conversion factor
-  mygdx <- gdx(paste(pathdir[1], filelist[1],".gdx",sep=""))
+  mygdx <- gdx(file.path(pathdir[1],paste0(filelist[1],".gdx")))
   if(variable_name %in% mygdx$variables$name){variable_description <- mygdx$variables$text[match(variable_name, mygdx$variables$name)]}
   if(variable_name %in% mygdx$parameters$name){variable_description <- mygdx$parameters$text[match(variable_name, mygdx$parameters$name)]}
   unit_witch <- gsub(".*\\[(.*).*", "\\1", sub(" *\\].*", "", variable_description))

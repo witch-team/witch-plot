@@ -11,7 +11,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   
   
   #check which GDX file to use (all files that start with data_historical*.gdx)
-  gdxhistlist <- list.files(path=paste0(witch_folder, "data_", region_id), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
+  gdxhistlist <- list.files(path=file.path(witch_folder, paste0("data_", region_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
   
   for(.gdxname in gdxhistlist){
     .gdx <- gdx(.gdxname)
@@ -25,7 +25,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     #get set dependency based on WITCH variable
     #colnames(.hist) <- setdiff(colnames(variable), c("file", "pathdir"))
     #better: get it from /built/!!!
-    .gdxiso3 <- gdx(paste0(witch_folder, "input/build/", basename(.gdxname))); 
+    .gdxiso3 <- gdx(file.path(witch_folder, "input", "build", basename(.gdxname))); 
     colnames(.hist) <- colnames(.gdxiso3[item])	
     #in built global data have set "global", but in input folder it gets converted to iso3, so:
     colnames(.hist) <- gsub("global", "iso3", colnames(.hist)) #add "World" if no country level data but global
@@ -40,7 +40,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     
     #if check_calibration, add validation as data points!
     if(check_calibration){
-      .gdx_validation <- gdx(paste0(witch_folder, "data_", region_id, "/data_validation.gdx"))
+      .gdx_validation <- gdx(file.path(witch_folder, paste0("data_", region_id), "data_validation.gdx"))
       .hist_validation <- as.data.table(.gdx_validation[item])
       colnames(.hist_validation) <- colnames(.hist)
       .hist_validation$file <- "validation"

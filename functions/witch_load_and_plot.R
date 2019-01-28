@@ -190,8 +190,8 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
   variable_name_save=as.character(gsub("_", " ", variable_name_save))
   for (current_pathdir in pathdir){
     for (file in filelist){
-      if(file.exists(paste(current_pathdir, file,".gdx",sep=""))){
-        mygdx <- gdx(paste(current_pathdir, file,".gdx",sep=""))
+      if(file.exists(paste(file.path(current_pathdir, file),".gdx",sep=""))){
+        mygdx <- gdx(paste(file.path(current_pathdir, file),".gdx",sep=""))
         if(is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$parameters) | is.element(variable_name, all_items(mygdx)$sets) | is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$equations))
         {
           tempdata <- data.table(mygdx[variable_name])

@@ -10,7 +10,6 @@ graphdir = if(length(pathdir)>1){paste0(main_directory, "graphs/") }else{paste0(
 #check if directory valid
 if(any(!dir.exists(pathdir))){stop("Please check the main directory and sub directory, including the trailing slash!")}
 
-suppressPackageStartupMessages
 source('functions/get_libraries.R')
 pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'taRifx', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'shiny', 'shinythemes', 'rworldmap')
 res <- lapply(pkgs, require_package)
@@ -61,7 +60,8 @@ if (!dir.exists(graphdir)){dir.create(graphdir)}
 if(file.exists(paste(graphdir, "all_figures.pdf", sep=""))){(file.remove(paste(graphdir, "all_figures.pdf", sep="")))}
 
 #get time or stochastic mapping
-get_witch_simple("t"); t_model<-unique(t$t)
+get_witch_simple("t") 
+t_model <- unique(t$t)
 
 #Palettes for WITCH regions and regional aggregation
 get_witch_simple("conf")

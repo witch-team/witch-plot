@@ -119,7 +119,7 @@ unit_conversion <- function(variable_name, unit="", convert=1){
   GtonC     GtCO2              3.67
   GtCe      GtCO2              3.67
   na        na                 1   
-  'deg C above preindustrial levels'    °C    1
+  'deg C above preindustrial levels'    'degree C'   1
   "
   unit_conversion_table <- read.table(textConnection(unit_conversion_table), sep="", head=T, dec=".")
   unit_plot = unit_witch;unit_conversion=1 #by default, keep original
@@ -160,14 +160,14 @@ default_meta_param <- function(){
   Q,sum
   BAU_Q,sum
   COST_EN,mean
-  COST_PES,mean
+  COST_FUEL,mean
   I_EN,sum
   K_EN,sum
   MCOST_INV,mean
-  MCOST_PES,mean
+  MCOST_FUEL,mean
   Q_EN,sum
   Q_IN,sum
-  Q_PES,sum
+  Q_FUEL,sum
   SHARE_EL,mean
   COST_EMI,mean
   CUM_EMI,sum
@@ -210,7 +210,7 @@ default_meta_param <- function(){
   TRF,max
   W_EMI,max
   WCUM_EMI,max
-  OMEGA,max
+  OMEGA,mean
   QEL_EDV,sum
   QEL_FR_EDV,sum
   emi_cap,sum

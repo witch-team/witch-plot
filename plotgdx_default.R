@@ -56,7 +56,6 @@ regions_focus <- c("china")
 
 
 Energy_Trade(fuelplot = "oil")
-Energy_Prices(unit = "boe", scenplot = scenlist)
 Primary_Energy_Mix(PES_y = "value", regions = regions_focus, years = seq(1990, 2050, 5), plot_type = "area")
 Electricity_Mix(Electricity_y = "value", regions = regions_focus, years = seq(1990, 2050, 5), plot_type = "area")
 

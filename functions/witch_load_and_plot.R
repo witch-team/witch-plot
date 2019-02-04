@@ -1,3 +1,78 @@
+# Load GDX of all scenarios and basic pre-processing 
+get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign"){
+  if(exists("allfilesdata")){rm(allfilesdata)}
+  variable_name_save=as.character(gsub("_", " ", variable_name_save))
+  for (current_pathdir in pathdir){
+    for (file in filelist){
+      if(file.exists(paste(file.path(current_pathdir, file),".gdx",sep=""))){
+        mygdx <- gdx(paste(file.path(current_pathdir, file),".gdx",sep=""))
+        if(is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$parameters) | is.element(variable_name, all_items(mygdx)$sets) | is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$equations))
+        {
+          tempdata <- data.table(mygdx[variable_name])
+          tempdata$file <- as.character(file)
+          if(length(pathdir)>=1){tempdata$pathdir <- tempdata$pathdir <- basename(current_pathdir)}
+          if(!exists("allfilesdata")){allfilesdata=tempdata}else{allfilesdata <-rbind(allfilesdata,tempdata)}
+          remove(tempdata)
+        }
+      }
+    }
+  }
+  if(exists("allfilesdata")){
+    allfilesdata$file  <- mapvalues(allfilesdata$file , from=filelist, to=scenlist)
+    allfilesdata <- subset(allfilesdata, file %in% scenplot)
+    if(("t" %in% colnames(allfilesdata)) & !(variable_name=="t")){
+      #check if stochastic and if so convert "branch" to "file" element
+      allfilesdata <- convert_stochastic_gdx(allfilesdata)            
+      allfilesdata$t <- as.numeric(allfilesdata$t)
+    }
+    if(("n" %in% colnames(allfilesdata)) & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F)}else{allfilesdata$n <- "World"}
+    
+    #combine _old, _new, _late to one unit in case present
+    combine_old_new_j = TRUE
+    if(combine_old_new_j & (variable_name %in% varlist_combine_old_new_j)){
+      j_set <- str_subset(names(allfilesdata), "^j")  
+      if(length(j_set)>0){
+        #if Q_EN, REMOVE old, new etc. to avoid double counting
+        if(variable_name=="Q_EN") allfilesdata <- allfilesdata %>% filter(!str_detect(get(j_set), paste(c("_old", "_new", "_late"), collapse = "|")))   
+        allfilesdata <- allfilesdata %>% mutate(!!j_set := gsub(paste(c("_old", "_new", "_late"), collapse = "|"), "", get(j_set))) %>% group_by_at(setdiff(names(allfilesdata), "value")) %>% summarize(value = sum(value)) %>% as.data.frame()
+      }}
+    
+    #try adding historical values
+    if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot, check_calibration=check_calibration, verbose=F)}
+    
+    if(results=="assign") assign(variable_name,allfilesdata,envir = .GlobalEnv)
+    if(results=="return") return(allfilesdata)
+  }
+}
+
+
+
+
+#Regional or global line plots of already loaded data
+witch_regional_line_plot <- function(data, varname="value", regions="World", scenplot=scenlist, ylab=varname, ylim0=TRUE, conv_factor=1, nagg="sum"){
+  line_size = 1.5;
+  data <- subset(data, file %in% scenplot & ttoyear(t) <= yearmax & ttoyear(t) >= yearmin)
+  require(rlang)
+  if(regions[1]=="World"){
+    if(nagg=="sum"){data <- data %>% group_by(pathdir, file, t) %>% summarise_at(., .vars=vars(-n, -pathdir, -file, -t), funs(sum)) %>% mutate(n="World")}else
+    if(nagg=="mean"){data <- data %>% group_by(pathdir, file, t) %>% summarise_at(., .vars=vars(-n, -pathdir, -file, -t), funs(mean)) %>% mutate(n="World")}
+    }else{data <- data %>% filter(n %in% regions)}
+  data <- data %>% mutate(plot_value=!!parse_quosure(varname)*conv_factor)
+  p <- ggplot(data) + xlab("") +ylab(ylab)
+  if(ylim0) p <- p + ylim(0, NA)
+  if(regions[1]=="World" | length(regions)==1){
+    p <- p + geom_line(aes(ttoyear(t),plot_value,colour=file), stat="identity", size=line_size)
+  }else{
+    p <- p + geom_line(aes(ttoyear(t),plot_value,colour=n, linetype=file), stat="identity", size=line_size) + scale_colour_manual(values = region_palette)
+  }
+  if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
+  return(p)
+}
+
+
+
+
+
 #get all the WITCH variables
 get_witch_variable <- function(variable_name, variable_name_save=variable_name, additional_set="na", additional_set_id="na", convert=1, unit="", aggregation="regional", cumulative=FALSE, plot=TRUE, bar="", bar_x="time", bar_y="value", bar_setvalues="", bar_colors="", regions=witch_regions, scenplot=scenlist){
   #aggregation=none: no graph is created no aggregation performed, just loads the element
@@ -157,77 +232,5 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
     assign(variable_name,allfilesdata,envir = .GlobalEnv)
   }
   #END OF THE STANDARD GRAPHS AND DATA READ LOOP    
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# only load GDX and process basically
-
-get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign"){
-  if(exists("allfilesdata")){rm(allfilesdata)}
-  variable_name_save=as.character(gsub("_", " ", variable_name_save))
-  for (current_pathdir in pathdir){
-    for (file in filelist){
-      if(file.exists(paste(file.path(current_pathdir, file),".gdx",sep=""))){
-        mygdx <- gdx(paste(file.path(current_pathdir, file),".gdx",sep=""))
-        if(is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$parameters) | is.element(variable_name, all_items(mygdx)$sets) | is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$equations))
-        {
-          tempdata <- data.table(mygdx[variable_name])
-          tempdata$file <- as.character(file)
-          if(length(pathdir)>=1){tempdata$pathdir <- tempdata$pathdir <- basename(current_pathdir)}
-          if(!exists("allfilesdata")){allfilesdata=tempdata}else{allfilesdata <-rbind(allfilesdata,tempdata)}
-          remove(tempdata)
-        }
-      }
-    }
-  }
-  if(exists("allfilesdata")){
-    allfilesdata$file  <- mapvalues(allfilesdata$file , from=filelist, to=scenlist)
-    allfilesdata <- subset(allfilesdata, file %in% scenplot)
-    if(("t" %in% colnames(allfilesdata)) & !(variable_name=="t")){
-      #check if stochastic and if so convert "branch" to "file" element
-      allfilesdata <- convert_stochastic_gdx(allfilesdata)            
-      allfilesdata$t <- as.numeric(allfilesdata$t)
-    }
-    if(("n" %in% colnames(allfilesdata)) & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F)}else{allfilesdata$n <- "World"}
-
-    #combine _old, _new, _late to one unit in case present
-    combine_old_new_j = TRUE
-    if(combine_old_new_j & (variable_name %in% varlist_combine_old_new_j)){
-    j_set <- str_subset(names(allfilesdata), "^j")  
-    if(length(j_set)>0){
-    #if Q_EN, REMOVE old, new etc. to avoid double counting
-    if(variable_name=="Q_EN") allfilesdata <- allfilesdata %>% filter(!str_detect(get(j_set), paste(c("_old", "_new", "_late"), collapse = "|")))   
-    allfilesdata <- allfilesdata %>% mutate(!!j_set := gsub(paste(c("_old", "_new", "_late"), collapse = "|"), "", get(j_set))) %>% group_by_at(setdiff(names(allfilesdata), "value")) %>% summarize(value = sum(value)) %>% as.data.frame()
-    }}
-    
-    #try adding historical values
-    if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot, check_calibration=check_calibration, verbose=F)}
-    
-    if(results=="assign") assign(variable_name,allfilesdata,envir = .GlobalEnv)
-    if(results=="return") return(allfilesdata)
-  }
 }
 

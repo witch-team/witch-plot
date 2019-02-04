@@ -48,7 +48,8 @@ shinyUI(fluidPage(pageWithSidebar(
                 tabPanel("Investment", id = "Investment", h2("Investment"),plotOutput("investmentplot", width = "100%", height = "80vh")),
                 tabPanel("Policy Cost", id = "Policy Cost", h2("Policy Cost"),p("Select BAU scenario under 'scenarios'."),plotOutput("policycostplot", width = "100%", height = "80vh")),
                 tabPanel("Intensity Plot", id = "Intensity Plot", h2("Energy and Carbon Intensity"),plotOutput("intensityplot", width = "100%", height = "80vh")),
-                tabPanel("Impact Map", id = "Impact Map", h2("GDP Impact [% loss wrt BAU]"),plotOutput("impactmap", width = "100%", height = "80vh"))
+                tabPanel("Impact Map", id = "Impact Map", h2("GDP Impact [% loss wrt BAU]"),plotOutput("impactmap", width = "100%", height = "80vh")),
+                tabPanel("SCC", id = "SCC", h2("Social Cost of Carbon"),plotOutput("SCC_plot", width = "100%", height = "80vh"))
 
     )
   )

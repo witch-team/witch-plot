@@ -124,6 +124,7 @@ source('functions/policy_cost.R')
 source('functions/add_historical_values.R')
 source('functions/export_variables.R')
 source('functions/diagnostics.R')
+source('functions/impact_plots.R')
 
 
 

@@ -42,7 +42,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     if(check_calibration){
       .gdx_validation <- gdx(file.path(witch_folder, paste0("data_", region_id), "data_validation.gdx"))
       .hist_validation <- as.data.table(.gdx_validation[item])
-      if(!("iso3" %in% colnames(.hist_validation))){.hist_validation$n = "World"}
+      if(!("n" %in% colnames(.hist_validation))){.hist_validation$n = "World"}
       colnames(.hist_validation) <- colnames(.hist)
       .hist_validation$file <- "validation"
       #for the historical set, use "historical"

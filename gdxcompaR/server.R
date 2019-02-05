@@ -285,7 +285,8 @@ shinyServer(function(input, output, session) {
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
       scenarios <- input$scenarios_selected
-      SCC_plot(scenplot = scenarios, regions = regions, normalization_region = "World")
+      scc_normalization_region <- input$scc_normalization_region
+      SCC_plot(scenplot = scenarios, regions = regions, normalization_region = scc_normalization_region)
     })
     
     

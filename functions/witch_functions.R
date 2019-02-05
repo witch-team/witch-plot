@@ -22,8 +22,6 @@ require_gdxtools()
 figure_format="png"
 export_plotdata = FALSE  #save data for each graph also as EXCEL files
 historical = TRUE  #add historical data where available
-check_calibration=FALSE  # don't add historical data but rather have them overlap to check calibration
-line2005 = FALSE #adds line at 2005 to show history from model data
 theme_set(theme_bw())
 show_numbers_2100 = FALSE
 ssp_grid = FALSE

@@ -49,7 +49,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
 
 
 #Regional or global line plots of already loaded data
-witch_regional_line_plot <- function(data, varname="value", regions="World", scenplot=scenlist, ylab=varname, ylim0=TRUE, conv_factor=1, nagg="sum"){
+witch_regional_line_plot <- function(data, varname="value", regions="World", scenplot=scenlist, ylab=varname, ylim0=FALSE, conv_factor=1, nagg="sum"){
   line_size = 1.5;
   data <- subset(data, file %in% scenplot & ttoyear(t) <= yearmax & ttoyear(t) >= yearmin)
   require(rlang)
@@ -159,7 +159,6 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
       if(length(pathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}
       if(length(pathdir)==1){p <- p + guides(linetype=FALSE)}
-      if(line2005){p <- p + geom_vline(size=0.5,aes(xintercept=2005), linetype="solid", color="grey")}
       if(plot){saveplot(variable_name_save, plotdata=subset(allfilesdata))}
     } 
     if (aggregation == "global_mean")
@@ -174,7 +173,6 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
       if(length(pathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}   
       if(length(pathdir)==1){p <- p + guides(linetype=FALSE)}
-      if(line2005){p <- p + geom_vline(size=0.5,aes(xintercept=2005), linetype="solid", color="grey")}
       if(plot){saveplot(variable_name_save, plotdata=subset(allfilesdata))}
     } 
     if (aggregation == "regional") 
@@ -186,7 +184,6 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       if(ssp_grid){p <- p + facet_grid(. ~ ssp)}
       if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
       if(length(pathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}   
-      if(line2005){p <- p + geom_vline(size=0.5,aes(xintercept=2005), linetype="solid", color="grey")}
       if(plot){saveplot(variable_name_save, plotdata=subset(allfilesdata, n %in% regions))}
     }
     if (aggregation == "all") 

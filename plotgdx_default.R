@@ -54,7 +54,6 @@ get_witch_variable("Q_OUT", "Oil_Extraction", "f", "oil", aggregation = "regiona
 #Special focus regions to report for
 regions_focus <- c("china")
 
-
 Energy_Trade(fuelplot = "oil")
 Primary_Energy_Mix(PES_y = "value", regions = regions_focus, years = seq(1990, 2050, 5), plot_type = "area")
 Electricity_Mix(Electricity_y = "value", regions = regions_focus, years = seq(1990, 2050, 5), plot_type = "area")
@@ -67,19 +66,20 @@ Investment_Plot(regions=regions_focus)
 Sectoral_Emissions(regions=regions_focus)
 Policy_Cost(discount_rate=5, regions=regions_focus, bauscen = "bau", show_numbers=TRUE, tmax=10)
 
+#Impacts and SCC
+SCC_plot(regions = "World")
+#Climate plot
+climate_plot()
+
 #Impact Map
 t_map = 20; bau_scen = scenlist[1]
 get_witch_simple("Q")
 impact_map_data <- Q %>% filter(iq=="y" & t==t_map) %>% group_by(n, pathdir) %>% mutate(value = -((value/sum(value[file==bau_scen]))-1)*100) %>% filter(is.finite(value))
 witchmap(impact_map_data, file_report=scenlist[2], t_report=t_map, mapcolor="Reds", map_name="Impact Map", map_legend = "GDP loss [%]")
 
-#Impacts and SCC
-SCC_plot(regions = "World")
-
-
-#export multiple variables as time series panel dataset "witch_dataset_long.csv"
+#Export multiple variables as time series panel dataset "witch_dataset_long.csv"
 #write_witch_data_csv(c("l", "ykali"), years = seq(1960, 2100, 20))
-#Full ISO3 dataset (based on "build" folder)
+#Export full ISO3 dataset (based on "build" folder)
 #write_witch_historical_iso3_dataset()
 
 

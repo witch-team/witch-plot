@@ -49,9 +49,10 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
 
 
 #Regional or global line plots of already loaded data
-witch_regional_line_plot <- function(data, varname="value", regions="World", scenplot=scenlist, ylab=varname, ylim0=FALSE, conv_factor=1, nagg="sum"){
+witch_regional_line_plot <- function(data, varname="value", regions="World", scenplot=scenlist, ylab=varname, ylim0=FALSE, conv_factor=1, nagg="sum", rm.NA = T){
   line_size = 1.5;
   data <- subset(data, file %in% scenplot & ttoyear(t) <= yearmax & ttoyear(t) >= yearmin)
+  if(rm.NA) data <- subset(data, !is.na(get(varname)))
   require(rlang)
   if(regions[1]=="World"){
     if(nagg=="sum"){data <- data %>% group_by(pathdir, file, t) %>% summarise_at(., .vars=vars(-n, -pathdir, -file, -t), funs(sum)) %>% mutate(n="World")}else

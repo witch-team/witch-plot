@@ -115,14 +115,15 @@ region_palette_longnames <- region_palette
 names(region_palette_longnames) <- mapvalues(names(region_palette), as.character(witch_region_names$n), paste0(as.character(witch_region_names$longname), " (",as.character(witch_region_names$n),")"), warn_missing = F)
 
 #load specialized functions
-source('functions/special_plots.R')
 source('functions/map_functions.R')
-source('functions/energy_mix.R')
-source('functions/policy_cost.R')
 source('functions/add_historical_values.R')
 source('functions/export_variables.R')
 source('functions/diagnostics.R')
 source('functions/impact_plots.R')
+source('functions/energy_plots.R')
+source('functions/emission_plots.R')
+source('functions/climate_plots.R')
+source('functions/policy_cost.R')
 
 
 

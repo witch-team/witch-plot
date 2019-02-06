@@ -277,6 +277,17 @@ shinyServer(function(input, output, session) {
         witchmap(impact_map_data, file_report=scen, t_report=t_map, mapcolor="Reds", map_name="Impact Map", map_legend = str_glue("GDP loss [%] in {scen}."))
     })
     
+    output$climate_plot <- renderPlot({
+      #get input from sliders/buttons
+      yearmin = input$yearmin
+      yearmax = input$yearmax
+      additional_set_selected <- input$additional_set_id_selected
+      additional_set_selected2 <- input$additional_set_id_selected2
+      regions <- input$regions_selected
+      scenarios <- input$scenarios_selected
+      climate_plot(scenplot = scenarios)
+    })
+    
     output$SCC_plot <- renderPlot({
       #get input from sliders/buttons
       yearmin = input$yearmin

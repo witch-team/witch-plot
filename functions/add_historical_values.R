@@ -2,13 +2,15 @@
 add_historical_values <- function(variable, varname=deparse(substitute(variable)), scenplot=scenlist, check_calibration=FALSE, verbose=T){
   
   #have to decide what to do with years with both model and historical data
-  display_years = "historical"#historical" #"model" #"historical"
+  display_years = "model"#historical" #"model" #"historical"
 
   valid_suffix <- "_valid"
   if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"} #for CO2IND emissions, set it to 
   if(varname=="quantiles"){valid_suffix <- "_valid_swiid"} #for quantiles, set it to 
   if(varname=="K_EN"){valid_suffix <- "_valid_platts_tot"} #for quantiles, set it to 
   
+  #treat special varnames
+  if(str_detect(varname, "MAGICC")) varname <- gsub("MAGICC", "", varname)
   
   #check which GDX file to use (all files that start with data_historical*.gdx)
   gdxhistlist <- list.files(path=file.path(witch_folder, paste0("data_", region_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
@@ -123,7 +125,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     
  
     merged_variable <- rbind(variable, .hist)
- 
+    merged_variable$t <- as.numeric(merged_variable$t)
     #assign("varname", merged_variable, envir = .GlobalEnv)
     return(merged_variable)
     }

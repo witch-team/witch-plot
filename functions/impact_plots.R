@@ -121,7 +121,11 @@ SCC_plot <- function(scenplot=scenlist, regions = "World", normalization_region 
     SCC_bar_chart <- SCC_bar_chart + ylim(NA, max(c(scc_value_marginals_t0$SCC, scc_value_pulse$SCC)))
   }
   
-  print(ggarrange(emi_plot, temp_plot, gdp_loss_plot, SCC_over_time_plot, SCC_bar_chart, SCC_bar_chart_pulse, ncol = 2, nrow=3, common.legend = T, legend = "bottom"))
+  #Simple damage plot
+  Pulse_Damage_plot <- witch_regional_line_plot(scc_pulse, varname = "damage_nt", regions = "World", scenplot = scenplot_nopulse, ylab = "Damage from Pulse (billion USD)", conv_factor=1e3, rm.NA = F, ylim0 = F)
+  
+  
+  print(ggarrange(emi_plot, temp_plot, gdp_loss_plot, Pulse_Damage_plot, SCC_bar_chart, SCC_bar_chart_pulse, ncol = 2, nrow=3, common.legend = T, legend = "bottom"))
   
 }
 

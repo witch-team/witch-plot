@@ -57,7 +57,7 @@ witch_regional_line_plot <- function(data, varname="value", regions="World", sce
     if(nagg=="sum"){data <- data %>% group_by(pathdir, file, t) %>% summarise_at(., .vars=vars(-n, -pathdir, -file, -t), funs(sum)) %>% mutate(n="World")}else
     if(nagg=="mean"){data <- data %>% group_by(pathdir, file, t) %>% summarise_at(., .vars=vars(-n, -pathdir, -file, -t), funs(mean)) %>% mutate(n="World")}
     }else{data <- data %>% filter(n %in% regions)}
-  data <- data %>% mutate(plot_value=!!parse_quosure(varname)*conv_factor)
+  data <- data %>% mutate(plot_value=!!parse_quo(varname, env = .GlobalEnv)*conv_factor)
   p <- ggplot() + xlab("") +ylab(ylab)
   if(ylim0) p <- p + ylim(0, NA)
   if(regions[1]=="World" | length(regions)==1){

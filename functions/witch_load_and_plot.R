@@ -18,7 +18,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
     }
   }
   if(exists("allfilesdata")){
-    allfilesdata$file  <- mapvalues(allfilesdata$file , from=filelist, to=scenlist)
+    allfilesdata$file <- mapvalues(allfilesdata$file , from=filelist, to=scenlist, warn_missing = FALSE)
     allfilesdata <- subset(allfilesdata, file %in% scenplot)
     if(("t" %in% colnames(allfilesdata)) & !(variable_name=="t")){
       #check if stochastic and if so convert "branch" to "file" element

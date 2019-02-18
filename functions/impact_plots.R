@@ -65,9 +65,6 @@ SCC_plot <- function(scenplot=scenlist, regions = "World", normalization_region 
     scc <- scc %>% group_by(pathdir, file, t) %>% mutate(m_eqq_normalization = m_eqq_y[n==normalization_region])
     scc_value_marginals <- scc  %>% group_by(pathdir, file, t) %>% mutate(SCC_contrib_norm=1e3 * (-m_emi / m_eqq_normalization) / (44/12)) %>% summarize(SCC=sum(SCC_contrib_norm)) %>% mutate(n="World") %>% as.data.frame()
   }
-  
-  
-  
   scc_value_marginals <- subset(scc_value_marginals, file %in% scenplot_nopulse)
   scc_value_marginals_t0 <- subset(scc_value_marginals, file %in% scenplot_nopulse & t==t0)
   if(verbose) print(scc_value_marginals_t0)
@@ -79,53 +76,25 @@ SCC_plot <- function(scenplot=scenlist, regions = "World", normalization_region 
   #compute SCC based on emission pulse method
   SCC_bar_chart_pulse <- NULL
   if(any(str_detect(scenplot, "_emission_pulse"))){
-    gamma = 0.0
-    eta = 1.5#1.5
-    srtp = 1.5#1.5 #%
-    normalize_by_pulse = "theoretical" # or "actual" or "theoretical" emission changes
+    get_witch_simple("scc_regional")
+    scc_regional$file = gsub("_emission_pulse" , "", scc_regional$file)
+    #scc_regional$pathdir <- "Emission_pulse"
+    if(normalization_region=="World"){
+      scc_regional <- scc_regional %>% group_by(pathdir, file, t) %>% summarize(value=mean(value)) %>% mutate(n="World")#for now simple mean
+    }else{
+      scc_regional <- scc_regional %>% filter(n==normalization_region)
+    }  
     
-    pulsescen = str_subset(scenplot, "_emission_pulse")
-    pulsescen_no = gsub("_emission_pulse" , "", pulsescen)
-    impact_pulse <- impact %>% filter(file %in% pulsescen)
-    impact_pulse_no <- impact %>% filter(file %in% pulsescen_no)
-    names(impact_pulse)[5:ncol(impact_pulse)] <- paste0(names(impact_pulse)[5:ncol(impact_pulse)], "_pulse")
-    get_witch_simple("emission_pulse"); setnames(emission_pulse, "value", "pulse_amount")
-    impact_pulse <- merge(impact_pulse, emission_pulse, by = c("pathdir", "file", "n", "t"), all = T)
-    impact_pulse$file <- gsub("_emission_pulse" , "", impact_pulse$file)
-    scc_pulse <- merge(impact_pulse_no, impact_pulse, by = c("pathdir", "file", "n", "t"))
-    #check pulse
-    scc_pulse <- scc_pulse %>% group_by(file) %>% mutate(pulse_time=min(t[pulse_amount>0], na.rm = T), pulse_actual=(sum(emi_pulse[t==pulse_time])-sum(emi[t==pulse_time]))*1e9*44/12, pulse_theoretical=sum(pulse_amount*1e9*44/12, na.rm = T))
-    print(scc_pulse %>% group_by(file) %>% summarize(actual=mean(pulse_actual), theoretical=mean(pulse_theoretical)) %>% as.data.frame())
-    #using theoretical or actual pulse size
-    if(normalize_by_pulse=="theoretical") scc_pulse$pulse_used <- scc_pulse$pulse_theoretical else scc_pulse$pulse_used <- scc_pulse$pulse_actual 
-    #compute SCC
-    scc_pulse <- scc_pulse %>% mutate(damage_nt=gdp-gdp_pulse) 
-    #scc_pulse <- scc_pulse %>% mutate(damage_nt=pulse_used/1e12/17)  #1 dollar impact globally over time, so shoudl give SCC=30 with zero eta and srtp
+    scc_regional_t0 <- scc_regional %>% filter(t==t0)
+    #add NAs for runs without pulse run to keep same structure and colors
+    scc_regional_t0 <- rbind(as.data.frame(scc_regional_t0), scc_value_marginals_t0 %>% filter(!(file %in% unique(scc_regional$file))) %>% rename(value=SCC) %>% mutate(value=NA))
     
-    scc_pulse <- scc_pulse %>%
-      group_by(pathdir, file, t) %>% mutate(ede_t=(sum(pop*(gdp*1e6/pop)^(1-gamma))/(sum(pop)))^(1/(1-gamma)), gdppc_t=(sum(pop*(gdp*1e6/pop))/(sum(pop)))) %>% ungroup() %>%
-      #group_by(pathdir, file, n) %>% mutate(damage_nt=pulse_used/1e12/17*(1+srtp/100)^((as.numeric(t)-t0)*5)*(gdppc_t/gdppc_t[t==t0])^eta) %>% ungroup() %>%
-      group_by(pathdir, file, n) %>% mutate(scc_contribution_tn=(ede_t/ede_t[t==t0])^(gamma-eta)*((gdp*1e6/pop)^(-gamma))*(1+srtp/100)^(-(as.numeric(t)-t0)*5)*damage_nt) %>% ungroup()
-      if(normalization_region=="World"){
-        scc_pulse <- scc_pulse %>% group_by(pathdir, file, n) %>% mutate(normalization=gdppc_t[t==t0]^(-gamma)) %>% ungroup()
-      }else{
-        scc_pulse <- scc_pulse %>% group_by(pathdir, file) %>% mutate(normalization=gdp[t==t0 & n==normalization_region]^(-gamma)) %>% ungroup()
-      }
-    scc_pulse <- scc_pulse %>% mutate(scc_contribution_normalized=scc_contribution_tn/normalization)
-    assign(x = "scc_pulse", value = scc_pulse, envir = .GlobalEnv)
-    #now computing SCC given damage in T$, emissions in tCO2eq
-    scc_value_pulse <- scc_pulse %>% group_by(pathdir, file) %>% filter(as.numeric(t)>= t0 & as.numeric(t) <= tmax) %>% summarize(SCC=sum(scc_contribution_normalized*1e12/pulse_used)) %>% as.data.frame()
-    scc_value_pulse$pathdir <- "Emission_pulse"
-    if(verbose) print(scc_value_pulse)
-    SCC_bar_chart_pulse <- ggplot(scc_value_pulse) + geom_bar(aes(file, SCC, fill=file), position = "dodge", stat="identity") + ylab("SCC [$/tCO2eq] (PULSE)") + xlab("")  + geom_text(aes(file, SCC*0.9, label=paste0(round(SCC,1), "$"))) + guides(fill=FALSE) + ylim(NA, max(c(scc_value_marginals$SCC, scc_value_pulse$SCC)))
-    SCC_bar_chart <- SCC_bar_chart + ylim(NA, max(c(scc_value_marginals_t0$SCC, scc_value_pulse$SCC)))
+    if(verbose) print(scc_regional_t0)
+    SCC_bar_chart_pulse <- ggplot(scc_regional_t0) + geom_bar(aes(file, value, fill=file), position = "dodge", stat="identity") + ylab("SCC [$/tCO2eq] (PULSE)") + xlab("")  + geom_text(aes(file, value*0.9, label=paste0(round(value,1), "$"))) + guides(fill=FALSE) + ylim(NA, max(c(scc_value_marginals$SCC, scc_regional$value)))
+    SCC_bar_chart <- SCC_bar_chart + ylim(NA, max(c(scc_value_marginals_t0$SCC, scc_regional$value)))
   }
   
-  #Simple damage plot
-  Pulse_Damage_plot <- witch_regional_line_plot(scc_pulse, varname = "damage_nt", regions = "World", scenplot = scenplot_nopulse, ylab = "Damage from Pulse (billion USD)", conv_factor=1e3, rm.NA = F, ylim0 = F)
-  
-  
-  print(ggarrange(emi_plot, temp_plot, gdp_loss_plot, Pulse_Damage_plot, SCC_bar_chart, SCC_bar_chart_pulse, ncol = 2, nrow=3, common.legend = T, legend = "bottom"))
+  print(suppressWarnings(ggarrange(emi_plot, temp_plot, gdp_loss_plot, NULL, SCC_bar_chart, SCC_bar_chart_pulse, ncol = 2, nrow=3, common.legend = T, legend = "bottom")))
   
 }
 

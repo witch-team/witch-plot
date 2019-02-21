@@ -31,11 +31,11 @@ climate_plot <- function(scenplot=scenlist, regions = "World"){
  
   #Radiative Forcing
   trf_plot <- witch_regional_line_plot(climate_data, varname = "trf", scenplot = scenplot, regions = "World", ylab = "Total Radiative Forcing [W/m2] (WITCH)", conv_factor=1, nagg="mean")
-  trf_plot_magicc <- witch_regional_line_plot(climate_data, varname = "trf_magicc6", scenplot = scenplot, regions = "World", ylab = "Total Radiative Forcing [W/m2] (MAGICC6)", conv_factor=1, nagg="mean")
+  if(exists("MAGICCTRF")) trf_plot_magicc <- witch_regional_line_plot(climate_data, varname = "trf_magicc6", scenplot = scenplot, regions = "World", ylab = "Total Radiative Forcing [W/m2] (MAGICC6)", conv_factor=1, nagg="mean") else trf_plot_magicc = trf_plot
 
   #Temperature
   temp_plot <- witch_regional_line_plot(climate_data, varname = "temp", scenplot = scenplot, regions = "World", ylab = "Temp. increase [degC] (WITCH)", conv_factor=1, nagg="mean")
-  temp_plot_magicc <- witch_regional_line_plot(climate_data, varname = "temp_magicc6", scenplot = scenplot, regions = "World", ylab = "Temp. increase [degC] (MAGICC6)", conv_factor=1, nagg="mean")
+  if(exists("MAGICCTEMP")) temp_plot_magicc <- witch_regional_line_plot(climate_data, varname = "temp_magicc6", scenplot = scenplot, regions = "World", ylab = "Temp. increase [degC] (MAGICC6)", conv_factor=1, nagg="mean") else temp_plot_magicc = temp_plot
   
   
   ymax_emi = max(ggplot_build(emi_plot)$layout$panel_scales_y[[1]]$range$range[2], ggplot_build(co2_plot)$layout$panel_scales_y[[1]]$range$range[2])

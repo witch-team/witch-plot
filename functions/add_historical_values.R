@@ -5,9 +5,9 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   display_years = "model"#historical" #"model" #"historical"
 
   valid_suffix <- "_valid"
-  if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"} #for CO2IND emissions, set it to 
-  if(varname=="quantiles"){valid_suffix <- "_valid_swiid"} #for quantiles, set it to 
-  if(varname=="K_EN"){valid_suffix <- "_valid_platts_tot"} #for quantiles, set it to 
+  if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"} #for CO2IND emission
+  if(varname=="quantiles"){valid_suffix <- "_valid_swiid"} #for quantiles
+  if(varname=="K_EN"){valid_suffix <- c("_valid_platts_tot", "_valid_irena")} #for quantiles, set it to 
   
   #treat special varnames
   if(str_detect(varname, "MAGICC")) varname <- gsub("MAGICC", "", varname)
@@ -17,18 +17,19 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   
   for(.gdxname in gdxhistlist){
     .gdx <- gdx(.gdxname)
-    if(!is.na(pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name))){break}
+    if(any(str_detect(.gdx$parameters$name, paste(paste0(tolower(varname), valid_suffix), collapse = '|')))){break} #to check which file to take
   }
   
-  if(!is.na(pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name))){
+  if(any(str_detect(.gdx$parameters$name, paste(paste0(tolower(varname), valid_suffix), collapse = '|')))){
     if(verbose) print(paste0("Historical values added for '", varname, "'."))
-    item <- .gdx$parameters$name[pmatch(paste0(tolower(varname), valid_suffix) ,.gdx$parameters$name)]
-    .hist <- as.data.table(.gdx[item]) 
+    item <- grep(paste(paste0("^", tolower(varname), valid_suffix), collapse = '|'), .gdx$parameters$name, value = TRUE) #use grep with ^ to have them start by varname
+    for(.item in item){.hist_single <- as.data.table(.gdx[.item]); .hist_single$file <- gsub(paste0(tolower(varname), "_"), "", .item); if(.item==item[1]){.hist <- .hist_single}else{.hist <- rbind(.hist,.hist_single)} } 
+    #.hist <- as.data.table(.gdx[item]) 
     #get set dependency based on WITCH variable
     #colnames(.hist) <- setdiff(colnames(variable), c("file", "pathdir"))
     #better: get it from /built/!!!
     .gdxiso3 <- gdx(file.path(witch_folder, "input", "build", basename(.gdxname))); 
-    colnames(.hist) <- colnames(.gdxiso3[item])	
+    colnames(.hist) <- c(colnames(.gdxiso3[item[1]]), "file")	
     #in built global data have set "global", but in input folder it gets converted to iso3, so:
     colnames(.hist) <- gsub("global", "iso3", colnames(.hist)) #add "World" if no country level data but global
     if(!("iso3" %in% colnames(.hist))){.hist$n = "World"}else{colnames(.hist) <- gsub("iso3", "n", colnames(.hist))}
@@ -39,39 +40,32 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     #adjust scenario names
     .hist$n  <- mapvalues(.hist$n , from=witch_regions, to=display_regions, warn_missing = F)
     
-    
     #if check_calibration, add validation as data points!
     if(check_calibration){
       .gdx_validation <- gdx(file.path(witch_folder, paste0("data_", region_id), "data_validation.gdx"))
-      .hist_validation <- as.data.table(.gdx_validation[item])
+      for(.item in item){.hist_validation_single <- as.data.table(.gdx_validation[.item]); .hist_validation_single$file <- gsub(paste0(tolower(varname), "_"), "", .item); if(.item==item[1]){.hist_validation <- .hist_validation_single}else{.hist_validation <- rbind(.hist_validation,.hist_validation_single)} }
+      #.hist_validation <- as.data.table(.gdx_validation[item])
       if(!("n" %in% colnames(.hist_validation))){.hist_validation$n = "World"}
       colnames(.hist_validation) <- colnames(.hist)
-      .hist_validation$file <- "validation"
       #for the historical set, use "historical"
-      .hist$file <- "historical"
+      .hist$file <- gsub("valid", "historical", .hist$file)
       .hist <- rbind(.hist,.hist_validation)
+    }
+    else{
+      #if not check_calibration and historical files are added to the scenarios, compute the mean in case multiple historical sources for one sub-item (e.g., elhydro) and drop the file column
+      .hist$file <- NULL
+      .hist <- .hist %>% group_by_at(setdiff(names(.hist), "value")) %>% summarize(value=mean(value)) %>% as.data.table()
     }
 
 
     #special case where categories do not match exactly
-    if(item=="q_en_valid_weo")
-    {
-      .ren <- .hist[j=="elsolwind"]  #take half solar half wind as proxy!!
-      .pv <- .ren; .pv$value = .pv$value*0.5; .pv$j <- "elpv"
-      .wind <- .ren; .wind$value = .wind$value*0.5; .wind$j <- "elwind"
-      .csp <- .ren; .csp$value = .csp$value*0; .csp$j <- "elcsp"
-      #now replace in original data
-      .hist <- .hist[j!="elsolwind"]
-      .hist <- rbind(.hist, .pv, .csp, .wind)
-    }
-    
-    if(item=="q_fen_valid_weo")
+    if("q_fen_valid_weo" %in% item)
     {
       setnames(.hist, "sec", "z")
       setnames(.hist, "fuel", "fr")
     }
-    
-    if(item=="q_in_valid_weo") #add fuel column
+
+    if("q_in_valid_weo" %in% item) #add fuel column
     {
       .hist$fuel <- "oil"
       .hist[jfed=="elgastr"]$fuel <- "gas"
@@ -80,11 +74,6 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
       .hist[jfed=="elnuclear"]$fuel <- "uranium"
     }
     
-    if(item=="k_en_valid_platts_tot")
-    {
-      setnames(.hist, "j", "jreal")
-    }
- 
        
     #merge with variable
     if(check_calibration){

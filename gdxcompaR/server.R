@@ -161,23 +161,23 @@ shinyServer(function(input, output, session) {
       }
       
       #scenarios, potentially add stochastic scenarios to show
-      allfilesdata <- subset(allfilesdata, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)"), "historical", "validation"))
+      allfilesdata <- subset(allfilesdata, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)")) | str_detect(file, "historical") | str_detect(file, "valid"))
     
       #Unit conversion
       unit_conversion <- unit_conversion(variable)
       allfilesdata$value <- allfilesdata$value * unit_conversion$convert   
       
       if(regions[1]=="World" | length(regions)==1){#if only World is displayed or only one region, show files with colors
-        p <- ggplot(subset(allfilesdata, n %in% regions & (file!="historical" & file!="validation")),aes(ttoyear(t),value,colour=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + xlim(yearmin,yearmax)
+        p <- ggplot(subset(allfilesdata, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + xlim(yearmin,yearmax)
         if(ylim_zero) p <- p + ylim(0, NA)
-        p <- p + geom_line(data=subset(allfilesdata, n %in% regions & file=="historical"),aes(ttoyear(t),value,colour=file), stat="identity", size=1.0, linetype="solid")
-        p <- p + geom_point(data=subset(allfilesdata, n %in% regions & file=="validation"),aes(ttoyear(t),value,colour=file), size=4.0, shape=18)
+        p <- p + geom_line(data=subset(allfilesdata, n %in% regions & str_detect(file, "historical")),aes(ttoyear(t),value,colour=file), stat="identity", size=1.0, linetype="solid")
+        p <- p + geom_point(data=subset(allfilesdata, n %in% regions & str_detect(file, "valid")),aes(ttoyear(t),value,colour=file), size=4.0, shape=18)
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
       }else{
-        p <- ggplot(subset(allfilesdata, n %in% regions & (file!="historical" & file!="validation")),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
-        p <- p + geom_line(data=subset(allfilesdata, n %in% regions & file=="historical"),aes(ttoyear(t),value,colour=n), stat="identity", size=1.0, linetype="solid")
-        p <- p + geom_point(data=subset(allfilesdata, n %in% regions & file=="validation"),aes(ttoyear(t),value), size=4.0, shape=18)
+        p <- ggplot(subset(allfilesdata, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
+        p <- p + geom_line(data=subset(allfilesdata, n %in% regions & str_detect(file, "historical")),aes(ttoyear(t),value,colour=n, linetype=file), stat="identity", size=1.0)
+        p <- p + geom_point(data=subset(allfilesdata, n %in% regions & str_detect(file, "valid")),aes(ttoyear(t),value, shape=file), size=4.0)
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 2), linetype=guide_legend(title=NULL))
         

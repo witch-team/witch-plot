@@ -1,21 +1,21 @@
 #Plots for WITCH runs with climate damages or impacts
 
-SCC_plot <- function(scenplot=scenlist, regions = "World", normalization_region = "World"){
+SCC_plot <- function(scenplot=scenlist, regions = "World", normalization_region = "World", verbose = FALSE){
   gdp_measure <- "y" #"cc" #for consumption or "y" for GDP
   emi_sum <- "ghg" #or "co2" for only CO2 or ghg for all gases
   #Impacts and Damages computation
-  get_witch_simple("OMEGA")
-  get_witch_simple("Q")
-  Q <- Q %>% filter(iq == gdp_measure) %>% select(-iq) %>% filter(t %in% t_model)
-  get_witch_simple("l")
-  get_witch_simple("Q_EMI")
+  get_witch_simple("OMEGA", check_calibration = T)
+  get_witch_simple("Q", check_calibration = T)
+  Q <- Q %>% filter(iq == gdp_measure) %>% select(-iq)
+  get_witch_simple("l", check_calibration = T)
+  get_witch_simple("Q_EMI", check_calibration = T)
   get_witch_simple("ghg") # to get GHGs for non-co2 sets
   if(emi_sum=="ghg") ghg_used <- unique(ghg$e) else if(emi_sum=="co2") ghg_used = c("co2")
   Q_EMI <- Q_EMI %>% filter(e %in% ghg_used) %>% group_by(pathdir, file, n, t) %>% summarize(emiall = sum(value)) %>% filter(t %in% t_model)
   #get also BAU values
-  get_witch_simple("BAU_Q")
+  get_witch_simple("BAU_Q", check_calibration = T)
   BAU_Q <- BAU_Q %>% filter(iq == gdp_measure) %>% select(-iq) %>% filter(t %in% t_model)
-  get_witch_simple("BAU_Q_EMI")
+  get_witch_simple("BAU_Q_EMI", check_calibration = T)
   BAU_Q_EMI <- BAU_Q_EMI %>% filter(e %in% ghg_used) %>% group_by(pathdir, file, n, t) %>% summarize(emiall = sum(value)) %>% filter(t %in% t_model)
   impact <- Q %>% rename(gdp=value)
   impact <- merge(impact, BAU_Q, by = c("pathdir", "file", "n", "t")); setnames(impact, "value", "gdp_bau")
@@ -23,10 +23,10 @@ SCC_plot <- function(scenplot=scenlist, regions = "World", normalization_region 
   impact <- merge(impact, BAU_Q_EMI, by = c("pathdir", "file", "n", "t")); setnames(impact, "emiall", "emi_bau")
   impact <- merge(impact, l, by = c("pathdir", "file", "n", "t")); setnames(impact, "value", "pop")
   
-  get_witch_simple("TEMP")
+  get_witch_simple("TEMP", check_calibration = T)
   impact <- merge(impact, TEMP %>% filter(m=="atm") %>% select(-m), by = c("pathdir", "file", "n", "t")); setnames(impact, "value", "temp")
   #add external climate modules in case
-  get_witch_simple("MAGICCTEMP")
+  get_witch_simple("MAGICCTEMP", check_calibration = T)
   if(exists("MAGICCTEMP")) {impact <- merge(impact, MAGICCTEMP %>% filter(m=="atm") %>% select(-m), by = c("pathdir", "file", "n", "t"), all.x = T); setnames(impact, "value", "temp_magicc6")}
   
   
@@ -46,7 +46,7 @@ SCC_plot <- function(scenplot=scenlist, regions = "World", normalization_region 
   
   
   ########### COMPUTE THE SOCIAL COST OF CARBON ####################
-  t0 = 4 #time also of the pulse!!
+  t0 = 1 #from which year to compute the SCC from
   tmax = 30
 
   #SCC from marginals
@@ -57,55 +57,44 @@ SCC_plot <- function(scenplot=scenlist, regions = "World", normalization_region 
   #SCC from T$/GtC to $/tCO2 
   scc <- scc %>% filter(t>= t0 & t <= tmax) %>% mutate(SCC_tn = 1e3 * (-m_emi / m_eqq_y) / (44/12)) %>% group_by(pathdir, file, n) %>% mutate(SCC_t0 = 1e3 * (-m_emi / m_eqq_y[t==t0]) / (44/12))
   if(normalization_region=="World"){
-    scc <- scc %>% group_by(pathdir, file, t) %>% mutate(m_eqq_normalization = mean(m_eqq_y))
+    #scc <- scc %>% group_by(pathdir, file, t) %>% mutate(m_eqq_normalization = mean(m_eqq_y))
+    #scc_value_marginals <- scc  %>% group_by(pathdir, file, t) %>% mutate(SCC_contrib_norm=1e3 * (-m_emi / m_eqq_normalization) / (44/12)) %>% summarize(SCC=sum(SCC_contrib_norm)) %>% mutate(n="World") %>% as.data.frame()
+    scc_value_marginals <- scc  %>% group_by(pathdir, file, t) %>% mutate(SCC_contrib_norm=1e3 * (-m_emi / m_eqq_y) / (44/12)) %>% summarize(SCC=sum(SCC_contrib_norm)) %>% mutate(n="World") %>% as.data.frame()
+    
   }else{
     scc <- scc %>% group_by(pathdir, file, t) %>% mutate(m_eqq_normalization = m_eqq_y[n==normalization_region])
+    scc_value_marginals <- scc  %>% group_by(pathdir, file, t) %>% mutate(SCC_contrib_norm=1e3 * (-m_emi / m_eqq_normalization) / (44/12)) %>% summarize(SCC=sum(SCC_contrib_norm)) %>% mutate(n="World") %>% as.data.frame()
   }
+  scc_value_marginals <- subset(scc_value_marginals, file %in% scenplot_nopulse)
+  scc_value_marginals_t0 <- subset(scc_value_marginals, file %in% scenplot_nopulse & t==t0)
+  if(verbose) print(scc_value_marginals_t0)
+  SCC_bar_chart <- ggplot(scc_value_marginals_t0) + geom_bar(aes(file, SCC, fill=file), position = "dodge", stat="identity") + ylab("SCC [$/tCO2eq]") + xlab("") + geom_text(aes(file, SCC*0.9, label=paste0(round(SCC,1), "$"))) + guides(fill=FALSE)
   
-  scc_value_marginals <- scc %>% filter(t==t0) %>% group_by(pathdir, file) %>% mutate(SCC_contrib_norm=1e3 * (-m_emi / m_eqq_normalization) / (44/12)) %>% summarize(SCC=sum(SCC_contrib_norm)) %>% as.data.frame()
-  #print(scc_value_marginals)
-  SCC_bar_chart <- ggplot(subset(scc_value_marginals, file %in% scenplot_nopulse)) + geom_bar(aes(file, SCC, fill=file), position = "dodge", stat="identity") + ylab("SCC [$/tCO2eq]") + xlab("") + geom_text(aes(file, SCC*0.9, label=paste0(round(SCC,1), "$"))) + guides(fill=FALSE) + ylim(NA, max(scc_value_marginals$SCC))
-  #ggplot(subset(scc, n %in% regions & file %in% scenplot),aes(ttoyear(t),SCC_tn,colour=n, linetype=file)) + geom_line(stat="identity", size=line_size) + xlab("year") +ylab("$/tCO2eq") + scale_colour_manual(values = region_palette)
+  SCC_over_time_plot <- witch_regional_line_plot(scc_value_marginals, varname = "SCC", regions = "World", scenplot = scenplot_nopulse, ylab = "SCC [$/tCO2eq]", conv_factor=1, rm.NA = F, ylim0 = T)
+  
   
   #compute SCC based on emission pulse method
   SCC_bar_chart_pulse <- NULL
   if(any(str_detect(scenplot, "_emission_pulse"))){
-    gamma = 0.0
-    eta = 1.5
-    srtp = 1.5 #%
-    pulse_size_theoretical = 1e6 #in tCO2eq
-    normalize_by_pulse = "theoretical" # or "actual" or "theoretical" emission changes
+    get_witch_simple("scc_regional")
+    scc_regional$file = gsub("_emission_pulse" , "", scc_regional$file)
+    #scc_regional$pathdir <- "Emission_pulse"
+    if(normalization_region=="World"){
+      scc_regional <- scc_regional %>% group_by(pathdir, file, t) %>% summarize(value=mean(value)) %>% mutate(n="World")#for now simple mean
+    }else{
+      scc_regional <- scc_regional %>% filter(n==normalization_region)
+    }  
     
-    pulsescen = str_subset(scenplot, "_emission_pulse")
-    pulsescen_no = gsub("_emission_pulse" , "", pulsescen)
-    impact_pulse <- impact %>% filter(file %in% pulsescen)
-    impact_pulse_no <- impact %>% filter(file %in% pulsescen_no)
-    names(impact_pulse)[5:ncol(impact_pulse)] <- paste0(names(impact_pulse)[5:ncol(impact_pulse)], "_pulse"); impact_pulse$file <- gsub("_emission_pulse" , "", impact_pulse$file)
-    scc_pulse <- merge(impact_pulse_no, impact_pulse, by = c("pathdir", "file", "n", "t"))
-    #check pulse
-    print(scc_pulse %>% filter(t==t0) %>%group_by(file) %>% summarize(pulse_actual=(sum(emi_pulse)-sum(emi))*1e9*44/12) %>% as.data.frame())
-    scc_pulse <- scc_pulse %>% group_by(file) %>% mutate(pulse_actual=(sum(emi_pulse[t==t0])-sum(emi[t==t0]))*1e9*44/12)
-    #using theoretical or actual pulse size
-    if(normalize_by_pulse=="theoretical") scc_pulse$pulse_used <- pulse_size_theoretical else scc_pulse$pulse_used <- scc_pulse$pulse_actual 
-    #compute SCC
-    scc_pulse <- scc_pulse %>% mutate(damage_nt=gdp-gdp_pulse) %>%
-      group_by(pathdir, file, t) %>% mutate(ede_t=(sum(pop*(gdp*1e6/pop)^(1-gamma))/(sum(pop)))^(1/(1-gamma)), gdppc_t=(sum(pop*(gdp*1e6/pop))/(sum(pop)))) %>% ungroup() %>%
-      group_by(pathdir, file, n) %>% mutate(scc_contribution=(ede_t/ede_t[t==t0])^(gamma-eta)*((gdp*1e6/pop)^(-gamma))*(1+srtp/100)^(-(t-t0)*5)*damage_nt) %>% ungroup()
-      if(normalization_region=="World"){
-        scc_pulse <- scc_pulse %>% group_by(pathdir, file, n) %>% mutate(normalization=gdppc_t[t==t0]^(-gamma)) %>% ungroup()
-      }else{
-        scc_pulse <- scc_pulse %>% group_by(pathdir, file) %>% mutate(normalization=gdp[t==t0 & n==normalization_region]^(-gamma)) %>% ungroup()
-      }
-    scc_pulse <- scc_pulse %>% mutate(scc_contribution_normalized=scc_contribution/normalization)
-    #now computing SCC given damage in T$, emissions in tCO2eq
-    scc_value_pulse <- scc_pulse %>% group_by(pathdir, file) %>% filter(t>= t0 & t <= tmax) %>% summarize(SCC=sum(scc_contribution_normalized*1e12/pulse_used)) %>% as.data.frame()
-    scc_value_pulse$pathdir <- "Emission_pulse"
-    print(scc_value_pulse)
-    SCC_bar_chart_pulse <- ggplot(scc_value_pulse) + geom_bar(aes(file, SCC, fill=file), position = "dodge", stat="identity") + ylab("SCC [$/tCO2eq] (PULSE)") + xlab("")  + geom_text(aes(file, SCC*0.9, label=paste0(round(SCC,1), "$"))) + guides(fill=FALSE) + ylim(NA, max(c(scc_value_marginals$SCC, scc_value_pulse$SCC)))
-    SCC_bar_chart <- ggplot(subset(scc_value_marginals, file %in% scenplot_nopulse)) + geom_bar(aes(file, SCC, fill=file), position = "dodge", stat="identity") + ylab("SCC [$/tCO2eq]") + xlab("") + geom_text(aes(file, SCC*0.9, label=paste0(round(SCC,1), "$"))) + guides(fill=FALSE) + ylim(NA, max(c(scc_value_marginals$SCC, scc_value_pulse$SCC)))
+    scc_regional_t0 <- scc_regional %>% filter(t==t0)
+    #add NAs for runs without pulse run to keep same structure and colors
+    scc_regional_t0 <- rbind(as.data.frame(scc_regional_t0), scc_value_marginals_t0 %>% filter(!(file %in% unique(scc_regional$file))) %>% rename(value=SCC) %>% mutate(value=NA))
+    
+    if(verbose) print(scc_regional_t0)
+    SCC_bar_chart_pulse <- ggplot(scc_regional_t0) + geom_bar(aes(file, value, fill=file), position = "dodge", stat="identity") + ylab("SCC [$/tCO2eq] (PULSE)") + xlab("")  + geom_text(aes(file, value*0.9, label=paste0(round(value,1), "$"))) + guides(fill=FALSE) + ylim(NA, max(c(scc_value_marginals$SCC, scc_regional$value)))
+    SCC_bar_chart <- SCC_bar_chart + ylim(NA, max(c(scc_value_marginals_t0$SCC, scc_regional$value)))
   }
   
-  print(ggarrange(emi_plot, temp_plot, gdp_loss_plot, NULL, SCC_bar_chart, SCC_bar_chart_pulse, ncol = 2, nrow=3, common.legend = T, legend = "bottom"))
+  print(suppressWarnings(ggarrange(emi_plot, temp_plot, gdp_loss_plot, NULL, SCC_bar_chart, SCC_bar_chart_pulse, ncol = 2, nrow=3, common.legend = T, legend = "bottom")))
   
 }
 

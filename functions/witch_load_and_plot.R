@@ -18,7 +18,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
     }
   }
   if(exists("allfilesdata")){
-    allfilesdata$file  <- mapvalues(allfilesdata$file , from=filelist, to=scenlist)
+    allfilesdata$file <- mapvalues(allfilesdata$file , from=filelist, to=scenlist, warn_missing = FALSE)
     allfilesdata <- subset(allfilesdata, file %in% scenplot)
     if(("t" %in% colnames(allfilesdata)) & !(variable_name=="t")){
       #check if stochastic and if so convert "branch" to "file" element
@@ -51,20 +51,19 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
 #Regional or global line plots of already loaded data
 witch_regional_line_plot <- function(data, varname="value", regions="World", scenplot=scenlist, ylab=varname, ylim0=FALSE, conv_factor=1, nagg="sum", rm.NA = T){
   line_size = 1.5;
-  data <- subset(data, file %in% scenplot & ttoyear(t) <= yearmax & ttoyear(t) >= yearmin)
+  data <- subset(data, file %in% c(scenplot, "historical") & ttoyear(t) <= yearmax & ttoyear(t) >= yearmin)
   if(rm.NA) data <- subset(data, !is.na(get(varname)))
-  require(rlang)
   if(regions[1]=="World"){
     if(nagg=="sum"){data <- data %>% group_by(pathdir, file, t) %>% summarise_at(., .vars=vars(-n, -pathdir, -file, -t), funs(sum)) %>% mutate(n="World")}else
     if(nagg=="mean"){data <- data %>% group_by(pathdir, file, t) %>% summarise_at(., .vars=vars(-n, -pathdir, -file, -t), funs(mean)) %>% mutate(n="World")}
     }else{data <- data %>% filter(n %in% regions)}
-  data <- data %>% mutate(plot_value=!!parse_quosure(varname)*conv_factor)
-  p <- ggplot(data) + xlab("") +ylab(ylab)
+  data <- data %>% mutate(plot_value=!!parse_quo(varname, env = .GlobalEnv)*conv_factor)
+  p <- ggplot() + xlab("") +ylab(ylab)
   if(ylim0) p <- p + ylim(0, NA)
   if(regions[1]=="World" | length(regions)==1){
-    p <- p + geom_line(aes(ttoyear(t),plot_value,colour=file), stat="identity", size=line_size)
+    p <- p + geom_line(data = data %>% filter(file!="historical"), aes(ttoyear(t),plot_value,colour=file), stat="identity", size=line_size) + geom_line(data = data %>% filter(file=="historical"), aes(ttoyear(t),plot_value,colour=file), stat="identity", size=0.5)
   }else{
-    p <- p + geom_line(aes(ttoyear(t),plot_value,colour=n, linetype=file), stat="identity", size=line_size) + scale_colour_manual(values = region_palette)
+    p <- p + geom_line(data = data %>% filter(file!="historical"), aes(ttoyear(t),plot_value,colour=n, linetype=file), stat="identity", size=line_size) + scale_colour_manual(values = region_palette) + geom_line(data = data %>% filter(file=="historical"), aes(ttoyear(t),plot_value,colour=n, linetype=file), stat="identity", size=0.5)
   }
   if(length(pathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
   return(p)

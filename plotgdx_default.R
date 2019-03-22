@@ -9,7 +9,7 @@ subdir = c("") #can be multiple directories
 
 removepattern = c("results_", "_calib", "_bau", "ssp2_") 
 restrict_files = c("results_") #"."
-exclude_files = c("db", "all_data_temp")
+exclude_files = c("db_", "all_data_temp_")
 
 yearmin = 1980
 yearmax = 2100

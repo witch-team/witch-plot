@@ -3,7 +3,8 @@
 # Intensity Plot for EI/CI
 # Policy Costs
 
-Intensity_Plot <- function(years=c(2050, 2100), regions="World", year0=2010, scenplot=scenlist){
+Intensity_Plot <- function(years=c(2050, 2100), regions="World", year0=2010, scenplot=scenlist, animate_plot=FALSE){
+  if(animate_plot) {regions="World"; years = seq(2005, 2100, 5); year0 = 2005; require(gganimate)}
   get_witch_variable("tpes", "tpes", "na", "na", 0.0036, "EJ", "regional", plot=FALSE)
   setnames(tpes, "value", "PES")
   get_witch_variable("Q_EMI", "Q_EMI", "e", "co2", 3.667, "GtCO2", "regional", plot=FALSE)
@@ -25,13 +26,17 @@ Intensity_Plot <- function(years=c(2050, 2100), regions="World", year0=2010, sce
   if(regions[1]=="World"){
     p_imp <- ggplot() + geom_point(data=subset(Intensity_t, ttoyear(t)!=year0+1e3), mapping=aes(x=CI_change, y=EI_change, color=file, shape=as.character(ttoyear(t))), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change")) + ylab(paste0("Energy Intensity Change")) + guides(color=guide_legend(title=NULL), shape=guide_legend(title=NULL)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")
     p_ciei <- ggplot() + geom_point(data=subset(Intensity_t), mapping=aes(x=CI, y=EI, color=file, shape=as.character(ttoyear(t))), size=6) + xlab(paste0("Carbon Intensity [gCO2/MJ]")) + ylab(paste0("Energy Intensity [MJ/$]")) + guides(color=guide_legend(title=NULL), shape=guide_legend(title=NULL)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")
+    if(animate_plot) p_ciei <- ggplot() + geom_point(data=Intensity_t %>% select(CI,EI,file,t) %>% mutate(year=ttoyear(as.numeric(t))) %>% select(-t), mapping=aes(x=CI, y=EI, color=file), size=6) + xlab(paste0("Carbon Intensity [gCO2/MJ]")) + ylab(paste0("Energy Intensity [MJ/$]")) + guides(color=guide_legend(title=NULL), shape=guide_legend(title=NULL)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal") + labs(title = 'Year: {frame_time}') + transition_time(year) + ease_aes('linear')
     }else{
     Intensity_t <- subset(Intensity_t, t==yeartot(years[1])) #for regional results only first year!
     p_imp <- ggplot() + geom_point(data=Intensity_t, mapping=aes(x=CI_change, y=EI_change, colour=n, shape=file), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change")) + ylab(paste0("Energy Intensity Change")) + guides(color=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")
     p_ciei <- ggplot() + geom_point(data=subset(Intensity_t), mapping=aes(x=CI, y=EI, color=n, shape=file), size=6) + xlab(paste0("Carbon Intensity [gCO2eq/MJ]")) + ylab(paste0("Energy Intensity [MJ/$]")) + guides(color=guide_legend(title=NULL), shape=guide_legend(title=NULL)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")
     }
-  ggarrange(p_ciei, p_imp, common.legend = T, align="h", legend = "bottom")
-  saveplot("CI_EI_plot", add_title = F, width = 10, height = 5)
+  if(animate_plot) print(animate(g_ani, nframes = 20, duration = 10, rewind = FALSE))
+  if(!animate_plot) {
+    ggarrange(p_ciei, p_imp, common.legend = T, align="h", legend = "bottom")
+    saveplot("CI_EI_plot", add_title = F, width = 10, height = 5)
+  }
   assign("CI_EI_Improvement", Intensity_t, envir = .GlobalEnv)
 }  
   

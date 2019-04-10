@@ -199,16 +199,17 @@ Investment_Plot <- function(regions=witch_regions, scenplot=scenlist){
   I_RD$rd  <- mapvalues(I_RD$rd , from=unique(I_RD$rd), to=c("Energy Efficiency", "Advanced Biofuels", "Batteries"))
   #I_RD <- subset(I_RD, rd!="Batteries")
   get_witch_simple("I_OUT", scenplot = scenplot)
-  I_OUT <- subset(I_OUT, f=="oil");setnames(I_OUT, "f", "category")
+  get_witch_simple("I", scenplot = scenplot); setnames(I, "g", "category"); I$sector <- "Final Good"; I <- subset(I, category=="fg")
+   I_OUT <- subset(I_OUT, f=="oil");setnames(I_OUT, "f", "category")
   I_OUT$category <- "Oil Extraction"
   setnames(I_RD, "rd", "category")
   I_OUT$sector <- "Fuel supply"; I_EN_categorized$sector <- "Power supply"; I_RD$sector <- "Energy RnD"
-  Investment_Energy <- rbind(I_EN_categorized, I_RD, I_OUT)
+  Investment_Energy <- rbind(I_EN_categorized, I_RD, I_OUT, I)
   Investment_Energy <- subset(Investment_Energy, t>=3 & t<=10)
   Investment_Energy_global <- aggregate(value~sector+category+file+pathdir, data=subset(Investment_Energy, n %in% regions), sum)  
   Investment_Energy_global$value <-   Investment_Energy_global$value*5 
   
-  ggplot(subset(Investment_Energy_global),aes(file,value, fill=category)) + geom_bar(stat="identity", position = "stack") + ylab("Trillion USD annually, (2015-2050)") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") + facet_wrap( ~ sector, scales = "fixed")  + scale_x_discrete(limits=scenplot) + scale_fill_brewer(palette="Spectral")
+  ggplot(subset(Investment_Energy_global),aes(file,value, fill=category)) + geom_bar(stat="identity", position = "stack") + ylab("Trillion USD annually, (2015-2050)") + xlab("") + guides(fill=guide_legend(title=NULL)) + theme(legend.position="bottom") + facet_wrap( ~ sector, scales = "free")  + scale_x_discrete(limits=scenplot) + scale_fill_brewer(palette="Spectral")
   #+ scale_fill_manual(values=c("#0000FF", "#000066", "#FFFF00", "#666600","#00FF00", "#006600", "#FF0000", "#660000"))
   saveplot("Investment Plot Global", plotdata=Investment_Energy_global)
 }

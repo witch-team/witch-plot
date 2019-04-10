@@ -17,10 +17,10 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   
   for(.gdxname in gdxhistlist){
     .gdx <- gdx(.gdxname)
-    if(any(str_detect(.gdx$parameters$name, paste(paste0(tolower(varname), valid_suffix), collapse = '|')))){break} #to check which file to take
+    if(length(grep(paste(paste0("^", tolower(varname), valid_suffix), collapse = '|'), .gdx$parameters$name, value = TRUE))!=0){break} #to find the hist file with the valid data (only one!)
   }
   
-  if(any(str_detect(.gdx$parameters$name, paste(paste0(tolower(varname), valid_suffix), collapse = '|')))){
+  if(length(grep(paste(paste0("^", tolower(varname), valid_suffix), collapse = '|'), .gdx$parameters$name, value = TRUE))!=0){
     if(verbose) print(paste0("Historical values added for '", varname, "'."))
     item <- grep(paste(paste0("^", tolower(varname), valid_suffix), collapse = '|'), .gdx$parameters$name, value = TRUE) #use grep with ^ to have them start by varname
     for(.item in item){.hist_single <- as.data.table(.gdx[.item]); .hist_single$file <- gsub(paste0(tolower(varname), "_"), "", .item); if(.item==item[1]){.hist <- .hist_single}else{.hist <- rbind(.hist,.hist_single)} } 

@@ -22,7 +22,7 @@ write_witch_data_csv <- function(vars, years = "all", wide_region=FALSE){
   write.csv(allvars, file=paste0(graphdir, "witch_dataset_long", ".csv"), row.names = FALSE)		
 }		
 
-
+#Johannes TODO: move this function to input in witch model!
 write_witch_historical_iso3_dataset <- function(maxsetdep=3){
   same_length_and_sets <- function(data){
     data <- as.data.table(data)

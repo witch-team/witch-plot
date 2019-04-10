@@ -42,7 +42,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
     
     if(results=="assign") assign(variable_name,allfilesdata,envir = .GlobalEnv)
     if(results=="return") return(allfilesdata)
-  }
+  }else{print(str_glue("Element {variable_name} not found in any GDX file."))}
 }
 
 

@@ -28,14 +28,17 @@ shinyUI(fluidPage(pageWithSidebar(
     uiOutput("select_regions"),
     div(style="display:inline-block",checkboxInput("add_historical", "Add historical values", value = T)),
     div(style="display:inline-block",checkboxInput("ylim_zero", "Set y-axis limit to zero", value = F))
+    #div(style="display:inline-block",checkboxInput("plotly_dynamic", "Dynamic plot(!)", value = F))
 ),
     
 
-  
   # Show the plot
   mainPanel(
     tabsetPanel(type = "tabs", id = "tabs",
+
                 tabPanel("gdxcompaR", id = "gdxcompaR", h2(textOutput("varname")),plotOutput("gdxompaRplot", width = "100%", height = "80vh")),
+                tabPanel("gdxcompaR (dynamic)", id = "gdxcompaR_dynamic", plotlyOutput("gdxompaRplotly", width = "100%", height = "80vh")),
+                
                 tabPanel("Diagnostics", id = "Diagnostics", h2("Diagnostics of model runs"),plotOutput("Diagnostics", width = "100%", height = "80vh")),
                 tabPanel("Energy Mix", id = "Energy Mix", 
                          div(style="display:inline-block",selectInput("mix_y_value_selected", "Plot value or share:", c("value", "share") , size=1, selectize = F, multiple = F, selected = "value")), 

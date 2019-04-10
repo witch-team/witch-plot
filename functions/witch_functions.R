@@ -11,7 +11,7 @@ graphdir = if(length(pathdir)>1){paste0(main_directory, "graphs/") }else{paste0(
 if(any(!dir.exists(pathdir))){stop("Please check the main directory and sub directory, including the trailing slash!")}
 
 source('functions/get_libraries.R')
-pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'taRifx', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap')
+pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'taRifx', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap', 'plotly')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 

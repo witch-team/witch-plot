@@ -1,13 +1,13 @@
 rm(list = ls())
 #all directoried with trailing slash "/"!
-witch_folder = "../witch/" #Where you're WITCH code is located
+witch_folder = "../witch-cdlinks/" #Where you're WITCH code is located
 #main directory of your results files
-main_directory <- witch_folder # by default, the witch source folder
-#main_directory <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/FEEM/WITCH_CODING/witch-cdlinks/"
-subdir = c("") #can be multiple directories
+ain_directory <- witch_folder # by default, the witch source folder
+main_directory <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/EIEE/WITCH_CODING/WITCH_RUNS_2018/submission_cdlinks/cdlinks_compare/"
+subdir = c("2019/") #can be multiple directories
 
 
-removepattern = c("results_", "_calib", "_bau", "ssp2_") 
+removepattern = c("results_", "_calib", "_bau", "ssp2_", "_2018", "_2019") 
 restrict_files = c("results_") #"."
 exclude_files = c("db_", "all_data_temp_")
 
@@ -31,6 +31,13 @@ runApp(appDir = "gdxcompaR")
 stop("Just load everything")
 
 
+get_witch_simple("I")
+get_witch_simple("I_EN")
+get_witch_simple("I_RD")
+Inv <- rbind(I_EN, I_RD, fill=T)
+Inv <- rbind(Inv, I, fill=T)
+ggplot(Inv %>% group_by(t, file, pathdir) %>% summarize(value=sum(value))) + geom_line(aes(t, value*1e3, color=file))
+Investment_Plot(regions="World")
 
 
 diagnostics_plots() #Basic diagnostic plots

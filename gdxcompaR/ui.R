@@ -37,7 +37,7 @@ shinyUI(fluidPage(pageWithSidebar(
     tabsetPanel(type = "tabs", id = "tabs",
 
                 tabPanel("gdxcompaR", id = "gdxcompaR", h2(textOutput("varname")),plotOutput("gdxompaRplot", width = "100%", height = "80vh")),
-                tabPanel("gdxcompaR (dynamic)", id = "gdxcompaR_dynamic", plotlyOutput("gdxompaRplotly", width = "100%", height = "80vh")),
+                tabPanel("gdxcompaRly (BETA)", id = "gdxcompaRly", plotlyOutput("gdxompaRplotly", width = "100%", height = "80vh")),
                 
                 tabPanel("Diagnostics", id = "Diagnostics", h2("Diagnostics of model runs"),plotOutput("Diagnostics", width = "100%", height = "80vh")),
                 tabPanel("Energy Mix", id = "Energy Mix", 

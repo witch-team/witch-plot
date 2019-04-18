@@ -2,16 +2,14 @@
 shinyServer(function(input, output, session) {
   
     #some global flags
-    save_plot = FALSE
     verbose = FALSE
-    preloadvars = TRUE
-    
+    save_plot = FALSE
     
     #get list of variables
     mygdx <- gdx(paste(file.path(pathdir[1], filelist[1]),".gdx",sep=""))
     list_of_variables <- c(all_items(mygdx)$variables, all_items(mygdx)$parameters)
     #now instead by hand
-    list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_FEN", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l", "WCUM_EMI")
+    list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_FEN", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l", "WCUM_EMI")
     # preload additional set elements for all variables
     #combine_old_new_j
     filter_old_new_j <- function(set_elements){
@@ -47,13 +45,6 @@ shinyServer(function(input, output, session) {
       additional_set_list = c(additional_set_list, lv)
       lv2 <- list(var=list(additional_set_id2=additional_set2, set_elements2=set_elements2)); names(lv2) <- var
       additional_set_list2 = c(additional_set_list2, lv2)
-    }
-    
-    #now preload all variables
-    if(preloadvars){ 
-    for(.var in list_of_variables){
-       get_witch_simple(.var, check_calibration=TRUE)
-    }
     }
     
     
@@ -112,11 +103,11 @@ shinyServer(function(input, output, session) {
     output$gdxompaRplot <- renderPlot({
       assign("historical", input$add_historical, envir = .GlobalEnv)
       ylim_zero <- input$ylim_zero
-      plotly_dynamic <- input$plotly_dynamic
+      #plotly_dynamic <- input$plotly_dynamic
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
       #get data
-      if(!preloadvars) get_witch_simple(variable, check_calibration=TRUE)
+      get_witch_simple(variable, check_calibration=TRUE)
       if(verbose) print(str_glue("Variable {variable} loaded."))
       allfilesdata <- get(variable)
       #print(str(allfilesdata))
@@ -204,7 +195,7 @@ shinyServer(function(input, output, session) {
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
       #get data
-      if(!preloadvars) get_witch_simple(variable, check_calibration=TRUE)
+      get_witch_simple(variable, check_calibration=TRUE)
       if(verbose) print(str_glue("Variable {variable} loaded."))
       allfilesdata <- get(variable)
       #print(str(allfilesdata))

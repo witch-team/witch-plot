@@ -3,12 +3,12 @@
 Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(2005, 2100, 5), plot_type="area", scenplot=scenlist, plot_name="Primary Energy Mix", plot_total_tpes=FALSE){
   if(length(pathdir)!=1){print("PES mix REGIONAL only for one directory at a time!")}else{
     ssp_grid_old=ssp_grid; assign("ssp_grid", FALSE, envir = .GlobalEnv) 
-    get_witch_variable("Q_FUEL", "Q_FUEL", "fuel", "all", 0.0036, "EJ", "regional", plot=FALSE)
-    get_witch_variable("Q_EN", "Q_EN", "jreal", "all", 0.0036, "EJ", "regional", plot=FALSE)
+    get_witch_simple("Q_FUEL"); Q_FUEL_pes <- Q_FUEL %>% mutate(value=value*0.0036)
+    get_witch_simple("Q_EN"); Q_EN_pes <- Q_EN %>% mutate(value=value*0.0036)
     assign("ssp_grid", ssp_grid_old, envir = .GlobalEnv) 
     #aggregate sub-categories
-    setnames(Q_FUEL,"fuel", "j")
-    TPES <- rbind(Q_FUEL, Q_EN)
+    setnames(Q_FUEL_pes,"fuel", "j")
+    TPES <- rbind(Q_FUEL_pes, Q_EN_pes)
     TPES <- subset(TPES, j %in% c("oil", "coal", "gas", "uranium", "trbiofuel", "wbio", "advbio", "trbiomass") | j %in% c("elpv", "elcsp", "elhydro", "elback", "elwindon", "elwindoff"))
     TPES$category[TPES$j %in% c("oil")] = "Oil"
     TPES$category[TPES$j %in% c("gas")] = "Natural Gas"
@@ -22,7 +22,7 @@ Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(2005, 2
     PES_Categories <- c("Oil", "Coal", "Natural Gas", "Nuclear", "Biomass", "Hydro", "Wind", "Solar")
     TPES <- TPES[order(match(TPES$category,PES_Categories)),]
     TPES$j <- NULL
-    TPES <- TPES[, lapply(.SD, sum), by=c("t", "file", "pathdir", "n", "category")]
+    TPES <- as.data.table(TPES)[, lapply(.SD, sum), by=c("t", "file", "pathdir", "n", "category")]
     if(regions[1]=="World"){
       TPES$n <- NULL; TPES <- TPES[, lapply(.SD, sum), by=c("t", "file", "pathdir", "category")]; TPES$n <- "World"
     }else{
@@ -46,8 +46,8 @@ Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(2005, 2
     assign("legend_position", legend_position_old, envir = .GlobalEnv) 
   }
   if(plot_total_tpes){
-  get_witch_variable("tpes", "Primary_Energy", "na", "na", 0.0036, "EJ", "regional", plot = FALSE)
-  ggplot(subset(tpes, ttoyear(t)<=yearmax & n %in% regions & file %in% scenplot)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("EJ") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom")
+  get_witch_simple("tpes"); tpes_global <- tpes %>% mutate(value=value*0.0036)
+  ggplot(subset(tpes_global, ttoyear(t)<=yearmax & n %in% regions & file %in% scenplot)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("EJ") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom")
   saveplot("Primary Energy Regional", plotdata=subset(tpes, ttoyear(t)<=yearmax & n %in% regions & file %in% scenplot))
   }
 }
@@ -59,10 +59,9 @@ Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(2005, 2
 Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(2005, 2100, 5), plot_type="area", plot_name="Electricity Mix", scenplot=scenlist){
   if(length(pathdir)!=1){print("Electricity mix only for one directory at a time!")}else{
     ssp_grid_old=ssp_grid; assign("ssp_grid", FALSE, envir = .GlobalEnv) 
-    get_witch_simple("Q_IN"); Q_IN$value <- Q_IN$value * 0.0036 
-    get_witch_simple("csi")
-    setnames(csi, "value", "csi")
-    JFED <- merge(Q_IN, csi, by = c("t", "n", "file", "pathdir", "fuel", "jfed"), all=TRUE)
+    get_witch_simple("Q_IN"); Q_IN_el <- Q_IN %>% mutate(value=value * 0.0036)
+    get_witch_simple("csi"); csi_el <- csi %>% rename(csi=value)
+    JFED <- merge(Q_IN, csi_el, by = c("t", "n", "file", "pathdir", "fuel", "jfed"), all=TRUE)
     #take efficiency for EL into account
     #add csi for historical (seems to be 1!)
     JFED$csi[is.na(JFED$csi) & JFED$jfed=="elpc"] <- 0.45
@@ -74,9 +73,9 @@ Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(20
     JFED$csi <- NULL
     JFED$fuel <- NULL
     setnames(JFED, "jfed", "j")
-    get_witch_variable("Q_EN", "Q_EN", "jreal", "all", 0.0036, "EJ", "regional", plot=FALSE)
-    Q_EN <- subset(Q_EN, j %in% c("elpv", "elcsp", "elnuclear", "elnuclear", "elwind", "elhydro", "elhydro"))
-    ELEC <- rbind(Q_EN, JFED)
+    get_witch_simple("Q_EN"); Q_EN_pes <- Q_EN %>% mutate(value=value*0.0036)
+    Q_EN_pes <- subset(Q_EN_pes, j %in% c("elpv", "elcsp", "elnuclear", "elnuclear", "elwind", "elhydro", "elhydro"))
+    ELEC <- rbind(Q_EN_pes, JFED)
     ELEC[is.na(ELEC)] <- 0 #get rid of NAs to avoid sums not being correct, mainly from historical data!
     #aggregate sub-categories
     ELEC$category[ELEC$j %in% c("elnuclear")] = "Nuclear"
@@ -126,24 +125,18 @@ Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(20
 
 
 Energy_Trade <- function(fuelplot="oil", scenplot=scenlist, add_value=F){
-  get_witch_variable("Q_OUT", "Extraction", "f", fuelplot, 1, "TWh", "regional", plot = T)
-  get_witch_variable("Q_FUEL", "Consumption", "fuel", fuelplot, 1, "TWh", "regional", plot = T)
-  NET_EXPORT <- Q_OUT
+  get_witch_simple("Q_FUEL"); Q_FUEL_trade <- Q_FUEL %>% filter(fuel==fuelplot) %>% select(-fuel)
+  get_witch_simple("Q_OUT"); Q_OUT_trade <- Q_OUT %>% filter(f==fuelplot) %>% select(-f)
+  NET_EXPORT <- Q_OUT_trade
   setnames(NET_EXPORT, "value", "Extraction")
-  NET_EXPORT <- merge(NET_EXPORT, Q_FUEL, by = c("t", "n", "file", "pathdir"))
+  NET_EXPORT <- merge(NET_EXPORT, Q_FUEL_trade, by = c("t", "n", "file", "pathdir"))
   setnames(NET_EXPORT, "value", "Consumption")
-  Energy_Prices(scenplot=scenlist)
-  #get common time horizon
-  t_common <- intersect(unique(Q_OUT$t),unique(Q_FUEL$t)) #, Energy_Price_Data$t
-  NET_EXPORT <- subset(NET_EXPORT, t %in% t_common)
-  Energy_Price_Data <- subset(Energy_Price_Data, t %in% t_common & fuel==fuelplot);Energy_Price_Data$fuel <- NULL
-  NET_EXPORT <- merge(NET_EXPORT, Energy_Price_Data, by = c("t", "file"), all.x = TRUE)
+  get_witch_simple("FPRICE"); FPRICE_trade <- FPRICE %>% filter(fuel==fuelplot) %>% select(-fuel, -n) %>% rename(energy_price=value)
+  NET_EXPORT <- merge(NET_EXPORT, FPRICE_trade, by = c("t", "file", "pathdir"), all.x = TRUE)
   #volume in EJ, prices in $/GJ, value in billion USD
   NET_EXPORT$Net_Export_Volume <- (NET_EXPORT$Extraction - NET_EXPORT$Consumption) * 0.0036
   NET_EXPORT$Net_Export_Value <- ((NET_EXPORT$Extraction - NET_EXPORT$Consumption) * NET_EXPORT$energy_price) * 1e3
-  NET_EXPORT$pathdir <- NULL
-  #NET_EXPORT$fuel <- NULL
-  NET_EXPORT <- NET_EXPORT[!is.na(energy_price)]
+  NET_EXPORT <- NET_EXPORT %>% filter(!is.na(energy_price)) %>% select(-pathdir)
   NET_EXPORT <- melt(NET_EXPORT, id.vars = c("t", "n", "file"))
   ggplot(subset(NET_EXPORT, file %in% scenplot & variable %in% c("Net_Export_Volume")),aes(ttoyear(t),value, fill=n)) + geom_area(stat="identity") + facet_grid(. ~ file, scales = "free") + ylab("EJ") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") + scale_fill_manual(values = region_palette)
   if(add_value){
@@ -162,26 +155,26 @@ Energy_Trade <- function(fuelplot="oil", scenplot=scenlist, add_value=F){
 
 Investment_Plot <- function(regions=witch_regions, scenplot=scenlist){
   if(regions[1]=="World") regions <- witch_regions
-  get_witch_simple("I_EN", scenplot = scenplot); I_EN_orig <- I_EN
-  get_witch_simple("I_RD", scenplot = scenplot); I_RD_orig <- I_RD
+  get_witch_simple("I_EN"); I_EN_inv <- I_EN
+  I_RD_inv = get_witch_simple("I_RD", results = "return")
   #I_RD <- subset(I_RD, rd=="en"); I_RD$rd <- NULL;
-  I_EN <- aggregate(value~n+t+file+pathdir, data=I_EN, sum)
+  I_EN_sum <- aggregate(value~n+t+file+pathdir, data=I_EN, sum)
   #I_EN$type = "Energy Supply"
   #I_RD$type = "Energy Efficiency"
   #Investment_Energy <- rbind(I_EN, I_RD)
   #I_RD plot
-  I_RD$rd  <- mapvalues(I_RD$rd , from=unique(I_RD$rd), to=c("Energy Efficiency", "Advanced Biofuels", "Batteries"))
-  I_RD <- subset(I_RD, rd!="Batteries")
-  plot_rd <- ggplot(subset(I_RD, ttoyear(t)<=yearmax & n %in% regions)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value*1e3, linetype=rd, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("Billion USD") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + guides(linetype=guide_legend(title=NULL)) 
+  I_RD_inv$rd  <- mapvalues(I_RD_inv$rd , from=c("en","nelback","battery"), to=c("Energy Efficiency", "Advanced Biofuels", "Batteries"))
+  I_RD_inv <- I_RD_inv %>% rename(category="rd") %>% mutate(sector="Energy RnD")
+  #I_RD_inv <- subset(I_RD_inv, rd!="Batteries")
+  #plot_rd <- ggplot(subset(I_RD, ttoyear(t)<=yearmax & n %in% regions)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value*1e3, linetype=rd, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("Billion USD") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + guides(linetype=guide_legend(title=NULL)) 
   #saveplot("Investment in RnD", plotdata=subset(I_RD, ttoyear(t)<=yearmax & n %in% regions))
   #Investment in Energy Supply
-  plot_supply <- ggplot(subset(I_EN, ttoyear(t)<=yearmax & n %in% regions)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value*1e3, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("Billion USD") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + guides(linetype=guide_legend(title=NULL)) 
+  #plot_supply <- ggplot(subset(I_EN, ttoyear(t)<=yearmax & n %in% regions)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value*1e3, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("Billion USD") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + guides(linetype=guide_legend(title=NULL)) 
   #saveplot("Investment in Energy Supply", plotdata=subset(I_EN, ttoyear(t)<=yearmax & n %in% regions))
   #now get global energy investment picture
   #I_EN <- NULL
   #get_witch_simple("I_EN", scenplot = scenlist)
-  I_EN <- I_EN_orig
-  get_witch_simple("I_EN_GRID", scenplot = scenplot)
+  get_witch_simple("I_EN_GRID")
   I_EN_Renewables <- aggregate(value~n+t+file+pathdir, data=subset(I_EN, jinv %in% c("elpv", "elcsp", "elwindon", "elwindoff", "elhydro")), sum);I_EN_Renewables$category <- "Renewables"
   I_EN_FossilFuels <- aggregate(value~n+t+file+pathdir, data=subset(I_EN, jinv %in% c("elpc", "eloil", "elgastr", "elpb")), sum);I_EN_FossilFuels$category <- "Fossil Fuels"
   I_EN_Nuclear <- aggregate(value~n+t+file+pathdir, data=subset(I_EN, jinv %in% c("elnuclear")), sum);I_EN_Nuclear$category <- "Nuclear"
@@ -189,27 +182,25 @@ Investment_Plot <- function(regions=witch_regions, scenplot=scenlist){
   I_EN_GRID$jinv <- "grid"; I_EN <- rbind(I_EN, I_EN_GRID)
   I_EN_TDS <- aggregate(value~n+t+file+pathdir, data=subset(I_EN, jinv %in% c("elstorage", "grid")), sum);I_EN_TDS$category <- "Grid&Storage"
   I_EN_categorized <- rbind(I_EN_Renewables, I_EN_CCS, I_EN_FossilFuels, I_EN_Nuclear, I_EN_TDS)
+  I_EN_categorized$sector <- "Power supply"
+  
   I_TRANSPORT_trad <- aggregate(value~n+t+file+pathdir, data=subset(I_EN, jinv %in% c("trad_cars", "hybrid", "trad_stfr", "hbd_stfr")), sum);I_TRANSPORT_trad$category <- "ICE/Hybrid"
   I_TRANSPORT_lowcarbon <- aggregate(value~n+t+file+pathdir, data=subset(I_EN, jinv %in% c("edv", "edv_stfr", "plg_hybrid", "plg_hbd_stfr")), sum);I_TRANSPORT_lowcarbon$category <- "Electric Vehicles"
   I_TRANSPORT <- rbind(I_TRANSPORT_trad, I_TRANSPORT_lowcarbon); 
   #I_TRANSPORT$sector <- "Road Transport"
   #I_TRANSPORT$sector <- "Road Transport"
   #for now add low carbon transport to RnD
-  I_RD <- I_RD_orig
-  I_RD$rd  <- mapvalues(I_RD$rd , from=unique(I_RD$rd), to=c("Energy Efficiency", "Advanced Biofuels", "Batteries"))
+  #I_RD <- I_RD_orig
+  #I_RD$rd  <- mapvalues(I_RD$rd , from=unique(I_RD$rd), to=c("Energy Efficiency", "Advanced Biofuels", "Batteries"))
   #I_RD <- subset(I_RD, rd!="Batteries")
-  get_witch_simple("I_OUT", scenplot = scenplot)
-  get_witch_simple("I", scenplot = scenplot); setnames(I, "g", "category"); I$sector <- "Final Good"; I <- subset(I, category=="fg")
-   I_OUT <- subset(I_OUT, f=="oil");setnames(I_OUT, "f", "category")
-  I_OUT$category <- "Oil Extraction"
-  setnames(I_RD, "rd", "category")
-  I_OUT$sector <- "Fuel supply"; I_EN_categorized$sector <- "Power supply"; I_RD$sector <- "Energy RnD"
-  Investment_Energy <- rbind(I_EN_categorized, I_RD, I_OUT, I)
+  get_witch_simple("I"); I_inv <- I %>% rename(category=g) %>% mutate(sector="Final Good") %>% filter(category=="fg")
+  get_witch_simple("I_OUT"); I_OUT_inv <- I_OUT %>% rename(category=f) %>% filter(category=="oil") %>% mutate(category="Oil Extraction") %>% mutate(sector="Fuel supply")
+  Investment_Energy <- rbind(I_EN_categorized, I_RD_inv, I_OUT_inv, I_inv)
   Investment_Energy <- subset(Investment_Energy, t>=3 & t<=10)
   Investment_Energy_global <- aggregate(value~sector+category+file+pathdir, data=subset(Investment_Energy, n %in% regions), sum)  
   Investment_Energy_global$value <-   Investment_Energy_global$value*5 
   
-  ggplot(subset(Investment_Energy_global),aes(file,value, fill=category)) + geom_bar(stat="identity", position = "stack") + ylab("Trillion USD annually, (2015-2050)") + xlab("") + guides(fill=guide_legend(title=NULL)) + theme(legend.position="bottom") + facet_wrap( ~ sector, scales = "free")  + scale_x_discrete(limits=scenplot) + scale_fill_brewer(palette="Spectral")
+  ggplot(subset(Investment_Energy_global, (file %in% scenplot) & category !="fg"),aes(file,value, fill=category)) + geom_bar(stat="identity", position = "stack") + ylab("Trillion USD annually, (2015-2050)") + xlab("") + guides(fill=guide_legend(title=NULL)) + theme(legend.position="bottom") + facet_wrap( ~ sector, scales = "free")  + scale_x_discrete(limits=scenplot) + scale_fill_brewer(palette="Spectral")
   #+ scale_fill_manual(values=c("#0000FF", "#000066", "#FFFF00", "#666600","#00FF00", "#006600", "#FF0000", "#660000"))
   saveplot("Investment Plot Global", plotdata=Investment_Energy_global)
 }

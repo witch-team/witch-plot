@@ -5,16 +5,13 @@
 
 Intensity_Plot <- function(years=c(2050, 2100), regions="World", year0=2010, scenplot=scenlist, animate_plot=FALSE){
   if(animate_plot) {regions="World"; years = seq(2005, 2100, 5); year0 = 2005; require(gganimate)}
-  get_witch_variable("tpes", "tpes", "na", "na", 0.0036, "EJ", "regional", plot=FALSE)
-  setnames(tpes, "value", "PES")
-  get_witch_variable("Q_EMI", "Q_EMI", "e", "co2", 3.667, "GtCO2", "regional", plot=FALSE)
-  setnames(Q_EMI, "value", "CO2")
-  get_witch_variable("Q", "Q", "iq", "y", 1e3, "bln. USD", "regional", plot=FALSE)
-  setnames(Q, "value", "GDP")
-  Intensity <- merge(tpes, Q_EMI, by=c("t", "file", "pathdir", "n"))
-  Intensity <- merge(Intensity, Q, by=c("t", "file", "pathdir", "n"))
+  get_witch_simple("tpes"); tpes_IP <- tpes %>% mutate(value=value*0.0036) %>% rename(PES=value)
+  get_witch_simple("Q_EMI"); Q_EMI_IP <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2") %>% select(-e) %>% rename(CO2=value)
+  get_witch_simple("Q"); Q_IP <- Q %>% mutate(value=value*1e3) %>% filter(iq=="y") %>% select(-iq) %>% rename(GDP=value)
+  Intensity <- merge(tpes_IP, Q_EMI_IP, by=c("t", "file", "pathdir", "n"))
+  Intensity <- merge(Intensity, Q_IP, by=c("t", "file", "pathdir", "n"))
   Intensity_World <- Intensity; Intensity_World$n <- NULL
-  Intensity_World <- Intensity_World[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
+  Intensity_World <- as.data.table(Intensity_World)[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
   Intensity_World$n <- "World"
   Intensity <- rbind(Intensity, Intensity_World)
   Intensity <- subset(Intensity, n %in% regions)
@@ -46,11 +43,9 @@ Intensity_Plot <- function(years=c(2050, 2100), regions="World", year0=2010, sce
 
 #Sectoral Emissions
 Sectoral_Emissions <- function(regions=witch_regions, scenplot=scenlist){
-get_witch_variable("Q_EMI", "CO2_FFI", "e", "co2ffi", 3.67, "GtCO2", "regional", plot = F)
-Q_EMI_FFI <- Q_EMI
+get_witch_simple("Q_EMI"); Q_EMI_FFI <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2ffi") %>% select(-e)
 Q_EMI_FFI$sector="Fossil Fuels and Industrial"#FFI
-get_witch_variable("Q_EMI", "CO2_LU", "e", "co2lu", 3.67, "GtCO2", "regional", plot = F)
-Q_EMI_LU <- Q_EMI
+get_witch_simple("Q_EMI"); Q_EMI_LU <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2lu") %>% select(-e)
 Q_EMI_LU$sector="Land Use"#LU
 Q_EMI_SECTORS = rbind(Q_EMI_FFI, Q_EMI_LU)
 #Stacked Regions Plot
@@ -106,8 +101,7 @@ Mitigation_Sources <- function(regions=witch_regions, scenario_stringency_order)
 Global_Emissions_Stacked <- function(regions=witch_regions, scenario, plotname="CO2 Emissions Carbon Budget"){
   #add GLOBAL carbon budget for some regions and RoW based on one scenario
   #for now only CO2 with hist!
-  get_witch_variable("Q_EMI", "CO2_Emissions", "e", "co2ffi", 44/12, "GtCO2", "regional", scenplot = scenario, plot = FALSE)
-  ALL_EMI <- Q_EMI
+  get_witch_simple("Q_EMI"); ALL_EMI <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2ffi") %>% select(-e)
   ALL_REST_WOLD <- ALL_EMI %>% filter(!(n %in% regions)) %>% select(-n) %>% group_by(t, file, pathdir) %>% summarize(value=sum(value)) %>% mutate(n="Rest_of_World") %>% as.data.frame()
   #ALL_REST_WOLD <- subset(ALL_EMI, !(n %in% regions))[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
   #ALL_REST_WOLD$n <- "Rest_of_World"
@@ -124,9 +118,9 @@ Global_Emissions_Stacked <- function(regions=witch_regions, scenario, plotname="
 Mitigation_Decomposition <- function(regions=witch_regions, scenario_stringency_order, scen_short="", t_plot=c(2,4,6,8,10), plotname="Mitigation Decomposition"){
   if("ida" %in% rownames(installed.packages()) == FALSE) {install.packages("ida", repos = c(getOption("repos"), "http://userpage.fu-berlin.de/~kweinert/R"), dependencies = c("Depends", "Suggests"))}
   library("ida")
-  get_witch_variable("l", "Population", "na", "na", 1, "Mio.", "regional", plot=F)
-  get_witch_variable("Q", "GDP", "iq", "y", 1e3, "billion USD", "regional", plot=F)
-  get_witch_variable("tpes", "Energy", "na", "na", 0.0036, "EJ", "regional", plot=F)
+  get_witch_simple("l"); l_decomp <- l
+  get_witch_simple("Q"); Q_decomp <- Q %>% mutate(value=value*1e3) %>% filter(iq=="y") %>% select(-iq)
+  get_witch_simple("tpes"); tpes_decomp <- tpes %>% mutate(value=value*0.0036)
   Sectoral_Emissions(regions=regions, scenplot = scenario_stringency_order)
   Mitigation_Sources(regions=regions, scenario_stringency_order = scenario_stringency_order)
   setnames(l, "value", "Population")

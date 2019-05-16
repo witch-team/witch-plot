@@ -6,7 +6,7 @@ witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scal
   #Palettes: Diverging: BrBG, PiYG, PRGn, PuOr, RdBu, RdGy, RdYlBu, RdYlGn, Spectral
   #Palettes: Qualitative: Accent, Dark2, Paired, Pastel1, Pastel2, Set1, Set2, Set3
   #Palettes: Sequential: Blues, BuGn, BuPu, GnBu, Greens, Greys, Oranges, OrRd, PuBu, PuBuGn, PuRd, Purples, RdPu, Reds, YlGn, YlGnBu, YlOrBr, YlOrRd
-  savemap <- function(plotname){ggsave(filename=paste(graphdir,as.character(gsub(" ", "_", plotname)),"_map.png", sep=""), plot = last_plot() + labs(title=""), width=14, height=6)}
+  savemap <- function(plotname){ggsave(filename=file.path(graphdir,paste0(gsub(" ", "_", plotname),"_map.png")), plot = last_plot() + labs(title=""), width=14, height=6)}
   # Get World data
   Nations <- data.table(map_data("world"))
   Nations <- Nations[region != "Antarctica"]
@@ -24,8 +24,8 @@ witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scal
   
   #now get WITCH regions
   get_witch_simple("conf", scenplot = file_report)
-  region_id_map <- subset(conf, pathdir==pathdir[1] & V1=="regions")$V2
-  mod.countries.filename = file.path(witch_folder, paste0("data_", region_id_map), "regions.inc")
+  region_id_map <- subset(conf, pathdir==basename(fullpathdir[1]) & V1=="regions")$V2
+  mod.countries.filename = file.path(witch_folder, paste0("data_", region_id_map, "/regions.inc"))
   # Read mod_countries
   mod.countries = readLines(mod.countries.filename)
   mod.countries = mod.countries[mod.countries!=""]                                  # Remove empty lines

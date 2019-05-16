@@ -1,7 +1,7 @@
 
 
 Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(2005, 2100, 5), plot_type="area", scenplot=scenlist, plot_name="Primary Energy Mix", plot_total_tpes=FALSE){
-  if(length(pathdir)!=1){print("PES mix REGIONAL only for one directory at a time!")}else{
+  if(length(fullpathdir)!=1){print("PES mix REGIONAL only for one directory at a time!")}else{
     ssp_grid_old=ssp_grid; assign("ssp_grid", FALSE, envir = .GlobalEnv) 
     get_witch_simple("Q_FUEL"); Q_FUEL_pes <- Q_FUEL %>% mutate(value=value*0.0036)
     get_witch_simple("Q_EN"); Q_EN_pes <- Q_EN %>% mutate(value=value*0.0036)
@@ -57,7 +57,7 @@ Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(2005, 2
 
 
 Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(2005, 2100, 5), plot_type="area", plot_name="Electricity Mix", scenplot=scenlist){
-  if(length(pathdir)!=1){print("Electricity mix only for one directory at a time!")}else{
+  if(length(fullpathdir)!=1){print("Electricity mix only for one directory at a time!")}else{
     ssp_grid_old=ssp_grid; assign("ssp_grid", FALSE, envir = .GlobalEnv) 
     get_witch_simple("Q_IN"); Q_IN_el <- Q_IN %>% mutate(value=value * 0.0036)
     get_witch_simple("csi"); csi_el <- csi %>% rename(csi=value)

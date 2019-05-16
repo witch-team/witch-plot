@@ -6,10 +6,10 @@ shinyServer(function(input, output, session) {
     save_plot = FALSE
     
     #get list of variables
-    mygdx <- gdx(paste(file.path(pathdir[1], filelist[1]),".gdx",sep=""))
+    mygdx <- gdx(paste(file.path(fullpathdir[1], filelist[1]),".gdx",sep=""))
     list_of_variables <- c(all_items(mygdx)$variables, all_items(mygdx)$parameters)
     #now instead by hand
-    list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_FEN", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l", "WCUM_EMI")
+    list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_FEN", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l")
     # preload additional set elements for all variables
     #combine_old_new_j
     filter_old_new_j <- function(set_elements){
@@ -58,14 +58,11 @@ shinyServer(function(input, output, session) {
     selectInput("variable_selected", "Select variable", list_of_variables, size=1, selectize = F, multiple = F, selected = list_of_variables[1])
     })  
     variable_selected_reactive <- reactive({input$variable_selected})
-    #variable_selected_reactive <- function(){return(input$variable_selected)} #works also
-    
     
     #Display selected variable and set
     output$varname <- renderText({  
-      paste("Variable:",variable_selected_reactive()," Element 1:", input$additional_set_id_selected, " Element 2:", input$additional_set_id_selected2)
+      paste("Variable:", variable_selected_reactive()," Element 1:", paste(input$additional_set_id_selected, collapse=","), " Element 2:", paste(input$additional_set_id_selected2, collapse=","))
     }) 
-  
 
     #REGION selector
     output$select_regions <- renderUI({
@@ -81,7 +78,7 @@ shinyServer(function(input, output, session) {
       set_elements <- additional_set_list[[variable]]$set_elements
       sel <- input$additional_set_id_selected
       size_elements <- min(length(set_elements), 5)
-      selectInput("additional_set_id_selected", "Additional set element", set_elements, size=size_elements, selectize = F, multiple = F, selected = sel)
+      selectInput("additional_set_id_selected", "Additional set element", set_elements, size=size_elements, selectize = F, multiple = T, selected = sel)
       })
     #Selector for additional set #2
     output$choose_additional_set2 <- renderUI({
@@ -91,12 +88,11 @@ shinyServer(function(input, output, session) {
       set_elements2 <- additional_set_list2[[variable]]$set_elements2
       sel2 <- input$additional_set_id_selected2
       size_elements2 <- min(length(set_elements2), 5)
-      selectInput("additional_set_id_selected2", "Additional set element 2", set_elements2, size=size_elements2, selectize = F, multiple = F, selected = sel2)
+      selectInput("additional_set_id_selected2", "Additional set element 2", set_elements2, size=size_elements2, selectize = F, multiple = T, selected = sel2)
     })
     
-
     #Additional selector for specific Panels
-
+    
     
 
     # MAIN CODE FOR PLOT GENERATION  
@@ -110,7 +106,6 @@ shinyServer(function(input, output, session) {
       get_witch_simple(variable, check_calibration=TRUE)
       if(verbose) print(str_glue("Variable {variable} loaded."))
       allfilesdata <- get(variable)
-      #print(str(allfilesdata))
       #get the name of the additional set
       additional_set_id <- additional_set_list[[variable]]$additional_set_id
       set_elements <- additional_set_list[[variable]]$set_elements
@@ -125,29 +120,31 @@ shinyServer(function(input, output, session) {
       regions <- input$regions_selected
       scenarios <- input$scenarios_selected
       
-      #in case they have not yet been set, set to defult values
+      #in case they have not yet been set, set to default values
       if(is.null(regions)) regions <- display_regions
       if(is.null(additional_set_selected)) additional_set_selected <- set_elements[1]
-      if((additional_set_id!="na" & additional_set_selected=="na") | !(additional_set_selected %in% set_elements)) additional_set_selected <- set_elements[1] 
+      if((additional_set_id!="na" & additional_set_selected[1]=="na") | !(additional_set_selected[1] %in% set_elements)) additional_set_selected <- set_elements[1] 
       if(is.null(additional_set_selected2)) additional_set_selected2 <- set_elements2[1]
-      if((additional_set_id2!="na" & additional_set_selected2=="na") | !(additional_set_selected2 %in% set_elements2)) additional_set_selected2 <- set_elements2[1] 
+      if((additional_set_id2!="na" & additional_set_selected2[1]=="na") | !(additional_set_selected2[1] %in% set_elements2)) additional_set_selected2 <- set_elements2[1] 
       
       # SUBSET data and PLOT
       #choose additional selected element
       if(additional_set_id!="na"){
         allfilesdata[[additional_set_id]] <- tolower(allfilesdata[[additional_set_id]]) # to fix erroneous gams cases (y and Y etc.)
-        allfilesdata <- subset(allfilesdata, get(additional_set_id)==additional_set_selected)
+        allfilesdata <- subset(allfilesdata, get(additional_set_id) %in% additional_set_selected)
         allfilesdata[[additional_set_id]] <- NULL #remove additional set column
-      }
+        allfilesdata$t <- as.character(allfilesdata$t)
+        if(length(additional_set_selected) >1) allfilesdata <- allfilesdata[, lapply(.SD, sum), by=setdiff(names(allfilesdata), "value")]
+        }
       if(additional_set_id2!="na"){
         allfilesdata[[additional_set_id2]] <- tolower(allfilesdata[[additional_set_id2]]) # to fix erroneous gams cases (y and Y etc.)
-        allfilesdata <- subset(allfilesdata, get(additional_set_id2)==additional_set_selected2)
+        allfilesdata <- subset(allfilesdata, get(additional_set_id2) %in% additional_set_selected2)
         allfilesdata[[additional_set_id2]] <- NULL #remove additional set column
+        if(length(additional_set_selected2) >1) allfilesdata <- allfilesdata[, lapply(.SD, sum), by=setdiff(names(allfilesdata), "value")]
       }
      
        #time frame
       allfilesdata <- subset(allfilesdata, ttoyear(t)>=yearmin & ttoyear(t)<=yearmax)
-      
       #clean data
       allfilesdata <- allfilesdata[!is.na(allfilesdata$value)]
       
@@ -183,11 +180,14 @@ shinyServer(function(input, output, session) {
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 2), linetype=guide_legend(title=NULL))
         
       }
-      if(length(pathdir)!=1){p <- p + facet_grid(. ~ pathdir)}
+      if(length(fullpathdir)!=1){p <- p + facet_grid(. ~ pathdir)}
       print(p + labs(title=variable))
       if(save_plot) saveplot(variable)
   })
     
+    
+    
+    # MAIN CODE FOR PLOTLY GENERATION (copied from standard ggplot)  
     output$gdxompaRplotly <- renderPlotly({
       assign("historical", input$add_historical, envir = .GlobalEnv)
       ylim_zero <- input$ylim_zero
@@ -213,29 +213,31 @@ shinyServer(function(input, output, session) {
       regions <- input$regions_selected
       scenarios <- input$scenarios_selected
       
-      #in case they have not yet been set, set to defult values
+      #in case they have not yet been set, set to default values
       if(is.null(regions)) regions <- display_regions
       if(is.null(additional_set_selected)) additional_set_selected <- set_elements[1]
-      if((additional_set_id!="na" & additional_set_selected=="na") | !(additional_set_selected %in% set_elements)) additional_set_selected <- set_elements[1] 
+      if((additional_set_id!="na" & additional_set_selected[1]=="na") | !(additional_set_selected[1] %in% set_elements)) additional_set_selected <- set_elements[1] 
       if(is.null(additional_set_selected2)) additional_set_selected2 <- set_elements2[1]
-      if((additional_set_id2!="na" & additional_set_selected2=="na") | !(additional_set_selected2 %in% set_elements2)) additional_set_selected2 <- set_elements2[1] 
+      if((additional_set_id2!="na" & additional_set_selected2[1]=="na") | !(additional_set_selected2[1] %in% set_elements2)) additional_set_selected2 <- set_elements2[1] 
       
       # SUBSET data and PLOT
       #choose additional selected element
       if(additional_set_id!="na"){
         allfilesdata[[additional_set_id]] <- tolower(allfilesdata[[additional_set_id]]) # to fix erroneous gams cases (y and Y etc.)
-        allfilesdata <- subset(allfilesdata, get(additional_set_id)==additional_set_selected)
+        allfilesdata <- subset(allfilesdata, get(additional_set_id) %in% additional_set_selected)
         allfilesdata[[additional_set_id]] <- NULL #remove additional set column
+        allfilesdata$t <- as.character(allfilesdata$t)
+        if(length(additional_set_selected) >1) allfilesdata <- allfilesdata[, lapply(.SD, sum), by=setdiff(names(allfilesdata), "value")]
       }
       if(additional_set_id2!="na"){
         allfilesdata[[additional_set_id2]] <- tolower(allfilesdata[[additional_set_id2]]) # to fix erroneous gams cases (y and Y etc.)
-        allfilesdata <- subset(allfilesdata, get(additional_set_id2)==additional_set_selected2)
+        allfilesdata <- subset(allfilesdata, get(additional_set_id2) %in% additional_set_selected2)
         allfilesdata[[additional_set_id2]] <- NULL #remove additional set column
+        if(length(additional_set_selected2) >1) allfilesdata <- allfilesdata[, lapply(.SD, sum), by=setdiff(names(allfilesdata), "value")]
       }
       
       #time frame
       allfilesdata <- subset(allfilesdata, ttoyear(t)>=yearmin & ttoyear(t)<=yearmax)
-      
       #clean data
       allfilesdata <- allfilesdata[!is.na(allfilesdata$value)]
       
@@ -271,7 +273,7 @@ shinyServer(function(input, output, session) {
         p_dyn <- p_dyn + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 2), linetype=guide_legend(title=NULL))
         
       }
-      if(length(pathdir)!=1){p_dyn <- p_dyn + facet_grid(. ~ pathdir)}
+      if(length(fullpathdir)!=1){p_dyn <- p_dyn + facet_grid(. ~ pathdir)}
       p_dyn <- p_dyn + theme(legend.position = "none")
       print(p_dyn)
       suppressWarnings(ggplotly())

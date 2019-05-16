@@ -13,6 +13,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   if(str_detect(varname, "MAGICC")) varname <- gsub("MAGICC", "", varname)
   
   #check which GDX file to use (all files that start with data_historical*.gdx)
+  if(!dir.exists(file.path(witch_folder, paste0("data_", region_id)))){stop("Please check your witch/data_* directory!")}
   gdxhistlist <- list.files(path=file.path(witch_folder, paste0("data_", region_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
   
   for(.gdxname in gdxhistlist){
@@ -79,10 +80,10 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     if(check_calibration){
       #just multiply by the pathdir so it appears for each pathdir
       .hist_temp <- .hist
-      for(pd in basename(pathdir))
+      for(pd in basename(fullpathdir))
       {
         .hist_temp$pathdir <- pd
-        if(pd==basename(pathdir)[1]){.hist=.hist_temp}else{.hist <-rbind(.hist,.hist_temp)}
+        if(pd==basename(fullpathdir[1])){.hist=.hist_temp}else{.hist <-rbind(.hist,.hist_temp)}
       }
     }else{
     #first multiply by scenplot, add missing columns here add historical data to results
@@ -94,10 +95,10 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
         if(scen==scenplot[1]){.hist=.hist_temp}else{.hist <-rbind(.hist,.hist_temp)}
       }
       .hist_temp <- .hist
-      for(pd in basename(pathdir))
+      for(pd in basename(fullpathdir))
       {
         .hist_temp$pathdir <- pd
-        if(pd==basename(pathdir)[1]){.hist=.hist_temp}else{.hist <-rbind(.hist,.hist_temp)}
+        if(pd==basename(fullpathdir)[1]){.hist=.hist_temp}else{.hist <-rbind(.hist,.hist_temp)}
       }
       if(display_years=="model"){
         #display model data for overlapping years, delete historical data

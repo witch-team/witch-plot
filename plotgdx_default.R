@@ -1,13 +1,12 @@
 rm(list = ls())
-#all directoried with trailing slash "/"!
-witch_folder = "../witch-cdlinks/" #Where you're WITCH code is located
+witch_folder = "../witch" #Where you're WITCH code is located
 #main directory of your results files
-ain_directory <- witch_folder # by default, the witch source folder
-main_directory <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/EIEE/WITCH_CODING/WITCH_RUNS_2018/submission_cdlinks/cdlinks_compare/"
-subdir = c("2019/") #can be multiple directories
+main_directory <- witch_folder # by default, the witch source folder
+#main_directory <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/EIEE/WITCH_CODING/WITCH_RUNS_2018/submission_cdlinks/2019_04_15"
+subdir = c("") #can be multiple directories
 
 
-removepattern = c("results_", "_calib", "_bau", "ssp2_", "_2018", "_2019") 
+removepattern = c("results_", "_calib") 
 restrict_files = c("results_") #"."
 exclude_files = c("db_", "all_data_temp_")
 

@@ -3,12 +3,13 @@
 witch_folder <- normalizePath(witch_folder)
 main_directory <- normalizePath(main_directory)
 
-pathdir = paste0(main_directory, subdir)
+fullpathdir = file.path(main_directory, subdir)
 #Specify directory for graphs and data to be saved: by default: /graphs/ in the folder
-graphdir = if(length(pathdir)>1){paste0(main_directory, "graphs/") }else{paste0(pathdir, "graphs/")}
+graphdir = if(length(fullpathdir)>1){file.path(main_directory, "graphs") }else{file.path(fullpathdir, "graphs")}
 
 #check if directory valid
-if(any(!dir.exists(pathdir))){stop("Please check the main directory and sub directory, including the trailing slash!")}
+if(any(!dir.exists(fullpathdir))){stop("Please check the main directory and sub directory!")}
+if(!dir.exists(witch_folder)){stop("Please check your witch directory!")}
 
 source('functions/get_libraries.R')
 pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'taRifx', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap', 'plotly')
@@ -38,7 +39,7 @@ varlist_combine_old_new_j <- c("Q_EN", "K_EN", "I_EN", "Q_IN")  #variables for w
 source('functions/auxiliary_functions.R')
 source('functions/witch_load_and_plot.R')
 
-filelist = gsub(".gdx","",list.files(path=pathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
+filelist = gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
 filelist = filelist[apply(outer(filelist, restrict_files, str_detect), 1, all)]
 filelist = filelist[!str_detect(filelist, paste(exclude_files, collapse = '|'))]
 if(length(filelist)==0){stop("No GDX files found.")}
@@ -64,7 +65,7 @@ t_model <- unique(t$t)
 #Palettes for WITCH regions and regional aggregation
 get_witch_simple("conf")
 if(length(unique(subset(conf, V1=="regions")$V2))>1) print("Be careful: not all results files were run with the same regional aggregation!")
-region_id <- subset(conf, file==scenlist[1] & pathdir==pathdir[1] & V1=="regions")$V2
+region_id <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) & V1=="regions")$V2
 get_witch_simple("n")
 witch_regions <- unique(n$V1)
 

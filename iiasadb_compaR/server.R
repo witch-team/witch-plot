@@ -1,15 +1,13 @@
+#SSP database
 iiasadb_file <-  "C:\\Users\\Emmerling\\Documents\\Dropbox (CMCC)\\EIEE\\Happiness\\iiasadb\\SSP_IAM_World_5Regs_2017-01-23.csv.zip"
+#CD-LINKS database
+#iiasadb_file <-  "C:\\Users\\Emmerling\\Documents\\Dropbox (CMCC)\\EIEE\\Happiness\\iiasadb\\cdlinks_compare_20180615-153808.csv.zip"
 
 # Define server 
 shinyServer(function(input, output, session) {
     # IIASADB snapshot file to read
-  iiasadb_snapshot <- fread(cmd=paste0('unzip -cq "', file.path(iiasadb_file),'"'), header=T, quote="\"", sep=",", check.names = FALSE)
-    #remove years with zero obs
-    iiasadb_snapshot <- as.data.frame(iiasadb_snapshot)[,colSums(is.na(iiasadb_snapshot))<nrow(iiasadb_snapshot)]
-    #convert to witchplotR format
-    iiasadb_long <- melt(iiasadb_snapshot, id.vars = c("VARIABLE", "UNIT", "REGION", "SCENARIO", "MODEL"), variable.name = "YEAR")
-    iiasadb_long$YEAR <- as.integer(as.character(iiasadb_long$YEAR))
-    
+    iiasadb_snapshot <- fread(cmd=paste0('unzip -cq "', file.path(iiasadb_file),'"'), header=T, quote="\"", sep=",", check.names = FALSE)
+
     #some global flags
     verbose = FALSE
     save_plot = FALSE
@@ -28,7 +26,7 @@ shinyServer(function(input, output, session) {
   
       
     scenarios <- unique(iiasadb_snapshot$SCENARIO)
-    scenarios_list <- strsplit(scenarios, "-")
+    scenarios_list <- strsplit(scenarios, "[-|_]")
     scen1 = unlist(unique(map(scenarios_list, 1)))
     scen2 = unlist(unique(map(scenarios_list, 2)))
     scen3 = unlist(unique(map(scenarios_list, 3)))
@@ -80,8 +78,14 @@ shinyServer(function(input, output, session) {
       ylim_zero <- input$ylim_zero
       variable <- input$variable_selected
       if(is.null(variable)) variable <- variables[1]
+   
       #get data
-      allfilesdata <- subset(iiasadb_long, VARIABLE==variable)
+      #remove years with zero obs
+      allfilesdata <- subset(iiasadb_snapshot, VARIABLE==variable)
+      #convert to witchplotR format
+      allfilesdata <- as.data.frame(allfilesdata)[,colSums(is.na(allfilesdata))<nrow(allfilesdata)] #drop years without observations
+      allfilesdata <- melt(allfilesdata, id.vars = c("VARIABLE", "UNIT", "REGION", "SCENARIO", "MODEL"), variable.name = "YEAR")
+      allfilesdata$YEAR <- as.integer(as.character(allfilesdata$YEAR))
       unitplot <- unique(allfilesdata$UNIT)[1]
       
       #get input from sliders/buttons
@@ -137,8 +141,14 @@ shinyServer(function(input, output, session) {
       ylim_zero <- input$ylim_zero
       variable <- input$variable_selected
       if(is.null(variable)) variable <- variables[1]
+      
       #get data
-      allfilesdata <- subset(iiasadb_long, VARIABLE==variable)
+      #remove years with zero obs
+      allfilesdata <- subset(iiasadb_snapshot, VARIABLE==variable)
+      #convert to witchplotR format
+      allfilesdata <- as.data.frame(allfilesdata)[,colSums(is.na(allfilesdata))<nrow(allfilesdata)] #drop years without observations
+      allfilesdata <- melt(allfilesdata, id.vars = c("VARIABLE", "UNIT", "REGION", "SCENARIO", "MODEL"), variable.name = "YEAR")
+      allfilesdata$YEAR <- as.integer(as.character(allfilesdata$YEAR))
       unitplot <- unique(allfilesdata$UNIT)[1]
       
       #get input from sliders/buttons

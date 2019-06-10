@@ -9,7 +9,8 @@ shinyUI(fluidPage(pageWithSidebar(
   # Sidebar with a slider of years and set elements
   sidebarPanel(
       #fileInput("iiasadb_file", "Choose (zipped) iiasadb CSV File", accept = c(".csv", ".zip")),
-                
+    #shinyFilesButton('files', label='File select', title='Please select a file', multiple=FALSE),
+    
     uiOutput("select_variable"),
     #actionButton("chgvar", "Update variable", icon("refresh")),
     sliderInput("yearmin", 

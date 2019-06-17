@@ -1,5 +1,5 @@
 # Load GDX of all scenarios and basic pre-processing 
-get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=F){
+get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=F, field = "l"){
   if(!exists(variable_name) | (variable_name %in% c("t", "n", "p", "I")) | force_reload){
     if(exists("allfilesdata")){rm(allfilesdata)}
     variable_name_save=as.character(gsub("_", " ", variable_name_save))
@@ -9,7 +9,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
           mygdx <- gdx(file.path(current_pathdir, paste0(file,".gdx")))
           if(is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$parameters) | is.element(variable_name, all_items(mygdx)$sets) | is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$equations))
           {
-            tempdata <- data.table(mygdx[variable_name])
+            tempdata <- data.table(mygdx[variable_name, field = field])
             tempdata$file <- as.character(file)
             if(length(fullpathdir)>=1){tempdata$pathdir <- basename(current_pathdir)}
             if(!exists("allfilesdata")){allfilesdata=tempdata}else{allfilesdata <-rbind(allfilesdata,tempdata)}
@@ -20,6 +20,10 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
     }
     if(exists("allfilesdata")){
       allfilesdata$file <- mapvalues(allfilesdata$file , from=filelist, to=scenlist, warn_missing = FALSE)
+      if(str_detect(variable_name, "eq")) {
+        colnames(allfilesdata) <- gsub("V1", "t", colnames(allfilesdata)) 
+        colnames(allfilesdata) <- gsub("V2", "n", colnames(allfilesdata))
+      }
       allfilesdata <- subset(allfilesdata, file %in% scenplot)
       if(("t" %in% colnames(allfilesdata)) & !(variable_name=="t")){
         #check if stochastic and if so convert "branch" to "file" element
@@ -27,6 +31,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
         allfilesdata$t <- as.numeric(allfilesdata$t)
       }
       if(("n" %in% colnames(allfilesdata)) & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F)}else{allfilesdata$n <- "World"}
+      if(str_detect(variable_name, "MAGICC|HECTOR")) {allfilesdata <- suppressWarnings(allfilesdata[,-c("magicc_n", "hector_n")])}
       
       #combine _old, _new, _late to one unit in case present
       combine_old_new_j = TRUE

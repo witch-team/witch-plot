@@ -21,7 +21,6 @@ require_gdxtools()
 
 ## Local Options ##
 figure_format="png"
-export_plotdata = FALSE  #save data for each graph also as EXCEL files
 historical = TRUE  #add historical data where available
 theme_set(theme_bw())
 show_numbers_2100 = FALSE

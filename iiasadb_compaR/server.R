@@ -1,36 +1,29 @@
 #SSP database
-iiasadb_file <-  "C:\\Users\\Emmerling\\Documents\\Dropbox (CMCC)\\EIEE\\Happiness\\iiasadb\\SSP_IAM_World_5Regs_2017-01-23.csv.zip"
+iiasadb_file <-  "V:\\WITCH\\IIASADB snapshots\\SSP_IAM_World_5Regs_2017-01-23.csv.zip"
 #CD-LINKS database
-#iiasadb_file <-  "C:\\Users\\Emmerling\\Documents\\Dropbox (CMCC)\\EIEE\\Happiness\\iiasadb\\cdlinks_compare_20180615-153808.csv.zip"
-
+#iiasadb_file <-  "V:\\WITCH\\IIASADB snapshots\\cdlinks_compare_20190531-122548.csv.zip"
+#Effor tsharing
+#iiasadb_file <-  "V:\\WITCH\\IIASADB snapshots\\cdlinks_effort_sharing_compare_20190604-191132.csv.zip"
 # Define server 
 shinyServer(function(input, output, session) {
     # IIASADB snapshot file to read
-    iiasadb_snapshot <- fread(cmd=paste0('unzip -cq "', file.path(iiasadb_file),'"'), header=T, quote="\"", sep=",", check.names = FALSE)
+    iiasadb_snapshot <- fread(cmd=paste0('unzip -cq "', file.path(iiasadb_file),'" ', gsub(".zip","",basename(file.path(iiasadb_file)))), header=T, quote="\"", sep=",", check.names = FALSE)
 
     #some global flags
     verbose = FALSE
-    save_plot = FALSE
     
     #get list of variables
     regions <- unique(iiasadb_snapshot$REGION)
     models <- unique(iiasadb_snapshot$MODEL)
-    
     variables <- unique(iiasadb_snapshot$VARIABLE)
-    variables_list <- strsplit(variables, "\\|")
-    var1 = unlist(unique(map(variables_list, 1)))
-    var2 = unlist(unique(map(variables_list, 2)))
-    var3 = unlist(unique(map(variables_list, 3)))
-    var4 = unlist(unique(map(variables_list, 4)))
-    var5 = unlist(unique(map(variables_list, 5)))
-  
-      
+    variables <- sort(variables)
+
     scenarios <- unique(iiasadb_snapshot$SCENARIO)
     scenarios_list <- strsplit(scenarios, "[-|_]")
-    scen1 = unlist(unique(map(scenarios_list, 1)))
-    scen2 = unlist(unique(map(scenarios_list, 2)))
-    scen3 = unlist(unique(map(scenarios_list, 3)))
-    scen4 = unlist(unique(map(scenarios_list, 4)))
+    scen1 = unlist(unique(purrr::map(scenarios_list, 1)))
+    scen2 = unlist(unique(purrr::map(scenarios_list, 2)))
+    scen3 = unlist(unique(purrr::map(scenarios_list, 3)))
+    scen4 = unlist(unique(purrr::map(scenarios_list, 4)))
     
 
     
@@ -76,15 +69,16 @@ shinyServer(function(input, output, session) {
     # MAIN CODE FOR PLOT GENERATION  
     output$iiasadb_compaRplot <- renderPlot({
       ylim_zero <- input$ylim_zero
+      button_writecsv <- input$button_writecsv
+      button_saveplot <- input$button_saveplot
       variable <- input$variable_selected
       if(is.null(variable)) variable <- variables[1]
-   
       #get data
-      #remove years with zero obs
       allfilesdata <- subset(iiasadb_snapshot, VARIABLE==variable)
       #convert to witchplotR format
       allfilesdata <- as.data.frame(allfilesdata)[,colSums(is.na(allfilesdata))<nrow(allfilesdata)] #drop years without observations
-      allfilesdata <- melt(allfilesdata, id.vars = c("VARIABLE", "UNIT", "REGION", "SCENARIO", "MODEL"), variable.name = "YEAR")
+      allfilesdata <- as.data.table(allfilesdata)
+      allfilesdata <- data.table::melt(allfilesdata, id.vars = c("VARIABLE", "UNIT", "REGION", "SCENARIO", "MODEL"), variable.name = "YEAR")
       allfilesdata$YEAR <- as.integer(as.character(allfilesdata$YEAR))
       unitplot <- unique(allfilesdata$UNIT)[1]
       
@@ -111,12 +105,12 @@ shinyServer(function(input, output, session) {
       #time frame
       allfilesdata <- subset(allfilesdata, YEAR>=yearmin & YEAR<=yearmax)
       #clean data
-      #allfilesdata <- as.data.frame(allfilesdata)[!is.na(allfilesdata$value)]
+      allfilesdata <- subset(allfilesdata, !is.na(value))
      
        if(is.null(regions)) regions <- "World"
       
       if(regions[1]=="World" | length(regions)==1){#if only World is displayed or only one region, show files with colors
-        p <- ggplot(subset(allfilesdata, REGION %in% regions),aes(YEAR,value,colour=SCENARIO, linetype=MODEL)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax)
+        p <- ggplot(subset(allfilesdata, REGION %in% regions),aes(YEAR,value,colour=MODEL, linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax)
         if(ylim_zero) p <- p + ylim(0, NA)
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
@@ -128,10 +122,21 @@ shinyServer(function(input, output, session) {
         
       }
       print(p + labs(title=variable))
-      if(save_plot) saveplot(variable)
-  })
+      
+      react <- reactiveValues(saveplotdata = 0)
+      observeEvent(input$button_saveplotdata, {
+        react$saveplotdata <- 1
+        #showModal(modalDialog(str_glue("Graph and CSV data stored in {graphdir}.")))
+        plotdata <- subset(allfilesdata, REGION %in% regions)
+        plotdata$VARIABLE <- NULL; plotdata$UNIT <- NULL
+        if(nrow(plotdata)>0) plotdata <- dcast(plotdata, formula = REGION + SCENARIO + MODEL  ~ YEAR)
+        saveplot(variable, plotdata = plotdata)
+      })  
+      })
     
     
+    
+ 
     
     
     
@@ -141,13 +146,12 @@ shinyServer(function(input, output, session) {
       ylim_zero <- input$ylim_zero
       variable <- input$variable_selected
       if(is.null(variable)) variable <- variables[1]
-      
       #get data
-      #remove years with zero obs
       allfilesdata <- subset(iiasadb_snapshot, VARIABLE==variable)
       #convert to witchplotR format
       allfilesdata <- as.data.frame(allfilesdata)[,colSums(is.na(allfilesdata))<nrow(allfilesdata)] #drop years without observations
-      allfilesdata <- melt(allfilesdata, id.vars = c("VARIABLE", "UNIT", "REGION", "SCENARIO", "MODEL"), variable.name = "YEAR")
+      allfilesdata <- as.data.table(allfilesdata)
+      allfilesdata <- data.table::melt(allfilesdata, id.vars = c("VARIABLE", "UNIT", "REGION", "SCENARIO", "MODEL"), variable.name = "YEAR")
       allfilesdata$YEAR <- as.integer(as.character(allfilesdata$YEAR))
       unitplot <- unique(allfilesdata$UNIT)[1]
       
@@ -174,12 +178,12 @@ shinyServer(function(input, output, session) {
       #time frame
       allfilesdata <- subset(allfilesdata, YEAR>=yearmin & YEAR<=yearmax)
       #clean data
-      #allfilesdata <- as.data.frame(allfilesdata)[!is.na(allfilesdata$value)]
+      allfilesdata <- subset(allfilesdata, !is.na(value))
       
       if(is.null(regions)) regions <- "World"
       
       if(regions[1]=="World" | length(regions)==1){#if only World is displayed or only one region, show files with colors
-        p <- ggplot(subset(allfilesdata, REGION %in% regions),aes(YEAR,value,colour=SCENARIO, linetype=MODEL)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax)
+        p <- ggplot(subset(allfilesdata, REGION %in% regions),aes(YEAR,value,colour=MODEL, linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax)
         if(ylim_zero) p <- p + ylim(0, NA)
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))

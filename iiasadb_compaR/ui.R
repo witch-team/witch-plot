@@ -33,7 +33,9 @@ shinyUI(fluidPage(pageWithSidebar(
     uiOutput("select_scenarios_4"),
     uiOutput("select_models"),
     uiOutput("select_regions"),
-    div(style="display:inline-block",checkboxInput("ylim_zero", "Set y-axis limit to zero", value = F))
+    div(style="display:inline-block",checkboxInput("ylim_zero", "Set y-axis limit to zero", value = F)),
+    div(style="display:inline-block",actionButton("button_saveplotdata", "Save Graph and Data"))
+    
     
 ),
     

@@ -33,6 +33,7 @@ yeartot <- function(year){t=(as.numeric(as.character(year)) - 2000) / 5; return(
 
 
 saveplot <- function(plotname, width=7, height=5, text_size=10, plotdata=NULL, suffix="", transparent=FALSE, add_title=TRUE){
+  if (!dir.exists(graphdir)){dir.create(graphdir)} #create directory for graphs
   if(figure_format!="png"){transparent = FALSE}
   if(figure_format=="pdf"){plot_device=cairo_pdf}else{plot_device=figure_format}
   if(figure_format=="eps"){plot_device=cairo_ps}
@@ -42,9 +43,8 @@ saveplot <- function(plotname, width=7, height=5, text_size=10, plotdata=NULL, s
   if(legend_position=="bottom"){legend_direction="horizontal"}else{legend_direction="vertical"}
   if(transparent){transparent_background <- theme(legend.background = element_blank(), panel.background = element_blank(), plot.background = element_rect(fill = "transparent",colour = NA))}else{transparent_background = NULL}
   print(ggplot2::last_plot()) 
-  #print(last_plot() + if(add_title){labs(title=plotname)}else{labs(title="")} + theme(plot.title = element_text(hjust = 0.5)) + theme(text = element_text(size=text_size), legend.position=legend_position, legend.direction = legend_direction, legend.key = element_rect(colour = NA), legend.title=element_blank()) + transparent_background); 
   ggsave(filename=file.path(graphdir,paste0(as.character(gsub("[ |_|-]", "_", plotname)),suffix,".",figure_format)), plot = ggplot2::last_plot() + if(add_title){labs(title=plotname)}else{labs(title="")} + theme(text = element_text(size=text_size), legend.position=legend_position, legend.direction = legend_direction, legend.key = element_rect(colour = NA), legend.title=element_blank()), width=width, height=height, bg = "transparent", device = plot_device)
-  if(!is.null(plotdata)){write.xlsx(subset(plotdata), file = file.path(graphdir,paste0(as.character(gsub("[ |_|-]", "_", plotname, suffix)),".xlsx")))}
+  if(!is.null(plotdata) & write_plotdata_csv){write.xlsx(subset(plotdata), file = file.path(graphdir,paste0(as.character(gsub("[ |_|-]", "_", plotname, suffix)),".xlsx")))}
 }
 
 

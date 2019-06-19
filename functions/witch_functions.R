@@ -26,6 +26,7 @@ theme_set(theme_bw())
 show_numbers_2100 = FALSE
 ssp_grid = FALSE
 legend_position="bottom"    # "none", "bottom", or "right"
+write_plotdata_csv = F #if true, saves data of plot as csv file
 
 varlist_combine_old_new_j <- c("Q_EN", "K_EN", "I_EN", "Q_IN")  #variables for which to combine old and new j technologies
 
@@ -52,10 +53,6 @@ print("Scenarios actually used:")
 filelist <- filelist[scenplot_global_order]
 scenlist <- scenlist[scenplot_global_order]
 print(scenlist)
-
-#create directory for graphs
-if (!dir.exists(graphdir)){dir.create(graphdir)} 
-if(file.exists(paste(graphdir, "all_figures.pdf", sep=""))){(file.remove(paste(graphdir, "all_figures.pdf", sep="")))}
 
 #get time or stochastic mapping
 get_witch_simple("t") 

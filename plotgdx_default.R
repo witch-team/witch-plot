@@ -85,8 +85,6 @@ witchmap(impact_map_data, file_report=scenlist[2], t_report=t_map, mapcolor="Red
 
 #Export multiple variables as time series panel dataset "witch_dataset_long.csv"
 #write_witch_data_csv(c("l", "ykali"), years = seq(1960, 2100, 20))
-#Export full ISO3 dataset (based on "build" folder)
-#write_witch_historical_iso3_dataset()
 
 
 

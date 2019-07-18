@@ -11,6 +11,7 @@ shinyServer(function(input, output, session) {
 
     #some global flags
     verbose = FALSE
+    save_plot = FALSE
     
     #get list of variables
     regions <- unique(iiasadb_snapshot$REGION)
@@ -25,6 +26,46 @@ shinyServer(function(input, output, session) {
     scen3 = unlist(unique(purrr::map(scenarios_list, 3)))
     scen4 = unlist(unique(purrr::map(scenarios_list, 4)))
     
+
+    #Get historical data
+    region_id <- "r5"
+    gdxhistname <- list.files(path=file.path(witch_folder, paste0("data_", region_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
+    gdxhist <- gdx(gdxhistname)
+    iamc_hist_match <- "iamc_name, hist_param_name, setid, setelement, conversion
+    Primary Energy, tpes_valid_weo, na, na, 0.0036 
+    Emissions|CO2, q_emi_valid_primap, e, co2, 3667
+    Final Energy, q_fen_valid_weo, sec, , 0.0036
+    "
+    iamc_hist_match <- fread(iamc_hist_match)
+    #function to get historical data in IIASADB format
+    get_historical_iiasadb <- function(variable) {
+      if(variable %in% iamc_hist_match$iamc_name){
+        item <- iamc_hist_match[iamc_name==variable]$hist_param_name 
+        .hist <- gdxhist[item]
+        #get set dependency based on /build/ folder
+        .gdxiso3 <- gdx(file.path(witch_folder, "input", "build", basename(gdxhistname))); 
+        colnames(.hist) <- c(colnames(.gdxiso3[item[1]]))	
+        #in built global data have set "global", but in input folder it gets converted to iso3, so:
+        colnames(.hist) <- gsub("global", "iso3", colnames(.hist)) #add "World" if no country level data but global
+        if(!("iso3" %in% colnames(.hist))){.hist$n = "World"}else{colnames(.hist) <- gsub("iso3", "n", colnames(.hist))}
+        #subsetting and set selection
+        if(iamc_hist_match[iamc_name==variable]$setid!="na" & iamc_hist_match[iamc_name==variable]$setid!="all") {
+          .hist <- .hist %>% filter(get(iamc_hist_match[iamc_name==variable]$setid)==iamc_hist_match[iamc_name==variable]$setelement)
+          .hist <- .hist %>% group_by(n, year) %>% dplyr::summarize(value=sum(value)) %>% ungroup() #always take the sum over all other set elements
+        }
+        if(iamc_hist_match[iamc_name==variable]$setid=="all") .hist <- .hist %>% group_by(n, year) %>% dplyr::summarize(value=sum(value)) %>% ungroup()
+        #Unit conversion
+        .hist <- .hist %>% mutate(value=value*iamc_hist_match[iamc_name==variable]$conversion)
+        #adjusting region names
+        .hist <- .hist %>% mutate(REGION = toupper(gsub("r5", "R5.2", n))) %>% select(-n)
+        #add global values
+        .hist_World <- .hist %>% group_by(year) %>% summarize(value=sum(value)) %>% mutate(REGION="World")
+        .hist <- rbind(.hist, .hist_World)
+        #creating same data format as iiasadb
+        .hist <- .hist %>% mutate(VARIABLE=variable, UNIT="historical", SCENARIO="historical", MODEL="historical", year=as.integer(year)) %>% rename(YEAR=year)
+        return(.hist)
+      }else{return(data.frame())}
+    }
 
     
     #Scenario selector
@@ -81,7 +122,9 @@ shinyServer(function(input, output, session) {
       allfilesdata <- data.table::melt(allfilesdata, id.vars = c("VARIABLE", "UNIT", "REGION", "SCENARIO", "MODEL"), variable.name = "YEAR")
       allfilesdata$YEAR <- as.integer(as.character(allfilesdata$YEAR))
       unitplot <- unique(allfilesdata$UNIT)[1]
-      
+      #add historical data
+      allfilesdata <- rbind(allfilesdata, get_historical_iiasadb(variable))
+
       #get input from sliders/buttons
       yearmin = input$yearmin
       yearmax = input$yearmax
@@ -99,8 +142,8 @@ shinyServer(function(input, output, session) {
       scenarios_selected <- str_subset(scenarios_selected, paste(scen4, collapse = "|"))
       
       #select scenarios
-      allfilesdata <- subset(allfilesdata, SCENARIO %in% scenarios_selected)
-      allfilesdata <- subset(allfilesdata, MODEL %in% models_selected)
+      allfilesdata <- subset(allfilesdata, SCENARIO %in% c(scenarios_selected, "historical"))
+      allfilesdata <- subset(allfilesdata, MODEL %in% c(models_selected, "historical"))
       
       #time frame
       allfilesdata <- subset(allfilesdata, YEAR>=yearmin & YEAR<=yearmax)
@@ -110,28 +153,20 @@ shinyServer(function(input, output, session) {
        if(is.null(regions)) regions <- "World"
       
       if(regions[1]=="World" | length(regions)==1){#if only World is displayed or only one region, show files with colors
-        p <- ggplot(subset(allfilesdata, REGION %in% regions),aes(YEAR,value,colour=MODEL, linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax)
+        p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=MODEL, linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax)
+        p <- p + geom_line(data=subset(allfilesdata, REGION %in% regions & SCENARIO=="historical"), aes(YEAR,value), stat="identity", size=1.0, colour = "black")
         if(ylim_zero) p <- p + ylim(0, NA)
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
-      }else{
-        p <- ggplot(subset(allfilesdata, REGION %in% regions),aes(YEAR,value,colour=interaction(REGION, MODEL), linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax) + facet_grid(. ~ REGION)
-        #p <- p + geom_line(data=subset(allfilesdata, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=n, linetype=file), stat="identity", size=1.0)
+       }else{
+        p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=interaction(REGION, MODEL), linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax) + facet_grid(. ~ REGION)
+        p <- p + geom_line(data=subset(allfilesdata, REGION %in% regions & SCENARIO=="historical"), aes(YEAR,value,colour=REGION), stat="identity", size=1.0)
+        if(ylim_zero) p <- p + ylim(0, NA)
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 2), linetype=guide_legend(title=NULL))
-        
       }
       print(p + labs(title=variable))
-      
-      react <- reactiveValues(saveplotdata = 0)
-      observeEvent(input$button_saveplotdata, {
-        react$saveplotdata <- 1
-        #showModal(modalDialog(str_glue("Graph and CSV data stored in {graphdir}.")))
-        plotdata <- subset(allfilesdata, REGION %in% regions)
-        plotdata$VARIABLE <- NULL; plotdata$UNIT <- NULL
-        if(nrow(plotdata)>0) plotdata <- dcast(plotdata, formula = REGION + SCENARIO + MODEL  ~ YEAR)
-        saveplot(variable, plotdata = plotdata)
-      })  
+      if(save_plot) saveplot(variable)
       })
     
     

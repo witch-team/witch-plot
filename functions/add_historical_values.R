@@ -26,10 +26,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     if(verbose) print(paste0("Historical values added for '", varname, "'."))
     item <- grep(paste(paste0("^", tolower(varname), valid_suffix), collapse = '|'), .gdx$parameters$name, value = TRUE) #use grep with ^ to have them start by varname
     for(.item in item){.hist_single <- as.data.table(.gdx[.item]); .hist_single$file <- gsub(paste0(tolower(varname), "_"), "", .item); if(.item==item[1]){.hist <- .hist_single}else{.hist <- rbind(.hist,.hist_single)} } 
-    #.hist <- as.data.table(.gdx[item]) 
-    #get set dependency based on WITCH variable
-    #colnames(.hist) <- setdiff(colnames(variable), c("file", "pathdir"))
-    #better: get it from /build/!!!
+    #get set dependency based on /build/ folder
     .gdxiso3 <- gdx(file.path(witch_folder, "input", "build", basename(.gdxname))); 
     colnames(.hist) <- c(colnames(.gdxiso3[item[1]]), "file")	
     #in built global data have set "global", but in input folder it gets converted to iso3, so:

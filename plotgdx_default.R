@@ -5,10 +5,11 @@ main_directory <- witch_folder # by default, the witch source folder
 #main_directory <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/EIEE/WITCH_CODING/WITCH_RUNS_2018/submission_cdlinks/2019_04_15"
 subdir = c("") #can be multiple directories
 
-
+restrict_files = c("results_") #to all scenarios matching partly one or more of its arguments
 removepattern = c("results_", "_calib") 
 restrict_files = c("results_") #"."
 exclude_files = c("db_", "all_data_temp_")
+removepattern = c("results_", "_calib") 
 
 yearmin = 1980
 yearmax = 2100
@@ -58,11 +59,11 @@ get_witch_variable("Q_OUT", "Oil_Extraction", "f", "oil", aggregation = "regiona
 
 #Special Plots:
 #Special focus regions to report for
-regions_focus <- c("china")
+regions_focus <- c("World")
 
 Energy_Trade(fuelplot = "oil")
-Primary_Energy_Mix(PES_y = "value", regions = regions_focus, years = seq(1990, 2050, 5), plot_type = "area")
-Electricity_Mix(Electricity_y = "value", regions = regions_focus, years = seq(1990, 2050, 5), plot_type = "area")
+Primary_Energy_Mix(PES_y = "value", regions = regions_focus, years = seq(1990, 2100, 5), plot_type = "area")
+Electricity_Mix(Electricity_y = "value", regions = regions_focus, years = seq(1990, 2100, 5), plot_type = "area")
 
 Intensity_Plot(years = c(2050,2100), regions="World", year0=2010, scenplot = scenlist)
 Global_Emissions_Stacked(scenario = scenlist[1])

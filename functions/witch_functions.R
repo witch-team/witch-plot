@@ -40,7 +40,13 @@ source('functions/auxiliary_functions.R')
 source('functions/witch_load_and_plot.R')
 
 filelist = gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
-filelist = filelist[apply(outer(filelist, restrict_files, str_detect), 1, all)]
+if(restrict_files[1]!="") {
+  for(i in 1:length(restrict_files)){
+    .filelist_res = filelist[apply(outer(filelist, restrict_files[i], str_detect), 1, all)]
+    if(i==1) .filelist_res_all <- .filelist_res else .filelist_res_all <- c(.filelist_res_all, .filelist_res)
+  }
+  filelist <- unique(.filelist_res_all)
+}
 filelist = filelist[!str_detect(filelist, paste(exclude_files, collapse = '|'))]
 if(length(filelist)==0){stop("No GDX files found.")}
 if(!exists("scenlist")){scenlist <- gsub(paste(removepattern, collapse="|"), "", filelist)}

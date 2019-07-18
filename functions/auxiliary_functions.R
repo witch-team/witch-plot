@@ -223,6 +223,7 @@ default_meta_param <- function(){
   ren_share,mean
   temp_valid_hadcrut4,mean
   ctax,mean
+  carbonprice,mean
   CPRICE,mean
   FPRICE,mean
   " -> defmap

@@ -61,7 +61,8 @@ Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(20
     ssp_grid_old=ssp_grid; assign("ssp_grid", FALSE, envir = .GlobalEnv) 
     get_witch_simple("Q_IN"); Q_IN_el <- Q_IN %>% mutate(value=value * 0.0036)
     get_witch_simple("csi"); csi_el <- csi %>% rename(csi=value)
-    JFED <- merge(Q_IN, csi_el, by = c("t", "n", "file", "pathdir", "fuel", "jfed"), all=TRUE)
+    JFED <- merge(Q_IN_el, csi_el, by = c("t", "n", "file", "pathdir", "fuel", "jfed"), all=TRUE)
+    JFED <- JFED %>% filter(jfed %in% c("eloil", "elpb", "elpc", "elgastr", "elbigcc", "elcigcc", "elgasccs", "elpc_ccs", "elpc_oxy"))
     #take efficiency for EL into account
     #add csi for historical (seems to be 1!)
     JFED$csi[is.na(JFED$csi) & JFED$jfed=="elpc"] <- 0.45
@@ -74,10 +75,10 @@ Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(20
     JFED$fuel <- NULL
     setnames(JFED, "jfed", "j")
     get_witch_simple("Q_EN"); Q_EN_pes <- Q_EN %>% mutate(value=value*0.0036)
-    Q_EN_pes <- subset(Q_EN_pes, j %in% c("elpv", "elcsp", "elnuclear", "elnuclear", "elwind", "elhydro", "elhydro"))
+    Q_EN_pes <- subset(Q_EN_pes, j %in% c("elpv", "elcsp", "elnuclear", "elwind", "elhydro"))
     ELEC <- rbind(Q_EN_pes, JFED)
     ELEC[is.na(ELEC)] <- 0 #get rid of NAs to avoid sums not being correct, mainly from historical data!
-    #aggregate sub-categories
+    #aggregate sub-categories1
     ELEC$category[ELEC$j %in% c("elnuclear")] = "Nuclear"
     ELEC$category[ELEC$j %in% c("elpv", "elcsp")] = "Solar"
     ELEC$category[ELEC$j %in% c("elhydro")] = "Hydro"
@@ -95,14 +96,14 @@ Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(20
     Electricity_Categories <- c("Coal w/o CCS", "Coal w/ CCS", "Gas w/o CCS", "Gas w/ CCS", "Oil", "Nuclear", "Biomass w/o CCS", "Biomass w/ CCS", "Hydro", "Wind", "Solar")
     ELEC <- ELEC[order(match(ELEC$category,Electricity_Categories)),]
     ELEC$j <- NULL
-    ELEC <- ELEC[, lapply(.SD, sum), by=c("t", "file", "pathdir", "n", "category")]
+    ELEC <- ELEC %>% group_by(t,n,file,pathdir,category) %>% summarize(value=sum(value)) %>% as.data.frame()
     if(regions[1]=="World"){
-      ELEC$n <- NULL; ELEC <- ELEC[, lapply(.SD, sum), by=c("t", "file", "pathdir", "category")]; ELEC$n <- "World"
+      ELEC <- ELEC %>% group_by(t,file,pathdir,category) %>% summarize(value=sum(value)) %>% mutate(n="World") %>% as.data.frame()
     }else{
       ELEC <- subset(ELEC, n %in% regions)
     }
     assign("ELEC_MIX",ELEC,envir = .GlobalEnv)
-    if(Electricity_y=="share"){ELEC <- ddply(ELEC, c("t", "file", "n", "pathdir"), transform, value=value/(sum(value))*100)}
+    if(Electricity_y=="share"){ELEC <- plyr::ddply(ELEC, c("t", "file", "n", "pathdir"), transform, value=value/(sum(value))*100)}
     p <- ggplot(data=subset(ELEC, ttoyear(t) %in% years  & file %in% scenplot))
     p <- p + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom")
     if(plot_type=="area"){

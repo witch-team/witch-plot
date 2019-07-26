@@ -2,12 +2,13 @@
 iiasadb_file <-  "V:\\WITCH\\IIASADB snapshots\\SSP_IAM_World_5Regs_2017-01-23.csv.zip"
 #CD-LINKS database
 #iiasadb_file <-  "V:\\WITCH\\IIASADB snapshots\\cdlinks_compare_20190531-122548.csv.zip"
-#Effor tsharing
+#iiasadb_file <-  "C:\\Users\\Emmerling\\Documents\\Dropbox (CMCC)\\EIEE\\Happiness\\iiasadb\\cdlinks_compare_20180615-153808.csv.zip"
+#Effort Sharing
 #iiasadb_file <-  "V:\\WITCH\\IIASADB snapshots\\cdlinks_effort_sharing_compare_20190604-191132.csv.zip"
 # Define server 
 shinyServer(function(input, output, session) {
     # IIASADB snapshot file to read
-    iiasadb_snapshot <- fread(cmd=paste0('unzip -cq "', file.path(iiasadb_file),'" ', gsub(".zip","",basename(file.path(iiasadb_file)))), header=T, quote="\"", sep=",", check.names = FALSE)
+    if(!exists("iiasadb_snapshot"))iiasadb_snapshot <- fread(cmd=paste0('unzip -cq "', file.path(iiasadb_file),'" ', gsub(".zip","",basename(file.path(iiasadb_file)))), header=T, quote="\"", sep=",", check.names = FALSE)
 
     #some global flags
     verbose = FALSE
@@ -28,9 +29,9 @@ shinyServer(function(input, output, session) {
     
 
     #Get historical data
-    region_id <- "r5"
-    gdxhistname <- list.files(path=file.path(witch_folder, paste0("data_", region_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
-    gdxhist <- gdx(gdxhistname)
+    region_id <- c("r5", "limits10", "cdlinksg20")
+    gdxhistnames <- list.files(path=file.path(witch_folder, paste0("data_", region_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
+    gdxhistnames <- gdxhistnames[file.exists(gdxhistnames)]
     iamc_hist_match <- "iamc_name, hist_param_name, setid, setelement, conversion
     Primary Energy, tpes_valid_weo, na, na, 0.0036 
     Emissions|CO2, q_emi_valid_primap, e, co2, 3667
@@ -41,26 +42,37 @@ shinyServer(function(input, output, session) {
     get_historical_iiasadb <- function(variable) {
       if(variable %in% iamc_hist_match$iamc_name){
         item <- iamc_hist_match[iamc_name==variable]$hist_param_name 
-        .hist <- gdxhist[item]
-        #get set dependency based on /build/ folder
-        .gdxiso3 <- gdx(file.path(witch_folder, "input", "build", basename(gdxhistname))); 
-        colnames(.hist) <- c(colnames(.gdxiso3[item[1]]))	
-        #in built global data have set "global", but in input folder it gets converted to iso3, so:
-        colnames(.hist) <- gsub("global", "iso3", colnames(.hist)) #add "World" if no country level data but global
-        if(!("iso3" %in% colnames(.hist))){.hist$n = "World"}else{colnames(.hist) <- gsub("iso3", "n", colnames(.hist))}
-        #subsetting and set selection
-        if(iamc_hist_match[iamc_name==variable]$setid!="na" & iamc_hist_match[iamc_name==variable]$setid!="all") {
-          .hist <- .hist %>% filter(get(iamc_hist_match[iamc_name==variable]$setid)==iamc_hist_match[iamc_name==variable]$setelement)
-          .hist <- .hist %>% group_by(n, year) %>% dplyr::summarize(value=sum(value)) %>% ungroup() #always take the sum over all other set elements
+        for(.file in gdxhistnames){
+          gdxhist <- gdx(.file)
+          .hist <- gdxhist[item]
+          #get set dependency based on /build/ folder
+          .gdxiso3 <- gdx(file.path(witch_folder, "input", "build", basename(.file))); 
+          colnames(.hist) <- c(colnames(.gdxiso3[item[1]]))	
+          #in built global data have set "global", but in input folder it gets converted to iso3, so:
+          colnames(.hist) <- gsub("global", "iso3", colnames(.hist)) #add "World" if no country level data but global
+          if(!("iso3" %in% colnames(.hist))){.hist$n = "World"}else{colnames(.hist) <- gsub("iso3", "n", colnames(.hist))}
+          #subsetting and set selection
+          if(iamc_hist_match[iamc_name==variable]$setid!="na" & iamc_hist_match[iamc_name==variable]$setid!="all") {
+            .hist <- .hist %>% filter(get(iamc_hist_match[iamc_name==variable]$setid)==iamc_hist_match[iamc_name==variable]$setelement)
+            .hist <- .hist %>% group_by(n, year) %>% dplyr::summarize(value=sum(value)) %>% ungroup() #always take the sum over all other set elements
+          }
+          if(iamc_hist_match[iamc_name==variable]$setid=="all") .hist <- .hist %>% group_by(n, year) %>% dplyr::summarize(value=sum(value)) %>% ungroup()
+          if(.file==gdxhistnames[1]){
+            #add global values
+            .hist_World <- .hist %>% group_by(year) %>% summarize(value=sum(value)) %>% mutate(n="World")
+            .hist <- rbind(.hist, .hist_World)
+            .hist_all <- .hist
+          }else{
+              .hist_all <- rbind(.hist_all, .hist)
+          }
         }
-        if(iamc_hist_match[iamc_name==variable]$setid=="all") .hist <- .hist %>% group_by(n, year) %>% dplyr::summarize(value=sum(value)) %>% ungroup()
+        .hist <- .hist_all
         #Unit conversion
         .hist <- .hist %>% mutate(value=value*iamc_hist_match[iamc_name==variable]$conversion)
         #adjusting region names
-        .hist <- .hist %>% mutate(REGION = toupper(gsub("r5", "R5.2", n))) %>% select(-n)
-        #add global values
-        .hist_World <- .hist %>% group_by(year) %>% summarize(value=sum(value)) %>% mutate(REGION="World")
-        .hist <- rbind(.hist, .hist_World)
+        .hist <- .hist %>% mutate(REGION = ifelse(n=="World", "World", toupper(n))) %>% select(-n)
+        if(any(str_detect(regions, "R5.2"))) .hist <- .hist %>% mutate(REGION = gsub("R5", "R5.2", REGION))
+        .hist <- .hist %>% filter(REGION %in% regions)
         #creating same data format as iiasadb
         .hist <- .hist %>% mutate(VARIABLE=variable, UNIT="historical", SCENARIO="historical", MODEL="historical", year=as.integer(year)) %>% rename(YEAR=year)
         return(.hist)

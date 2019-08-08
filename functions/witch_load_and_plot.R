@@ -47,7 +47,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
       if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot, check_calibration=check_calibration, verbose=F)}
       # also save as data.table
       allfilesdata <- as.data.table(allfilesdata)
-      allfilesdata$t <- as.numeric(allfilesdata$t)
+      if(!any(str_detect(allfilesdata$t, "_"))) allfilesdata$t <- as.numeric(allfilesdata$t)
       if(results=="assign") assign(variable_name,allfilesdata,envir = .GlobalEnv)
       if(results=="return") return(allfilesdata)
     }else{print(str_glue("Element {variable_name} not found in any GDX file."))}

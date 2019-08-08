@@ -2,11 +2,16 @@
 
 
 
-witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scale_min=0, scale_max=0, mapcolor="Reds", map_name="map", map_legend="Legend", plot_witch_regions=FALSE, add_region_names=FALSE, add_bars=FALSE){
+witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scale_min=0, scale_max=0, mapcolor="Reds", map_name="map", map_legend="Legend", plot_witch_regions=FALSE, add_region_names=FALSE, add_bars=FALSE, figure_format = "png"){
   #Palettes: Diverging: BrBG, PiYG, PRGn, PuOr, RdBu, RdGy, RdYlBu, RdYlGn, Spectral
   #Palettes: Qualitative: Accent, Dark2, Paired, Pastel1, Pastel2, Set1, Set2, Set3
   #Palettes: Sequential: Blues, BuGn, BuPu, GnBu, Greens, Greys, Oranges, OrRd, PuBu, PuBuGn, PuRd, Purples, RdPu, Reds, YlGn, YlGnBu, YlOrBr, YlOrRd
-  savemap <- function(plotname){ggsave(filename=file.path(graphdir,paste0(gsub(" ", "_", as.character(plotname)),"_map.png")), plot = last_plot(), width=14, height=6)}
+  savemap <- function(plotname, figure_format = "png"){
+    if(figure_format=="pdf"){plot_device=cairo_pdf}else{plot_device=figure_format}
+    if (!dir.exists(graphdir)){dir.create(graphdir)}
+    print(ggplot2::last_plot()) 
+    ggsave(filename=file.path(graphdir,paste0(gsub(" ", "_", as.character(plotname)),"_map.", figure_format)), plot = ggplot2::last_plot(), width=14, height=7, device = plot_device)
+  }
   # Get World data
   Nations <- data.table(map_data("world"))
   Nations <- Nations[region != "Antarctica"]
@@ -69,7 +74,7 @@ witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scal
   if(add_region_names){p <- p + geom_text(data=region_centers, aes(long, lat, label = n), size=4)}
   #limit to Europe:   coord_cartesian(xlim = c(-10,33), ylim = c(36,73)) +
   print(p)
-  savemap(map_name)
+  savemap(map_name, figure_format = figure_format)
   }
   
   #Map of WITCH regional mapping:
@@ -82,10 +87,10 @@ witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scal
   theme(axis.line=element_blank(), axis.text.x=element_blank(), axis.text.y=element_blank(),axis.ticks=element_blank(),
   axis.title.x=element_blank(),axis.title.y=element_blank(), panel.grid.major=element_blank(),plot.background=element_blank(), panel.grid.minor=element_blank()) +
   scale_fill_manual(values = region_palette)
-  #Add centers
-  p <- p + theme(legend.position = "none")
+  if(add_region_names){p <- p + geom_text(data=region_centers, aes(long, lat, label = n), size=4)}
+  #p <- p + theme(legend.position = "none")
   print(p)
-  savemap(map_name)  
+  savemap(map_name, figure_format = figure_format)  
   print("Region centers and distances:")
   assign("region_centers", region_centers, envir = .GlobalEnv)
   assign("region_distances", as.matrix(CalcDists(region_centers)), envir = .GlobalEnv)

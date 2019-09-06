@@ -36,6 +36,8 @@ shinyServer(function(input, output, session) {
     Primary Energy, tpes_valid_weo, na, na, 0.0036 
     Emissions|CO2, q_emi_valid_primap, e, co2, 3667
     Final Energy, q_fen_valid_weo, sec, , 0.0036
+    Population, l_valid_weo, na, na, 1
+    GDP|MER, ykali_valid_weo, na, na, 1e3
     "
     iamc_hist_match <- fread(iamc_hist_match)
     #function to get historical data in IIASADB format
@@ -191,6 +193,8 @@ shinyServer(function(input, output, session) {
     # MAIN CODE FOR PLOT GENERATION  
     output$iiasadb_compaRly <- renderPlotly({
       ylim_zero <- input$ylim_zero
+      button_writecsv <- input$button_writecsv
+      button_saveplot <- input$button_saveplot
       variable <- input$variable_selected
       if(is.null(variable)) variable <- variables[1]
       #get data
@@ -201,6 +205,8 @@ shinyServer(function(input, output, session) {
       allfilesdata <- data.table::melt(allfilesdata, id.vars = c("VARIABLE", "UNIT", "REGION", "SCENARIO", "MODEL"), variable.name = "YEAR")
       allfilesdata$YEAR <- as.integer(as.character(allfilesdata$YEAR))
       unitplot <- unique(allfilesdata$UNIT)[1]
+      #add historical data
+      allfilesdata <- rbind(allfilesdata, get_historical_iiasadb(variable))
       
       #get input from sliders/buttons
       yearmin = input$yearmin
@@ -219,8 +225,8 @@ shinyServer(function(input, output, session) {
       scenarios_selected <- str_subset(scenarios_selected, paste(scen4, collapse = "|"))
       
       #select scenarios
-      allfilesdata <- subset(allfilesdata, SCENARIO %in% scenarios_selected)
-      allfilesdata <- subset(allfilesdata, MODEL %in% models_selected)
+      allfilesdata <- subset(allfilesdata, SCENARIO %in% c(scenarios_selected, "historical"))
+      allfilesdata <- subset(allfilesdata, MODEL %in% c(models_selected, "historical"))
       
       #time frame
       allfilesdata <- subset(allfilesdata, YEAR>=yearmin & YEAR<=yearmax)
@@ -230,16 +236,17 @@ shinyServer(function(input, output, session) {
       if(is.null(regions)) regions <- "World"
       
       if(regions[1]=="World" | length(regions)==1){#if only World is displayed or only one region, show files with colors
-        p <- ggplot(subset(allfilesdata, REGION %in% regions),aes(YEAR,value,colour=MODEL, linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax)
+        p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=MODEL, linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax)
+        p <- p + geom_line(data=subset(allfilesdata, REGION %in% regions & SCENARIO=="historical"), aes(YEAR,value), stat="identity", size=1.0, colour = "black")
         if(ylim_zero) p <- p + ylim(0, NA)
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
       }else{
-        p <- ggplot(subset(allfilesdata, REGION %in% regions),aes(YEAR,value,colour=interaction(REGION, MODEL), linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax) + facet_grid(. ~ REGION)
-        #p <- p + geom_line(data=subset(allfilesdata, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=n, linetype=file), stat="identity", size=1.0)
+        p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=interaction(REGION, MODEL), linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax) + facet_grid(. ~ REGION)
+        p <- p + geom_line(data=subset(allfilesdata, REGION %in% regions & SCENARIO=="historical"), aes(YEAR,value,colour=REGION), stat="identity", size=1.0)
+        if(ylim_zero) p <- p + ylim(0, NA)
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 2), linetype=guide_legend(title=NULL))
-        
       }
       p_dyn <- p + theme(legend.position = "none") + labs(title=variable)
       print(p_dyn)

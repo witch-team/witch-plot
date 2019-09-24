@@ -5,7 +5,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   display_years = "model"#historical" #"model" #"historical"
 
   valid_suffix <- "_valid"
-  if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"} #for CO2IND emission
+  #if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"}
   if(varname=="quantiles"){valid_suffix <- "_valid_swiid"} #for quantiles
   if(varname=="K_EN"){valid_suffix <- c("_valid_platts_tot", "_valid_irena", "_valid_iaea", "_valid_gcpt")} #for quantiles, set it to 
   

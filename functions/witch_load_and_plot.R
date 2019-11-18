@@ -1,5 +1,5 @@
 # Load GDX of all scenarios and basic pre-processing 
-get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=F, field = "l"){
+get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=T, field = "l"){
   if(!exists(variable_name) | (variable_name %in% c("t", "n", "p", "I")) | force_reload){
     if(exists("allfilesdata")){rm(allfilesdata)}
     variable_name_save=as.character(gsub("_", " ", variable_name_save))
@@ -49,7 +49,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
       allfilesdata <- as.data.table(allfilesdata)
       #in case separate file to more meaningful columns
       if(exists("file_separate")) allfilesdata <- filetosep(allfilesdata, type = file_separate[1], sep = file_separate[2], names = file_separate[-c(1,2)])
-      if(!any(str_detect(allfilesdata$t, "_"))) allfilesdata$t <- as.numeric(allfilesdata$t)
+      if(("t" %in% names(allfilesdata)) & (!any(str_detect(allfilesdata$t, "_")))) allfilesdata$t <- as.numeric(allfilesdata$t)
       if(results=="assign") assign(variable_name,allfilesdata,envir = .GlobalEnv)
       if(results=="return") return(allfilesdata)
     }else{print(str_glue("Element {variable_name} not found in any GDX file."))}

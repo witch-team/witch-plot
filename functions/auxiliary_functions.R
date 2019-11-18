@@ -52,7 +52,7 @@ filetosep <- function(df, type = "separate", names = "file_new", sep = "_"){
   #type: separate or just last; name = name of the new column(s)
   if(type == "separate") {
     numsep = max(str_count(unique(df$file), pattern = sep))
-    if(names=="file_new") name <- paste0("f",seq(numsep))
+    if(names[1]=="file_new") name <- paste0("f",seq(numsep))
     df <- df %>% mutate(file_new=file) %>% separate(file_new, names, sep = sep)
   }
   if (type == "last") {df$fx <- word(df$file,-1,sep = paste0("\\",sep)); setnames(df, "fx", names)}

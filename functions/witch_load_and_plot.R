@@ -1,5 +1,5 @@
 # Load GDX of all scenarios and basic pre-processing 
-get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=F, field = "l"){
+get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=F, field = "l", postprocesssuffix=NULL){
   if(!exists(variable_name) | (variable_name %in% c("t", "n", "p", "I")) | force_reload){
     if(exists("allfilesdata")){rm(allfilesdata)}
     variable_name_save=as.character(gsub("_", " ", variable_name_save))
@@ -7,6 +7,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
       for (file in filelist){
         if(file.exists(file.path(current_pathdir, paste0(file,".gdx")))){
           mygdx <- gdx(file.path(current_pathdir, paste0(file,".gdx")))
+          if(!is.null(postprocesssuffix)) mygdx <- gdx(file.path(current_pathdir, paste0(paste0(file, "_", postprocesssuffix),".gdx")))
           if(is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$parameters) | is.element(variable_name, all_items(mygdx)$sets) | is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$equations))
           {
             tempdata <- data.table(mygdx[variable_name, field = field])

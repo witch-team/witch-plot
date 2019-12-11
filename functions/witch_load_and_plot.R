@@ -1,5 +1,5 @@
 # Load GDX of all scenarios and basic pre-processing 
-get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=F, field = "l", postprocesssuffix=NULL){
+get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=T, field = "l", postprocesssuffix=NULL){
   if(!exists(variable_name) | (variable_name %in% c("t", "n", "p", "I")) | force_reload){
     if(exists("allfilesdata")){rm(allfilesdata)}
     variable_name_save=as.character(gsub("_", " ", variable_name_save))
@@ -48,7 +48,9 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
       if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot, check_calibration=check_calibration, verbose=F)}
       # also save as data.table
       allfilesdata <- as.data.table(allfilesdata)
-      if(!any(str_detect(allfilesdata$t, "_"))) allfilesdata$t <- as.numeric(allfilesdata$t)
+      #in case separate file to more meaningful columns
+      if(exists("file_separate")) allfilesdata <- filetosep(allfilesdata, type = file_separate[1], sep = file_separate[2], names = file_separate[-c(1,2)])
+      if(("t" %in% names(allfilesdata)) & (!any(str_detect(allfilesdata$t, "_")))) allfilesdata$t <- as.numeric(allfilesdata$t)
       if(results=="assign") assign(variable_name,allfilesdata,envir = .GlobalEnv)
       if(results=="return") return(allfilesdata)
     }else{print(str_glue("Element {variable_name} not found in any GDX file."))}
@@ -213,7 +215,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
         allfilesdata$n <- NULL
         if(additional_set!="na"){allfilesdata[[additional_set]] <- as.factor(allfilesdata[[additional_set]])}
         if(bar_setvalues[1] != ""){allfilesdata[[additional_set]] <- reorder.factor(allfilesdata[[additional_set]], new.order=bar_setvalues)}   #to keep order from setlist in function call
-        if(bar_y=="share"){if(length(fullpathdir)!=1){allfilesdata <- ddply(allfilesdata, c("t", "file", "pathdir"), transform, value=value/(sum(value))*100)}else{allfilesdata <- ddply(allfilesdata, c("t", "file"), transform, value=value/(sum(value))*100)}}
+        if(bar_y=="share"){if(length(fullpathdir)!=1){allfilesdata <- plyr::ddply(allfilesdata, c("t", "file", "pathdir"), transform, value=value/(sum(value))*100)}else{allfilesdata <- plyr::ddply(allfilesdata, c("t", "file"), transform, value=value/(sum(value))*100)}}
         if(str_detect(bar_x, "time")){
           if(!is.na(destring(bar_x))){allfilesdata <- subset(allfilesdata, t==yeartot(destring(bar_x)))}
           p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, fill=get(additional_set))) + geom_bar(stat="identity") + xlab("year") + facet_grid( ~ file) + guides(fill=guide_legend(title=NULL)) 
@@ -225,7 +227,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       }
       if(bar=="region"){
         allfilesdata[["n"]] <- reorder.factor(allfilesdata[["n"]], new.order=regions)   #to keep order from setlist in function call
-        if(bar_y=="share"){if(length(fullpathdir)!=1){allfilesdata <- ddply(allfilesdata, c("t", "file", "pathdir"), transform, value=value/(sum(value))*100)}else{allfilesdata <- ddply(allfilesdata, c("t", "file"), transform, value=value/(sum(value))*100)}}
+        if(bar_y=="share"){if(length(fullpathdir)!=1){allfilesdata <- plyr::ddply(allfilesdata, c("t", "file", "pathdir"), transform, value=value/(sum(value))*100)}else{allfilesdata <- plyr::ddply(allfilesdata, c("t", "file"), transform, value=value/(sum(value))*100)}}
         if(str_detect(bar_x, "time")){
           if(!is.na(destring(bar_x))){allfilesdata <- subset(allfilesdata, t==yeartot(destring(bar_x)))}
           p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, fill=n)) + geom_bar(stat="identity") + xlab("year") + facet_grid( ~ file) + guides(fill=guide_legend(title=NULL)) + scale_fill_manual(values=region_palette)

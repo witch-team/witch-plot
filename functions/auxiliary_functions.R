@@ -48,6 +48,18 @@ saveplot <- function(plotname, width=7, height=5, text_size=10, plotdata=NULL, s
 }
 
 
+filetosep <- function(df, type = "separate", names = "file_new", sep = "_"){
+  #type: separate or just last; name = name of the new column(s)
+  if(type == "separate") {
+    numsep = max(str_count(unique(df$file), pattern = sep))
+    if(names[1]=="file_new") name <- paste0("f",seq(numsep))
+    df <- df %>% mutate(file_new=file) %>% separate(file_new, names, sep = sep)
+  }
+  if (type == "last") {df$fx <- word(df$file,-1,sep = paste0("\\",sep)); setnames(df, "fx", names)}
+  if (type == "first") {df$fx <- word(df$file,1,sep = paste0("\\",sep)); setnames(df, "fx", names)}
+  return(df)
+}
+
 
 ssptriple <- function(df) #Function converts a single "file" columns to three with SSP, RCP, SPA
 {

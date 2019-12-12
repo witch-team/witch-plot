@@ -29,7 +29,7 @@ Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(2005, 2
       TPES <- subset(TPES, n %in% regions)
     }
     assign("PES_MIX",TPES,envir = .GlobalEnv)
-    if(PES_y=="share"){TPES <- ddply(TPES, c("t", "file", "n", "pathdir"), transform, value=value/(sum(value))*100)}
+    if(PES_y=="share"){TPES <- plyr::ddply(TPES, c("t", "file", "n", "pathdir"), transform, value=value/(sum(value))*100)}
     p <- ggplot(data=subset(TPES, ttoyear(t) %in% years & file %in% scenplot))
     if(plot_type=="area"){
       p <- p + geom_area(aes(ttoyear(t),value, fill=category), stat="identity") + scale_fill_manual(values=c("green", "black", "blue", "chocolate2", "red", "brown", "yellow", "gold1"))

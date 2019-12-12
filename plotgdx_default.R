@@ -14,6 +14,8 @@ removepattern = c("results_", "_calib")
 yearmin = 1980
 yearmax = 2100
 
+#If you want to have significant separations or parts of file names, specify file_separate <- c(type="first|last|separate", sep="_", names="c("file_new"))
+#file_separate <- c("last", "_", c("specification"))
 #Name scenarios (otherwise it takes gdx filename)
 #scenlist <- c("REF", "INDC_2C", "INDC_2C_TRADE", "INDC", "INDC_TRADE", "OPT_2C")
 #Select which scenarios are used,potentially change the order, by default, all scenarios are used

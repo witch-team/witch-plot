@@ -154,7 +154,7 @@ DAM_DECOMP_NPV$"SRM costs" = 100*DAM_DECOMP_NPV$"SRM costs"/DAM_DECOMP_NPV$bau
 DAM_DECOMP_NPV$"bau" <- NULL
 DAM_DECOMP_NPV <- melt(DAM_DECOMP_NPV, id.vars = c("n", "file", "pathdir"))
 #add totals for labels
-DAM_DECOMP_NPV <- ddply(DAM_DECOMP_NPV, .(file, n), transform, total = cumsum(value))
+DAM_DECOMP_NPV <- plyr::ddply(DAM_DECOMP_NPV, .(file, n), transform, total = cumsum(value))
 assign("DAM_DECOMP_NPV", DAM_DECOMP_NPV, envir = .GlobalEnv)
 #Plot
 #dodged just to see negative values

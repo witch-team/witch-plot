@@ -269,8 +269,8 @@ shinyServer(function(input, output, session) {
         p_dyn <- p_dyn + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
       }else{
         p_dyn <- ggplot(subset(allfilesdata, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
-        p_dyn <- p_dyn + geom_line(data=subset(allfilesdata, n %in% regions & str_detect(file, "historical")),aes(ttoyear(t), value,colour=n, group=interaction(n, file)), linetype = "solid", stat="identity", size=1.0)
-        p_dyn <- p_dyn + geom_point(data=subset(allfilesdata, n %in% regions & str_detect(file, "valid")),aes(year, value, colour=n, shape=file), size=4.0)
+        p_dyn <- p_dyn + geom_line(data=subset(allfilesdata, n %in% regions & str_detect(file, "historical")),aes(ttoyear(t),value,colour=n), linetype = "solid", stat="identity", size=1.0)
+        p_dyn <- p_dyn + geom_point(data=subset(allfilesdata, n %in% regions & str_detect(file, "valid")),aes(year,value, shape=file), size=4.0)
         #legends:
         p_dyn <- p_dyn + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 2), linetype=guide_legend(title=NULL))
       }

@@ -154,7 +154,7 @@ Mitigation_Decomposition <- function(regions=witch_regions, scenario_stringency_
   for(s in seq(2,length(scenario_stringency_order))){
     bau = scenario_stringency_order[s-1]
     mitscen = scenario_stringency_order[s]
-    .lmdi <- ddply(kaya_rearranged, c("pathdir", "n", "t"), .fun=lmdi_apply)
+    .lmdi <- plyr::ddply(kaya_rearranged, c("pathdir", "n", "t"), .fun=lmdi_apply)
     colnames(.lmdi) <- c("pathdir", "n", "t", "POP", "GDP", "EN_EFF", "EN_MIX")
     .lmdi$file <- mitscen
     .lmdi <- melt(.lmdi, id.vars = c("pathdir", "n", "t", "file"), variable.name = "source")

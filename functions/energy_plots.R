@@ -22,9 +22,9 @@ Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(2005, 2
     PES_Categories <- c("Oil", "Coal", "Natural Gas", "Nuclear", "Biomass", "Hydro", "Wind", "Solar")
     TPES <- TPES[order(match(TPES$category,PES_Categories)),]
     TPES$j <- NULL
-    TPES <- as.data.table(TPES)[, lapply(.SD, sum), by=c("t", "file", "pathdir", "n", "category")]
+    TPES <- as.data.table(TPES)[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir", "n", "category")]
     if(regions[1]=="World"){
-      TPES$n <- NULL; TPES <- TPES[, lapply(.SD, sum), by=c("t", "file", "pathdir", "category")]; TPES$n <- "World"
+      TPES$n <- NULL; TPES <- TPES[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir", "category")]; TPES$n <- "World"
     }else{
       TPES <- subset(TPES, n %in% regions)
     }
@@ -133,7 +133,7 @@ Energy_Trade <- function(fuelplot="oil", scenplot=scenlist, add_value=F){
   NET_EXPORT <- merge(NET_EXPORT, Q_FUEL_trade, by = c("t", "n", "file", "pathdir"))
   setnames(NET_EXPORT, "value", "Consumption")
   get_witch_simple("FPRICE"); FPRICE_trade <- FPRICE %>% filter(fuel==fuelplot) %>% select(-fuel, -n) %>% rename(energy_price=value)
-  NET_EXPORT <- merge(NET_EXPORT, FPRICE_trade, by = c("t", "file", "pathdir"), all.x = TRUE)
+  NET_EXPORT <- merge(NET_EXPORT, FPRICE_trade, by = c("t", file_group_columns, "pathdir"), all.x = TRUE)
   #volume in EJ, prices in $/GJ, value in billion USD
   NET_EXPORT$Net_Export_Volume <- (NET_EXPORT$Extraction - NET_EXPORT$Consumption) * 0.0036
   NET_EXPORT$Net_Export_Value <- ((NET_EXPORT$Extraction - NET_EXPORT$Consumption) * NET_EXPORT$energy_price) * 1e3

@@ -21,7 +21,7 @@ Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", re
   GDP$pathdir <- as.factor(GDP$pathdir)
   GDP$file <- as.factor(GDP$file)
   GDP_WORLD <- GDP; GDP_WORLD$n <- NULL
-  GDP_WORLD <- GDP_WORLD[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
+  GDP_WORLD <- GDP_WORLD[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir")]
   GDP_WORLD$n <- "World"
   GDP <- rbind(GDP, GDP_WORLD)
   GDP$t <- as.numeric(GDP$t)
@@ -129,7 +129,7 @@ DAM_DECOMP$pathdir <- as.factor(DAM_DECOMP$pathdir)
 DAM_DECOMP$file <- as.factor(DAM_DECOMP$file)
 DAM_DECOMP <- as.data.table(DAM_DECOMP)
 DAM_DECOMP_WORLD <- DAM_DECOMP; DAM_DECOMP_WORLD$n <- NULL
-DAM_DECOMP_WORLD <- DAM_DECOMP_WORLD[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
+DAM_DECOMP_WORLD <- DAM_DECOMP_WORLD[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir")]
 DAM_DECOMP_WORLD$n <- "World"
 DAM_DECOMP <- rbind(DAM_DECOMP, DAM_DECOMP_WORLD)
 assign("DAM_DECOMP", DAM_DECOMP, envir = .GlobalEnv)

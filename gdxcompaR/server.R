@@ -51,7 +51,7 @@ shinyServer(function(input, output, session) {
       allfilesdata <- get(variable)
 
       #get the name of the additional set
-      additional_sets <- setdiff(colnames(allfilesdata), c("file", "pathdir", "t", "n", "value"))
+      additional_sets <- setdiff(colnames(allfilesdata), c(file_group_columns, "pathdir", "t", "n", "value"))
       #extract additional set elements
       if(length(additional_sets)==0){additional_set_id="na"; set_elements = "na"; additional_set_id2="na"; set_elements2 = "na"}
       else if(length(additional_sets)==1)
@@ -119,19 +119,29 @@ shinyServer(function(input, output, session) {
        #time frame
       allfilesdata <- subset(allfilesdata, ttoyear(t)>=yearmin & ttoyear(t)<=yearmax)
       #clean data
-      allfilesdata <- allfilesdata[!is.na(allfilesdata$value)]
+      #allfilesdata <- allfilesdata[!is.na(allfilesdata$value)]
+      allfilesdata <- allfilesdata %>% filter(!is.na(value))
       
       #Computation of World/glboal sum/average
       #now based on meta param to guess max, mean, sum
       if(nrow(allfilesdata)>0){
-      if(variable %in% default_meta_param()$parameter){find_aggregation = default_meta_param()[parameter==variable & type=="nagg"]$value}else{find_aggregation="sum"}
-      allfilesdata_global <- aggregate(value~t+file+pathdir, data=allfilesdata, find_aggregation)
+        allfilesdata_global <- allfilesdata
+        allfilesdata_global$n <- NULL
+        if(variable %in% default_meta_param()$parameter){
+          if(default_meta_param()[parameter==variable & type=="nagg"]$value=="sum"){
+            allfilesdata_global <- as.data.table(allfilesdata_global)[, lapply(.SD, sum), by=setdiff(names(allfilesdata_global), "value")]
+            }else if(default_meta_param()[parameter==variable & type=="nagg"]$value=="mean"){
+              allfilesdata_global <- as.data.table(allfilesdata_global)[, lapply(.SD, sum), by=setdiff(names(allfilesdata_global), "value")]
+            }else{
+            allfilesdata_global <- as.data.table(allfilesdata_global)[, lapply(.SD, mean), by=setdiff(names(allfilesdata_global), "value")]
+            }
+        }
       allfilesdata_global$n <- "World"
-      allfilesdata <- rbind(allfilesdata, allfilesdata_global[,c("t","n","value","file", "pathdir")])
+      allfilesdata <- rbind(allfilesdata, allfilesdata_global[,c("t","n","value",file_group_columns, "pathdir")])
       }
       
       #scenarios, potentially add stochastic scenarios to show
-      allfilesdata <- subset(allfilesdata, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)")) | str_detect(file, "historical") | str_detect(file, "valid"))
+      #allfilesdata <- subset(allfilesdata, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)")) | str_detect(file, "historical") | str_detect(file, "valid"))
     
       #Unit conversion
       unit_conversion <- unit_conversion(variable)
@@ -173,7 +183,7 @@ shinyServer(function(input, output, session) {
       allfilesdata <- get(variable)
       
       #get the name of the additional set
-      additional_sets <- setdiff(colnames(allfilesdata), c("file", "pathdir", "t", "n", "value"))
+      additional_sets <- setdiff(colnames(allfilesdata), c(file_group_columns, "pathdir", "t", "n", "value"))
       #extract additional set elements
       if(length(additional_sets)==0){additional_set_id="na"; set_elements = "na"; additional_set_id2="na"; set_elements2 = "na"}
       else if(length(additional_sets)==1)
@@ -249,7 +259,7 @@ shinyServer(function(input, output, session) {
         if(variable %in% default_meta_param()$parameter){find_aggregation = default_meta_param()[parameter==variable & type=="nagg"]$value}else{find_aggregation="sum"}
         allfilesdata_global <- aggregate(value~t+file+pathdir, data=allfilesdata, find_aggregation)
         allfilesdata_global$n <- "World"
-        allfilesdata <- rbind(allfilesdata, allfilesdata_global[,c("t","n","value","file", "pathdir")])
+        allfilesdata <- rbind(allfilesdata, allfilesdata_global[,c("t","n","value",file_group_columns, "pathdir")])
       }
       assign("allfilesdata", allfilesdata, envir = .GlobalEnv)
       #scenarios, potentially add stochastic scenarios to show

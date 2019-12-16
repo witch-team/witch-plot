@@ -178,7 +178,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
     if (aggregation == "global_mean")
     {
       allfilesdata$n <- NULL      
-      if(length(fullpathdir)>=1){allfilesdata <- allfilesdata[, lapply(.SD, mean), by=c("t", "file", "pathdir")]}
+      if(length(fullpathdir)>=1){allfilesdata <- allfilesdata[, lapply(.SD, mean), by=c("t", file_group_columns, "pathdir")]}
       else{allfilesdata <- allfilesdata[, lapply(.SD, mean), by=c("t", "file")]}
       if(ssp_grid){allfilesdata <- ssptriple(allfilesdata); line_colour = "rcp"; line_type="spa"}
       p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, colour=get(line_colour), linetype=get(line_type))) + geom_line(stat="identity", size=line_size) + xlab("year") +ylab(unit_conversion$unit) + labs(linetype=line_type, colour=line_colour)
@@ -215,7 +215,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
         allfilesdata$n <- NULL
         if(additional_set!="na"){allfilesdata[[additional_set]] <- as.factor(allfilesdata[[additional_set]])}
         if(bar_setvalues[1] != ""){allfilesdata[[additional_set]] <- reorder.factor(allfilesdata[[additional_set]], new.order=bar_setvalues)}   #to keep order from setlist in function call
-        if(bar_y=="share"){if(length(fullpathdir)!=1){allfilesdata <- plyr::ddply(allfilesdata, c("t", "file", "pathdir"), transform, value=value/(sum(value))*100)}else{allfilesdata <- plyr::ddply(allfilesdata, c("t", "file"), transform, value=value/(sum(value))*100)}}
+        if(bar_y=="share"){if(length(fullpathdir)!=1){allfilesdata <- plyr::ddply(allfilesdata, c("t", file_group_columns, "pathdir"), transform, value=value/(sum(value))*100)}else{allfilesdata <- plyr::ddply(allfilesdata, c("t", "file"), transform, value=value/(sum(value))*100)}}
         if(str_detect(bar_x, "time")){
           if(!is.na(destring(bar_x))){allfilesdata <- subset(allfilesdata, t==yeartot(destring(bar_x)))}
           p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, fill=get(additional_set))) + geom_bar(stat="identity") + xlab("year") + facet_grid( ~ file) + guides(fill=guide_legend(title=NULL)) 
@@ -227,7 +227,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       }
       if(bar=="region"){
         allfilesdata[["n"]] <- reorder.factor(allfilesdata[["n"]], new.order=regions)   #to keep order from setlist in function call
-        if(bar_y=="share"){if(length(fullpathdir)!=1){allfilesdata <- plyr::ddply(allfilesdata, c("t", "file", "pathdir"), transform, value=value/(sum(value))*100)}else{allfilesdata <- plyr::ddply(allfilesdata, c("t", "file"), transform, value=value/(sum(value))*100)}}
+        if(bar_y=="share"){if(length(fullpathdir)!=1){allfilesdata <- plyr::ddply(allfilesdata, c("t", file_group_columns, "pathdir"), transform, value=value/(sum(value))*100)}else{allfilesdata <- plyr::ddply(allfilesdata, c("t", "file"), transform, value=value/(sum(value))*100)}}
         if(str_detect(bar_x, "time")){
           if(!is.na(destring(bar_x))){allfilesdata <- subset(allfilesdata, t==yeartot(destring(bar_x)))}
           p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, fill=n)) + geom_bar(stat="identity") + xlab("year") + facet_grid( ~ file) + guides(fill=guide_legend(title=NULL)) + scale_fill_manual(values=region_palette)

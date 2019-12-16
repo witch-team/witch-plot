@@ -8,10 +8,10 @@ Intensity_Plot <- function(years=c(2050, 2100), regions="World", year0=2010, sce
   get_witch_simple("tpes"); tpes_IP <- tpes %>% mutate(value=value*0.0036) %>% rename(PES=value)
   get_witch_simple("Q_EMI"); Q_EMI_IP <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2") %>% select(-e) %>% rename(CO2=value)
   get_witch_simple("Q"); Q_IP <- Q %>% mutate(value=value*1e3) %>% filter(iq=="y") %>% select(-iq) %>% rename(GDP=value)
-  Intensity <- merge(tpes_IP, Q_EMI_IP, by=c("t", "file", "pathdir", "n"))
-  Intensity <- merge(Intensity, Q_IP, by=c("t", "file", "pathdir", "n"))
+  Intensity <- merge(tpes_IP, Q_EMI_IP, by=c("t", file_group_columns, "pathdir", "n"))
+  Intensity <- merge(Intensity, Q_IP, by=c("t", file_group_columns, "pathdir", "n"))
   Intensity_World <- Intensity; Intensity_World$n <- NULL
-  Intensity_World <- as.data.table(Intensity_World)[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
+  Intensity_World <- as.data.table(Intensity_World)[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir")]
   Intensity_World$n <- "World"
   Intensity <- rbind(Intensity, Intensity_World)
   Intensity <- subset(Intensity, n %in% regions)
@@ -103,7 +103,7 @@ Global_Emissions_Stacked <- function(regions=witch_regions, scenario, plotname="
   #for now only CO2 with hist!
   get_witch_simple("Q_EMI"); ALL_EMI <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2ffi") %>% select(-e)
   ALL_REST_WOLD <- ALL_EMI %>% filter(!(n %in% regions)) %>% select(-n) %>% group_by(t, file, pathdir) %>% summarize(value=sum(value)) %>% mutate(n="Rest_of_World") %>% as.data.frame()
-  #ALL_REST_WOLD <- subset(ALL_EMI, !(n %in% regions))[, lapply(.SD, sum), by=c("t", "file", "pathdir")]
+  #ALL_REST_WOLD <- subset(ALL_EMI, !(n %in% regions))[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir")]
   #ALL_REST_WOLD$n <- "Rest_of_World"
   ALL_EMI <- rbind(subset(ALL_EMI, (n %in% regions)), ALL_REST_WOLD)
   regions <- c(regions, "Rest_of_World")

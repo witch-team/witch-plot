@@ -88,7 +88,7 @@ witch_regional_line_plot <- function(data, varname="value", regions="World", sce
 
 
 #get all the WITCH variables
-get_witch_variable <- function(variable_name, variable_name_save=variable_name, additional_set="na", additional_set_id="na", convert=1, unit="", aggregation="regional", cumulative=FALSE, plot=TRUE, bar="", bar_x="time", bar_y="value", bar_setvalues="", bar_colors="", regions=witch_regions, scenplot=scenlist){
+get_witch_variable <- function(variable_name, variable_name_save=variable_name, additional_set="na", additional_set_id="na", convert=1, unit="", aggregation="regional", plot=TRUE, bar="", bar_x="time", bar_y="value", bar_setvalues="", bar_colors="", regions=witch_regions, scenplot=scenlist){
   #aggregation=none: no graph is created no aggregation performed, just loads the element
   #some default values, maybe not even needed to customize
   #removepattern="results_"
@@ -143,15 +143,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
     #if(additional_set!="na"){allfilesdata[[additional_set]] <- as.factor(allfilesdata[[additional_set]])}
     #print(str(allfilesdata)); assign("test",allfilesdata,envir = .GlobalEnv)
     
-    
-    if(cumulative)
-    {
-      allfilesdata <- subset(allfilesdata, round(t) == t & t>=1 ) #to only keep every five years to get right cumulative, if historical data
-      allfilesdata <- allfilesdata[,list(value,t,value_cumulative=cumsum(value)*5-value*5),list(n, file, pathdir)]
-      allfilesdata$value <- allfilesdata$value_cumulative 
-      allfilesdata$value_cumulative <- NULL
-    }
-    
+
     
     
     
@@ -178,8 +170,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
     if (aggregation == "global_mean")
     {
       allfilesdata$n <- NULL      
-      if(length(fullpathdir)>=1){allfilesdata <- allfilesdata[, lapply(.SD, mean), by=c("t", file_group_columns, "pathdir")]}
-      else{allfilesdata <- allfilesdata[, lapply(.SD, mean), by=c("t", "file")]}
+  allfilesdata <- allfilesdata %>% group_by_at(c("pathdir", file_group_columns, "t")) %>% summarize(value=mean(value))
       if(ssp_grid){allfilesdata <- ssptriple(allfilesdata); line_colour = "rcp"; line_type="spa"}
       p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, colour=get(line_colour), linetype=get(line_type))) + geom_line(stat="identity", size=line_size) + xlab("year") +ylab(unit_conversion$unit) + labs(linetype=line_type, colour=line_colour)
       if(show_numbers_2100){p <- p + geom_text(data=subset(allfilesdata, t==20), aes(x=2100, y=value, label=round(value, 2)))}

@@ -61,7 +61,7 @@ scenlist <- scenlist[scenplot_global_order]
 print(scenlist)
 
 #file to separate check
-if(exists(file_separate)) file_group_columns <- c("file", unname(file_separate[3:length(file_separate)])) else file_group_columns <- "file"
+if(exists("file_separate")) file_group_columns <- c("file", unname(file_separate[3:length(file_separate)])) else file_group_columns <- "file"
 
 #get time or stochastic mapping
 get_witch_simple("t") 

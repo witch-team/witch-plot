@@ -18,7 +18,7 @@ Intensity_Plot <- function(years=c(2050, 2100), regions="World", year0=2010, sce
   Intensity$CI=Intensity$CO2/Intensity$PES *1e3 #gCO2/MJ (from GTCO2eq/EJ)
   Intensity$EI=Intensity$PES/Intensity$GDP *1e3 #MJ/$ (from EJ/billion $)
   Intensity_t <- subset(Intensity, t %in% yeartot(c(years, year0)))
-  Intensity_t <- Intensity_t %>% group_by("pathdir", "file", "n") %>% mutate(CI_change=(((CI/CI[t==yeartot(year0)])**(1/(ttoyear(t)-year0)))-1)*100, EI_change=(((EI/EI[t==yeartot(year0)])**(1/(ttoyear(t)-year0)))-1)*100) %>% as.data.frame()
+  Intensity_t <- Intensity_t %>% group_by_at(c("pathdir", file_group_columns, "n")) %>% mutate(CI_change=(((CI/CI[t==yeartot(year0)])**(1/(ttoyear(t)-year0)))-1)*100, EI_change=(((EI/EI[t==yeartot(year0)])**(1/(ttoyear(t)-year0)))-1)*100) %>% as.data.frame()
   Intensity_t <- subset(Intensity_t, file %in% scenplot)
   if(regions[1]=="World"){
     p_imp <- ggplot() + geom_point(data=subset(Intensity_t, ttoyear(t)!=year0+1e3), mapping=aes(x=CI_change, y=EI_change, color=file, shape=as.character(ttoyear(t))), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change")) + ylab(paste0("Energy Intensity Change")) + guides(color=guide_legend(title=NULL), shape=guide_legend(title=NULL)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")
@@ -29,7 +29,7 @@ Intensity_Plot <- function(years=c(2050, 2100), regions="World", year0=2010, sce
     p_imp <- ggplot() + geom_point(data=Intensity_t, mapping=aes(x=CI_change, y=EI_change, colour=n, shape=file), size=6) + geom_hline(size=1,aes(yintercept=-1.1), linetype="dashed") + geom_vline(size=1,aes(xintercept=-0.3), linetype="dashed") + xlab(paste0("Carbon Intensity Change")) + ylab(paste0("Energy Intensity Change")) + guides(color=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")
     p_ciei <- ggplot() + geom_point(data=subset(Intensity_t), mapping=aes(x=CI, y=EI, color=n, shape=file), size=6) + xlab(paste0("Carbon Intensity [gCO2eq/MJ]")) + ylab(paste0("Energy Intensity [MJ/$]")) + guides(color=guide_legend(title=NULL), shape=guide_legend(title=NULL)) + theme(legend.position="bottom", legend.direction = "horizontal", legend.box = "horizontal")
     }
-  if(animate_plot) print(animate(g_ani, nframes = 20, duration = 10, rewind = FALSE))
+  if(animate_plot) print(animate(p_ciei, nframes = 20, duration = 10, rewind = FALSE))
   if(!animate_plot) {
     ggarrange(p_ciei, p_imp, common.legend = T, align="h", legend = "bottom")
     saveplot("CI_EI_plot", add_title = F, width = 10, height = 5)
@@ -101,14 +101,14 @@ Mitigation_Sources <- function(regions=witch_regions, scenario_stringency_order)
 Global_Emissions_Stacked <- function(regions=witch_regions, scenario, plotname="CO2 Emissions Carbon Budget"){
   #add GLOBAL carbon budget for some regions and RoW based on one scenario
   #for now only CO2 with hist!
-  get_witch_simple("Q_EMI"); ALL_EMI <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2ffi") %>% select(-e)
+  get_witch_simple("Q_EMI"); ALL_EMI <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2ffi") %>% select(-e) %>% filter(file==scenario)
   ALL_REST_WOLD <- ALL_EMI %>% filter(!(n %in% regions)) %>% select(-n) %>% group_by(t, file, pathdir) %>% summarize(value=sum(value)) %>% mutate(n="Rest_of_World") %>% as.data.frame()
   #ALL_REST_WOLD <- subset(ALL_EMI, !(n %in% regions))[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir")]
   #ALL_REST_WOLD$n <- "Rest_of_World"
   ALL_EMI <- rbind(subset(ALL_EMI, (n %in% regions)), ALL_REST_WOLD)
   regions <- c(regions, "Rest_of_World")
   setnames(ALL_EMI, "value", "GHG")
-  ggplot(subset(ALL_EMI, n %in% regions & ttoyear(t)<=yearmax & file==scenario),aes(ttoyear(t),GHG,fill=n)) + geom_area(stat="identity") + xlab("year") +ylab("GtCO2") + scale_fill_manual(values = region_palette) + scale_x_continuous(breaks=seq(1990,yearmax,10))
+  ggplot(subset(ALL_EMI, n %in% regions & ttoyear(t)<=yearmax & ttoyear(t) >= 1990),aes(ttoyear(t),GHG,fill=n)) + geom_area(stat="identity") + xlab("year") +ylab("GtCO2") + scale_fill_manual(values = region_palette) + scale_x_continuous(breaks=seq(1990,yearmax,10))
   saveplot(plotname, plotdata=subset(ALL_EMI, n %in% regions & ttoyear(t)<=yearmax & file==scenario))
 }
 

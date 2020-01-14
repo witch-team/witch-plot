@@ -49,7 +49,6 @@ shinyServer(function(input, output, session) {
       get_witch_simple(variable, check_calibration=TRUE)
       if(verbose) print(str_glue("Variable {variable} loaded."))
       allfilesdata <- get(variable)
-
       #get the name of the additional set
       additional_sets <- setdiff(colnames(allfilesdata), c(file_group_columns, "pathdir", "t", "n", "value"))
       #extract additional set elements
@@ -106,14 +105,18 @@ shinyServer(function(input, output, session) {
         allfilesdata[[additional_set_id]] <- tolower(allfilesdata[[additional_set_id]]) # to fix erroneous gams cases (y and Y etc.)
         allfilesdata <- subset(allfilesdata, get(additional_set_id) %in% additional_set_selected)
         allfilesdata[[additional_set_id]] <- NULL #remove additional set column
-        allfilesdata$t <- as.character(allfilesdata$t)
-        if(length(additional_set_selected) >1) allfilesdata <- allfilesdata[, lapply(.SD, sum), by=setdiff(names(allfilesdata), "value")]
+        #allfilesdata$t <- as.character(allfilesdata$t)
+        if(length(additional_set_selected) >1) allfilesdata <- allfilesdata %>% group_by_at(setdiff(names(allfilesdata), "value")) %>% summarize(value=sum(value))#allfilesdata <- allfilesdata[, lapply(.SD, sum), by=setdiff(names(allfilesdata), "value")]
+        
+        #replace by
+        #allfilesdata <- allfilesdata %>% group_by_at(setdiff(names(allfilesdata), "value")) %>% summarize(value=sum(value))
+        
         }
       if(additional_set_id2!="na"){
         allfilesdata[[additional_set_id2]] <- tolower(allfilesdata[[additional_set_id2]]) # to fix erroneous gams cases (y and Y etc.)
         allfilesdata <- subset(allfilesdata, get(additional_set_id2) %in% additional_set_selected2)
         allfilesdata[[additional_set_id2]] <- NULL #remove additional set column
-        if(length(additional_set_selected2) >1) allfilesdata <- allfilesdata[, lapply(.SD, sum), by=setdiff(names(allfilesdata), "value")]
+        if(length(additional_set_selected2) >1) allfilesdata <- allfilesdata %>% group_by_at(setdiff(names(allfilesdata), "value")) %>% summarize(value=sum(value))#allfilesdata <- allfilesdata[, lapply(.SD, sum), by=setdiff(names(allfilesdata), "value")]
       }
      
        #time frame
@@ -143,20 +146,21 @@ shinyServer(function(input, output, session) {
       #scenarios, potentially add stochastic scenarios to show
       #allfilesdata <- subset(allfilesdata, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)")) | str_detect(file, "historical") | str_detect(file, "valid"))
     
+      #allfilesdata$value <- as.numeric(allfilesdata$value)
       #Unit conversion
-      unit_conversion <- unit_conversion(variable)
-      allfilesdata$value <- allfilesdata$value * unit_conversion$convert   
+      unit_conv <- unit_conversion(variable)
+      allfilesdata$value <- allfilesdata$value * unit_conv$convert   
       allfilesdata$year <- ttoyear(allfilesdata$t)
       
       if(regions[1]=="World" | length(regions)==1){#if only World is displayed or only one region, show files with colors
-        p <- ggplot(subset(allfilesdata, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + xlim(yearmin,yearmax)
+        p <- ggplot(subset(allfilesdata, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conv$unit) + xlim(yearmin,yearmax)
         if(ylim_zero) p <- p + ylim(0, NA)
         p <- p + geom_line(data=subset(allfilesdata, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", size=1.0, linetype="solid")
         p <- p + geom_point(data=subset(allfilesdata, n %in% regions & str_detect(file, "valid")),aes(year,value,colour=file), size=4.0, shape=18)
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
       }else{
-        p <- ggplot(subset(allfilesdata, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
+        p <- ggplot(subset(allfilesdata, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conv$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
         p <- p + geom_line(data=subset(allfilesdata, n %in% regions & str_detect(file, "historical")),aes(year, value, colour=n, group=interaction(n, file)), linetype = "solid", stat="identity", size=1.0)
         p <- p + geom_point(data=subset(allfilesdata, n %in% regions & str_detect(file, "valid")),aes(year, value, colour=n, shape=file), size=4.0)
         #legends:
@@ -251,6 +255,7 @@ shinyServer(function(input, output, session) {
       #time frame
       allfilesdata <- subset(allfilesdata, ttoyear(t)>=yearmin & ttoyear(t)<=yearmax)
       #clean data
+      allfilesdata$value <- as.numeric(allfilesdata$value)
       allfilesdata <- allfilesdata[!is.na(allfilesdata$value)]
       
       #Computation of World/glboal sum/average
@@ -265,20 +270,22 @@ shinyServer(function(input, output, session) {
       #scenarios, potentially add stochastic scenarios to show
       allfilesdata <- subset(allfilesdata, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)")) | str_detect(file, "historical") | str_detect(file, "valid"))
       
+      allfilesdata$value <- as.numeric(allfilesdata$value)
+      
       #Unit conversion
-      unit_conversion <- unit_conversion(variable)
-      allfilesdata$value <- allfilesdata$value * unit_conversion$convert
+      unit_conv <- unit_conversion(variable)
+      allfilesdata$value <- allfilesdata$value * unit_conv$convert
       allfilesdata$year <- ttoyear(allfilesdata$t)
       
       if(regions[1]=="World" | length(regions)==1){#if only World is displayed or only one region, show files with colors
-        p_dyn <- ggplot(subset(allfilesdata, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + xlim(yearmin,yearmax)
+        p_dyn <- ggplot(subset(allfilesdata, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conv$unit) + xlim(yearmin,yearmax)
         if(ylim_zero) p_dyn <- p_dyn + ylim(0, NA)
         p_dyn <- p_dyn + geom_line(data=subset(allfilesdata, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", size=1.0, linetype="solid")
         p_dyn <- p_dyn + geom_point(data=subset(allfilesdata, n %in% regions & str_detect(file, "valid")),aes(year,value,colour=file), size=4.0, shape=18)
         #legends:
         p_dyn <- p_dyn + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
       }else{
-        p_dyn <- ggplot(subset(allfilesdata, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conversion$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
+        p_dyn <- ggplot(subset(allfilesdata, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conv$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
         p_dyn <- p_dyn + geom_line(data=subset(allfilesdata, n %in% regions & str_detect(file, "historical")),aes(ttoyear(t),value,colour=n), linetype = "solid", stat="identity", size=1.0)
         p_dyn <- p_dyn + geom_point(data=subset(allfilesdata, n %in% regions & str_detect(file, "valid")),aes(year,value, shape=file), size=4.0)
         #legends:

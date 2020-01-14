@@ -50,6 +50,12 @@ saveplot <- function(plotname, width=7, height=5, text_size=10, plotdata=NULL, s
 
 filetosep <- function(df, type = "separate", names = "file_new", sep = "_"){
   #type: separate or just last; name = name of the new column(s)
+  # for historical or cvalidation, instead turn to NA
+  df_hist <- df %>% filter(str_detect(file, "valid|historical"))
+  if(nrow(df_hist)>0){
+    for(n in names) df_hist[n] <- NA
+    df <- df %>% filter(!str_detect(file, "valid|historical"))
+  }
   if(type == "separate") {
     numsep = max(str_count(unique(df$file), pattern = sep))
     if(names[1]=="file_new") name <- paste0("f",seq(numsep))
@@ -57,6 +63,7 @@ filetosep <- function(df, type = "separate", names = "file_new", sep = "_"){
   }
   if (type == "last") {df$fx <- word(df$file,-1,sep = paste0("\\",sep)); setnames(df, "fx", names)}
   if (type == "first") {df$fx <- word(df$file,1,sep = paste0("\\",sep)); setnames(df, "fx", names)}
+  if(nrow(df_hist)>0) df <- rbind(df, df_hist)
   return(df)
 }
 

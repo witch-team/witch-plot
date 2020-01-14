@@ -1,7 +1,7 @@
 # Load GDX of all scenarios and basic pre-processing 
 get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=T, field = "l", postprocesssuffix=NULL){
   if(!exists(variable_name) | (variable_name %in% c("t", "n", "p", "I")) | force_reload){
-    if(exists("allfilesdata")){rm(allfilesdata)}
+    if(exists("allfilesdata", envir = .GlobalEnv)){rm(allfilesdata, envir = .GlobalEnv)}
     variable_name_save=as.character(gsub("_", " ", variable_name_save))
     for (current_pathdir in fullpathdir){
       for (file in filelist){
@@ -13,7 +13,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
             tempdata <- data.table(mygdx[variable_name, field = field])
             tempdata$file <- as.character(file)
             if(length(fullpathdir)>=1){tempdata$pathdir <- basename(current_pathdir)}
-            if(!exists("allfilesdata")){allfilesdata=tempdata}else{allfilesdata <-rbind(allfilesdata,tempdata)}
+            if(!exists("allfilesdata")){allfilesdata<-tempdata}else{allfilesdata <-rbind(allfilesdata,tempdata)}
             remove(tempdata)
           }
         }

@@ -46,25 +46,25 @@ shinyServer(function(input, output, session) {
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
       #get data
-      get_witch_simple(variable, check_calibration=TRUE)
+      afd <- get_witch_simple(variable, check_calibration=TRUE, results = "return")
       if(verbose) print(str_glue("Variable {variable} loaded."))
-      allfilesdata <- get(variable)
+      #afd <- get(variable)
       #get the name of the additional set
-      additional_sets <- setdiff(colnames(allfilesdata), c(file_group_columns, "pathdir", "t", "n", "value"))
+      additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))
       #extract additional set elements
       if(length(additional_sets)==0){additional_set_id="na"; set_elements = "na"; additional_set_id2="na"; set_elements2 = "na"}
       else if(length(additional_sets)==1)
       {
         additional_set_id <- additional_sets[1]
-        set_elements <- unique(tolower(as.data.frame(allfilesdata)[, match(additional_set_id, colnames(allfilesdata))]))
+        set_elements <- unique(tolower(as.data.frame(afd)[, match(additional_set_id, colnames(afd))]))
         additional_set_id2="na"; set_elements2 = "na"
       }
       else if(length(additional_sets)==2)
       {
         additional_set_id <- additional_sets[1]
-        set_elements <- unique(tolower(as.data.frame(allfilesdata)[, match(additional_set_id, colnames(allfilesdata))]))
+        set_elements <- unique(tolower(as.data.frame(afd)[, match(additional_set_id, colnames(afd))]))
         additional_set_id2 <- additional_sets[2] 
-        set_elements2 <- unique(tolower(as.data.frame(allfilesdata)[, match(additional_set_id2, colnames(allfilesdata))]))
+        set_elements2 <- unique(tolower(as.data.frame(afd)[, match(additional_set_id2, colnames(afd))]))
       }
 
       #Selector for additional set
@@ -102,67 +102,61 @@ shinyServer(function(input, output, session) {
       # SUBSET data and PLOT
       #choose additional selected element
       if(additional_set_id!="na"){
-        allfilesdata[[additional_set_id]] <- tolower(allfilesdata[[additional_set_id]]) # to fix erroneous gams cases (y and Y etc.)
-        allfilesdata <- subset(allfilesdata, get(additional_set_id) %in% additional_set_selected)
-        allfilesdata[[additional_set_id]] <- NULL #remove additional set column
-        #allfilesdata$t <- as.character(allfilesdata$t)
-        if(length(additional_set_selected) >1) allfilesdata <- allfilesdata %>% group_by_at(setdiff(names(allfilesdata), "value")) %>% summarize(value=sum(value))#allfilesdata <- allfilesdata[, lapply(.SD, sum), by=setdiff(names(allfilesdata), "value")]
-        
-        #replace by
-        #allfilesdata <- allfilesdata %>% group_by_at(setdiff(names(allfilesdata), "value")) %>% summarize(value=sum(value))
-        
+        afd[[additional_set_id]] <- tolower(afd[[additional_set_id]]) # to fix erroneous gams cases (y and Y etc.)
+        afd <- subset(afd, get(additional_set_id) %in% additional_set_selected)
+        afd[[additional_set_id]] <- NULL #remove additional set column
+        #afd$t <- as.character(afd$t)
+        if(length(additional_set_selected) >1) afd <- afd %>% group_by_at(setdiff(names(afd), "value")) %>% summarize(value=sum(value))
         }
       if(additional_set_id2!="na"){
-        allfilesdata[[additional_set_id2]] <- tolower(allfilesdata[[additional_set_id2]]) # to fix erroneous gams cases (y and Y etc.)
-        allfilesdata <- subset(allfilesdata, get(additional_set_id2) %in% additional_set_selected2)
-        allfilesdata[[additional_set_id2]] <- NULL #remove additional set column
-        if(length(additional_set_selected2) >1) allfilesdata <- allfilesdata %>% group_by_at(setdiff(names(allfilesdata), "value")) %>% summarize(value=sum(value))#allfilesdata <- allfilesdata[, lapply(.SD, sum), by=setdiff(names(allfilesdata), "value")]
+        afd[[additional_set_id2]] <- tolower(afd[[additional_set_id2]]) # to fix erroneous gams cases (y and Y etc.)
+        afd <- subset(afd, get(additional_set_id2) %in% additional_set_selected2)
+        afd[[additional_set_id2]] <- NULL #remove additional set column
+        if(length(additional_set_selected2) >1) afd <- afd %>% group_by_at(setdiff(names(afd), "value")) %>% summarize(value=sum(value))
       }
      
-       #time frame
-      allfilesdata <- subset(allfilesdata, ttoyear(t)>=yearmin & ttoyear(t)<=yearmax)
+      #time frame
+      afd <- subset(afd, ttoyear(t)>=yearmin & ttoyear(t)<=yearmax)
       #clean data
-      #allfilesdata <- allfilesdata[!is.na(allfilesdata$value)]
-      allfilesdata <- allfilesdata %>% filter(!is.na(value))
+      afd <- afd %>% filter(!is.na(value))
       
       #Computation of World/glboal sum/average
       #now based on meta param to guess max, mean, sum
-      if(nrow(allfilesdata)>0){
-        allfilesdata_global <- allfilesdata
-        allfilesdata_global$n <- NULL
+      if(nrow(afd)>0){
+        afd_global <- afd
+        afd_global$n <- NULL
         if(variable %in% default_meta_param()$parameter){
           if(default_meta_param()[parameter==variable & type=="nagg"]$value=="sum"){
-            allfilesdata_global <- as.data.table(allfilesdata_global)[, lapply(.SD, sum), by=setdiff(names(allfilesdata_global), "value")]
+            afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value))
             }else if(default_meta_param()[parameter==variable & type=="nagg"]$value=="mean"){
-              allfilesdata_global <- as.data.table(allfilesdata_global)[, lapply(.SD, sum), by=setdiff(names(allfilesdata_global), "value")]
+              afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=mean(value))
             }else{
-            allfilesdata_global <- as.data.table(allfilesdata_global)[, lapply(.SD, mean), by=setdiff(names(allfilesdata_global), "value")]
+              afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value))
             }
         }
-      allfilesdata_global$n <- "World"
-      allfilesdata <- rbind(allfilesdata, allfilesdata_global[,c("t","n","value",file_group_columns, "pathdir")])
+      afd_global <- afd_global %>% mutate(n = "World") %>% as.data.frame()
+      afd <- rbind(afd, afd_global[,c("t","n","value",file_group_columns, "pathdir")])
       }
       
       #scenarios, potentially add stochastic scenarios to show
-      #allfilesdata <- subset(allfilesdata, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)")) | str_detect(file, "historical") | str_detect(file, "valid"))
+      #afd <- subset(afd, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)")) | str_detect(file, "historical") | str_detect(file, "valid"))
     
-      #allfilesdata$value <- as.numeric(allfilesdata$value)
       #Unit conversion
       unit_conv <- unit_conversion(variable)
-      allfilesdata$value <- allfilesdata$value * unit_conv$convert   
-      allfilesdata$year <- ttoyear(allfilesdata$t)
+      afd$value <- afd$value * unit_conv$convert   
+      afd$year <- ttoyear(afd$t)
       
       if(regions[1]=="World" | length(regions)==1){#if only World is displayed or only one region, show files with colors
-        p <- ggplot(subset(allfilesdata, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conv$unit) + xlim(yearmin,yearmax)
+        p <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conv$unit) + xlim(yearmin,yearmax)
         if(ylim_zero) p <- p + ylim(0, NA)
-        p <- p + geom_line(data=subset(allfilesdata, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", size=1.0, linetype="solid")
-        p <- p + geom_point(data=subset(allfilesdata, n %in% regions & str_detect(file, "valid")),aes(year,value,colour=file), size=4.0, shape=18)
+        p <- p + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", size=1.0, linetype="solid")
+        p <- p + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year,value,colour=file), size=4.0, shape=18)
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
       }else{
-        p <- ggplot(subset(allfilesdata, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conv$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
-        p <- p + geom_line(data=subset(allfilesdata, n %in% regions & str_detect(file, "historical")),aes(year, value, colour=n, group=interaction(n, file)), linetype = "solid", stat="identity", size=1.0)
-        p <- p + geom_point(data=subset(allfilesdata, n %in% regions & str_detect(file, "valid")),aes(year, value, colour=n, shape=file), size=4.0)
+        p <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conv$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
+        p <- p + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year, value, colour=n, group=interaction(n, file)), linetype = "solid", stat="identity", size=1.0)
+        p <- p + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year, value, colour=n, shape=file), size=4.0)
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 2), linetype=guide_legend(title=NULL))
         
@@ -184,24 +178,24 @@ shinyServer(function(input, output, session) {
       #get data
       get_witch_simple(variable, check_calibration=TRUE)
       if(verbose) print(str_glue("Variable {variable} loaded."))
-      allfilesdata <- get(variable)
+      afd <- get(variable)
       
       #get the name of the additional set
-      additional_sets <- setdiff(colnames(allfilesdata), c(file_group_columns, "pathdir", "t", "n", "value"))
+      additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))
       #extract additional set elements
       if(length(additional_sets)==0){additional_set_id="na"; set_elements = "na"; additional_set_id2="na"; set_elements2 = "na"}
       else if(length(additional_sets)==1)
       {
         additional_set_id <- additional_sets[1]
-        set_elements <- unique(tolower(as.data.frame(allfilesdata)[, match(additional_set_id, colnames(allfilesdata))]))
+        set_elements <- unique(tolower(as.data.frame(afd)[, match(additional_set_id, colnames(afd))]))
         additional_set_id2="na"; set_elements2 = "na"
       }
       else if(length(additional_sets)==2)
       {
         additional_set_id <- additional_sets[1]
-        set_elements <- unique(tolower(as.data.frame(allfilesdata)[, match(additional_set_id, colnames(allfilesdata))]))
+        set_elements <- unique(tolower(as.data.frame(afd)[, match(additional_set_id, colnames(afd))]))
         additional_set_id2 <- additional_sets[2] 
-        set_elements2 <- unique(tolower(as.data.frame(allfilesdata)[, match(additional_set_id2, colnames(allfilesdata))]))
+        set_elements2 <- unique(tolower(as.data.frame(afd)[, match(additional_set_id2, colnames(afd))]))
       }
       
       #Selector for additional set
@@ -239,55 +233,61 @@ shinyServer(function(input, output, session) {
       # SUBSET data and PLOT
       #choose additional selected element
       if(additional_set_id!="na"){
-        allfilesdata[[additional_set_id]] <- tolower(allfilesdata[[additional_set_id]]) # to fix erroneous gams cases (y and Y etc.)
-        allfilesdata <- subset(allfilesdata, get(additional_set_id) %in% additional_set_selected)
-        allfilesdata[[additional_set_id]] <- NULL #remove additional set column
-        allfilesdata$t <- as.character(allfilesdata$t)
-        if(length(additional_set_selected) >1) allfilesdata <- allfilesdata[, lapply(.SD, sum), by=setdiff(names(allfilesdata), "value")]
+        afd[[additional_set_id]] <- tolower(afd[[additional_set_id]]) # to fix erroneous gams cases (y and Y etc.)
+        afd <- subset(afd, get(additional_set_id) %in% additional_set_selected)
+        afd[[additional_set_id]] <- NULL #remove additional set column
+        #afd$t <- as.character(afd$t)
+        if(length(additional_set_selected) >1) afd <- afd %>% group_by_at(setdiff(names(afd), "value")) %>% summarize(value=sum(value))
       }
       if(additional_set_id2!="na"){
-        allfilesdata[[additional_set_id2]] <- tolower(allfilesdata[[additional_set_id2]]) # to fix erroneous gams cases (y and Y etc.)
-        allfilesdata <- subset(allfilesdata, get(additional_set_id2) %in% additional_set_selected2)
-        allfilesdata[[additional_set_id2]] <- NULL #remove additional set column
-        if(length(additional_set_selected2) >1) allfilesdata <- allfilesdata[, lapply(.SD, sum), by=setdiff(names(allfilesdata), "value")]
+        afd[[additional_set_id2]] <- tolower(afd[[additional_set_id2]]) # to fix erroneous gams cases (y and Y etc.)
+        afd <- subset(afd, get(additional_set_id2) %in% additional_set_selected2)
+        afd[[additional_set_id2]] <- NULL #remove additional set column
+        if(length(additional_set_selected2) >1) afd <- afd %>% group_by_at(setdiff(names(afd), "value")) %>% summarize(value=sum(value))
       }
       
       #time frame
-      allfilesdata <- subset(allfilesdata, ttoyear(t)>=yearmin & ttoyear(t)<=yearmax)
+      afd <- subset(afd, ttoyear(t)>=yearmin & ttoyear(t)<=yearmax)
       #clean data
-      allfilesdata$value <- as.numeric(allfilesdata$value)
-      allfilesdata <- allfilesdata[!is.na(allfilesdata$value)]
+      afd <- afd %>% filter(!is.na(value))
       
       #Computation of World/glboal sum/average
       #now based on meta param to guess max, mean, sum
-      if(nrow(allfilesdata)>0){
-        if(variable %in% default_meta_param()$parameter){find_aggregation = default_meta_param()[parameter==variable & type=="nagg"]$value}else{find_aggregation="sum"}
-        allfilesdata_global <- aggregate(value~t+file+pathdir, data=allfilesdata, find_aggregation)
-        allfilesdata_global$n <- "World"
-        allfilesdata <- rbind(allfilesdata, allfilesdata_global[,c("t","n","value",file_group_columns, "pathdir")])
+      if(nrow(afd)>0){
+        afd_global <- afd
+        afd_global$n <- NULL
+        if(variable %in% default_meta_param()$parameter){
+          if(default_meta_param()[parameter==variable & type=="nagg"]$value=="sum"){
+            afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value))
+          }else if(default_meta_param()[parameter==variable & type=="nagg"]$value=="mean"){
+            afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=mean(value))
+          }else{
+            afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value))
+          }
+        }
+        afd_global <- afd_global %>% mutate(n = "World") %>% as.data.frame()
+        afd <- rbind(afd, afd_global[,c("t","n","value",file_group_columns, "pathdir")])
       }
-      assign("allfilesdata", allfilesdata, envir = .GlobalEnv)
-      #scenarios, potentially add stochastic scenarios to show
-      allfilesdata <- subset(allfilesdata, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)")) | str_detect(file, "historical") | str_detect(file, "valid"))
       
-      allfilesdata$value <- as.numeric(allfilesdata$value)
+      #scenarios, potentially add stochastic scenarios to show
+      afd <- subset(afd, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)")) | str_detect(file, "historical") | str_detect(file, "valid"))
       
       #Unit conversion
       unit_conv <- unit_conversion(variable)
-      allfilesdata$value <- allfilesdata$value * unit_conv$convert
-      allfilesdata$year <- ttoyear(allfilesdata$t)
+      afd$value <- afd$value * unit_conv$convert   
+      afd$year <- ttoyear(afd$t)
       
       if(regions[1]=="World" | length(regions)==1){#if only World is displayed or only one region, show files with colors
-        p_dyn <- ggplot(subset(allfilesdata, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conv$unit) + xlim(yearmin,yearmax)
+        p_dyn <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conv$unit) + xlim(yearmin,yearmax)
         if(ylim_zero) p_dyn <- p_dyn + ylim(0, NA)
-        p_dyn <- p_dyn + geom_line(data=subset(allfilesdata, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", size=1.0, linetype="solid")
-        p_dyn <- p_dyn + geom_point(data=subset(allfilesdata, n %in% regions & str_detect(file, "valid")),aes(year,value,colour=file), size=4.0, shape=18)
+        p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", size=1.0, linetype="solid")
+        p_dyn <- p_dyn + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year,value,colour=file), size=4.0, shape=18)
         #legends:
         p_dyn <- p_dyn + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
       }else{
-        p_dyn <- ggplot(subset(allfilesdata, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conv$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
-        p_dyn <- p_dyn + geom_line(data=subset(allfilesdata, n %in% regions & str_detect(file, "historical")),aes(ttoyear(t),value,colour=n), linetype = "solid", stat="identity", size=1.0)
-        p_dyn <- p_dyn + geom_point(data=subset(allfilesdata, n %in% regions & str_detect(file, "valid")),aes(year,value, shape=file), size=4.0)
+        p_dyn <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conv$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
+        p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(ttoyear(t),value,colour=n), linetype = "solid", stat="identity", size=1.0)
+        p_dyn <- p_dyn + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year,value, shape=file), size=4.0)
         #legends:
         p_dyn <- p_dyn + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 2), linetype=guide_legend(title=NULL))
       }

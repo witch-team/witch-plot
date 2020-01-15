@@ -63,16 +63,18 @@ print(scenlist)
 #file to separate check
 if(exists("file_separate")) file_group_columns <- c("file", unname(file_separate[3:length(file_separate)])) else file_group_columns <- "file"
 
-#get time or stochastic mapping
-get_witch_simple("t") 
-t_model <- unique(t$t)
 
 #Palettes for WITCH regions and regional aggregation
+if(!exists("region_id")){
 get_witch_simple("conf")
+if(!(exists("conf"))) stop("No conf set found. Please specify region_i = x manually!")
 if(length(unique(subset(conf, V1=="regions")$V2))>1) print("Be careful: not all results files were run with the same regional aggregation!")
 region_id <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) & V1=="regions")$V2
+}
 get_witch_simple("n")
 witch_regions <- unique(n$V1)
+
+if(!exists("year0")) year0 = 2005; tstep = 5;
 
 if(!exists("display_regions")){display_regions <- witch_regions}
 region_palette_rainbow <- setNames(rainbow(length(witch_regions)), witch_regions) #just in case have a fall back colour

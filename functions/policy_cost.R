@@ -5,7 +5,7 @@ Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", re
   if(!(bauscen %in% scenlist)){stop("For policy costs define an existing BAU scenario")}
   get_witch_simple("Q")
   #Q$value <- Q$value * usd_deflator    #Apply deflator
-  Q <- subset(Q, (t %in% t_model))
+  Q <- subset(Q, (t %in% seq(1,100)))
   if(measure=="GDP"){GDP <- subset(Q, tolower(iq)=="y")}
   if(measure=="Consumption"){GDP <- subset(Q, iq=="cc")}
   GDP$iq <- NULL

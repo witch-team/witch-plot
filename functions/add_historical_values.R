@@ -100,7 +100,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
       }
       if(display_years=="model"){
         #display model data for overlapping years, delete historical data
-        .hist <- subset(.hist, !(t %in% t_model))
+        .hist <- subset(.hist, !(t %in% seq(1,10)))
       }else{
         #or display historical data years, delete model data for 2005 and 2010
         #variable <- subset(variable, !(t %in% unique(.hist$t)))

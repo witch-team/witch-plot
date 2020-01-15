@@ -27,8 +27,8 @@ mapvalues <- function(x, from, to, warn_missing = TRUE) {
 
 
 
-ttoyear <- function(t){year=(as.numeric(t) * 5 + 2000); return(year);}
-yeartot <- function(year){t=(as.numeric(as.character(year)) - 2000) / 5; return(t);}
+ttoyear <- function(t){year=((as.numeric(t)-1) * tstep + year0); return(year);}
+yeartot <- function(year){t=((as.numeric(as.character(year)) - year0) / tstep) + 1; return(t);}
 
 
 

@@ -11,12 +11,12 @@ SCC_plot <- function(scenplot=scenlist, regions = "World", normalization_region 
   get_witch_simple("Q_EMI", check_calibration = T)
   get_witch_simple("ghg") # to get GHGs for non-co2 sets
   if(emi_sum=="ghg") ghg_used <- unique(ghg$e) else if(emi_sum=="co2") ghg_used = c("co2")
-  Q_EMI <- Q_EMI %>% filter(e %in% ghg_used) %>% group_by(pathdir, file, n, t) %>% summarize(emiall = sum(value)) %>% filter(t %in% t_model)
+  Q_EMI <- Q_EMI %>% filter(e %in% ghg_used) %>% group_by(pathdir, file, n, t) %>% summarize(emiall = sum(value))
   #get also BAU values
   get_witch_simple("BAU_Q", check_calibration = T)
-  BAU_Q <- BAU_Q %>% filter(iq == gdp_measure) %>% select(-iq) %>% filter(t %in% t_model)
+  BAU_Q <- BAU_Q %>% filter(iq == gdp_measure) %>% select(-iq)
   get_witch_simple("BAU_Q_EMI", check_calibration = T)
-  BAU_Q_EMI <- BAU_Q_EMI %>% filter(e %in% ghg_used) %>% group_by(pathdir, file, n, t) %>% summarize(emiall = sum(value)) %>% filter(t %in% t_model)
+  BAU_Q_EMI <- BAU_Q_EMI %>% filter(e %in% ghg_used) %>% group_by(pathdir, file, n, t) %>% summarize(emiall = sum(value))
   impact <- Q %>% rename(gdp=value)
   impact <- merge(impact, BAU_Q, by = c("pathdir", "file", "n", "t")); setnames(impact, "value", "gdp_bau")
   impact <- merge(impact, Q_EMI, by = c("pathdir", "file", "n", "t")); setnames(impact, "emiall", "emi")

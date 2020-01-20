@@ -9,8 +9,7 @@ shinyServer(function(input, output, session) {
     mygdx <- gdx(paste(file.path(fullpathdir[1], filelist[1]),".gdx",sep=""))
     list_of_variables <- c(all_items(mygdx)$variables, all_items(mygdx)$parameters)
     #now instead by hand
-    list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_FEN", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l")
-  
+    if(exists("conf")) list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_FEN", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l")
     
     #Scenario selector
     output$select_scenarios <- renderUI({
@@ -119,7 +118,7 @@ shinyServer(function(input, output, session) {
       #clean data
       afd <- afd %>% filter(!is.na(value))
       
-      #Computation of World/glboal sum/average
+      #Computation of World/global sum/average
       #now based on meta param to guess max, mean, sum
       if(nrow(afd)>0){
         afd_global <- afd
@@ -129,10 +128,10 @@ shinyServer(function(input, output, session) {
             afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value))
             }else if(default_meta_param()[parameter==variable & type=="nagg"]$value=="mean"){
               afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=mean(value))
+            }
             }else{
               afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value))
             }
-        }
       afd_global <- afd_global %>% mutate(n = "World") %>% as.data.frame()
       afd <- rbind(afd, afd_global[,c("t","n","value",file_group_columns, "pathdir")])
       }

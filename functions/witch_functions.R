@@ -77,9 +77,9 @@ witch_regions <- unique(n$V1)
 if(!exists("year0")) year0 = 2005; tstep = 5;
 
 if(!exists("display_regions")){display_regions <- witch_regions}
-region_palette_rainbow <- setNames(rainbow(length(witch_regions)), witch_regions) #just in case have a fall back colour
+region_palette <- setNames(rainbow(length(witch_regions)), witch_regions) #just in case have a fall back colour
 region_palette_specific <- c(usa="darkblue",Usa="darkblue",oldeuro="blue", neweuro="cornflowerblue",kosau="darkgreen",Kosau="darkgreen",cajaz="chartreuse4",Cajaz="chartreuse4",te="gold2",Te="gold2",mena="darkgoldenrod4",Mena="darkgoldenrod4",ssa="goldenrod",Ssa="goldenrod",sasia="darkorange2","South Asia"="darkorange2",china="deeppink3",PRC="deeppink3",easia="orangered",ESEAP="orangered",laca="#fbb714",Laca="#fbb714",india="#fbf003",India="#fbf003",europe="blue",Europe="blue",indonesia="lightsalmon3",Indonesia="lightsalmon3",Rest_of_World="grey48",chinaw="darkorange",chinac="darkorange2",chinae="darkorange4",italy="green",mexico="slateblue2",brazil="tomato4",canada="blueviolet",jpnkor="darkseagreen",oceania="forestgreen",southafrica="indianred3",seasia="orangered",World="black", "Global Pool"="black")
-region_palette <- region_palette_specific #c(region_palette_specific, region_palette_rainbow)
+if(exists("conf")) region_palette <- region_palette_specific #c(region_palette_specific, region_palette_rainbow)
 if(!exists("regions_focus")){regions_focus <- witch_regions}
 print(paste("Regional aggregation:", region_id))
 witch_colors_alphabetic <- c("chartreuse4", "deeppink3", "orangered", "khaki1", "darkgreen", "gold", "darkgoldenrod4", "cornflowerblue", "blue", "darkorange2", "goldenrod", "gold2", "darkblue")

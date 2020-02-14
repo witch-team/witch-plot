@@ -137,7 +137,7 @@ shinyServer(function(input, output, session) {
       }
       
       #scenarios, potentially add stochastic scenarios to show
-      #afd <- subset(afd, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)")) | str_detect(file, "historical") | str_detect(file, "valid"))
+      afd <- subset(afd, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)")) | str_detect(file, "historical") | str_detect(file, "valid"))
     
       #Unit conversion
       unit_conv <- unit_conversion(variable)

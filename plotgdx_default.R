@@ -5,14 +5,11 @@ main_directory <- witch_folder # by default, the witch source folder
 #main_directory <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/EIEE/WITCH_CODING/WITCH_RUNS_2018/submission_cdlinks/2019_04_15"
 subdir = c("") #can be multiple directories
 
-restrict_files = c("results_") #to all scenarios matching partly one or more of its arguments
+restrict_files = c("results_") # "." to all scenarios matching partly one or more of its arguments
 removepattern = c("results_", "_calib") 
-restrict_files = c("results_") #"."
 exclude_files = c("db_", "all_data_temp_")
-removepattern = c("results_", "_calib") 
 
-yearmin = 1980
-yearmax = 2100
+#year0 = 2005; tstep = 5;region_id="witch17"
 
 #If you want to have significant separations or parts of file names, specify file_separate <- c(type="first|last|separate", sep="_", names="c("file_new"))
 #file_separate <- c("last", "_", c("specification"))
@@ -23,9 +20,6 @@ yearmax = 2100
 
 #Initialize default options, load all witch and other functions
 source('functions/witch_functions.R')
-
-#Just have a look at global welfare
-get_witch_simple("utility_cebge_global"); print("Global welfare in all scenarios:"); print(utility_cebge_global)
 
 #gdxcompaR (Standard gdxcompaR based on typical variables, otherwise edit in gdxcompaR/server.R)
 runApp(appDir = "gdxcompaR")

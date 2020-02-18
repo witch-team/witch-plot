@@ -27,7 +27,8 @@ show_numbers_2100 = FALSE
 ssp_grid = FALSE
 legend_position="bottom"    # "none", "bottom", or "right"
 write_plotdata_csv = F #if true, saves data of plot as csv file
-
+yearmin = 1980
+yearmax = 2100
 varlist_combine_old_new_j <- c("Q_EN", "K_EN", "I_EN", "Q_IN")  #variables for which to combine old and new j technologies
 
 

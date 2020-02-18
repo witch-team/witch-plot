@@ -36,13 +36,13 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
       colnames(.hist) <- gsub("global", "iso3", colnames(.hist)) #add "World" if no country level data but global
       if(!("iso3" %in% colnames(.hist))){.hist$n = "World"}else{colnames(.hist) <- gsub("iso3", "n", colnames(.hist))}
       setnames(.hist, "year", "t")
-      if(verbose) print(.hist)
+      #print(.hist)
     }else{
     #try to get dependency from variable itself
       setdep <- setdiff(names(variable), c("n", "file", "pathdir", "t", "value"))
       setdep <- c(setdep, "t")
       setnames(.hist, paste0("V", seq(1:length(setdep))), setdep)
-      if(verbose) print(.hist)
+      #print(.hist)
     }
     
     #adjust time unit to model

@@ -237,3 +237,19 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
   #END OF THE STANDARD GRAPHS AND DATA READ LOOP    
 }
 
+
+
+
+getvar_witchhist <- function(varname, unit_conversion=1, hist_varname=varname, additional_sets=NA, ylab=varname){
+  #additional _sets: e.g., c("iq"="y", "e="co2")
+  tempvar <- get_witch_simple(varname, results = "return")
+  n_model <- unique(tempvar$n)
+  if(!is.na(additional_sets)){
+    for(s in 1:length(additional_sets)) tempvar[[names(additional_sets[s])]] <- additional_sets[s]
+  }
+  tempvar$value <- tempvar$value * unit_conversion;
+  tempvar <- add_historical_values(tempvar, varname = hist_varname, check_calibration = T)
+  tempvar <- tempvar %>% filter(n %in% n_model)
+  print(ggplot(tempvar) + geom_line(aes(ttoyear(t), value, color=file, linetype=n)) + xlab("") + ylab(ylab))
+  assign(varname, tempvar, envir = .GlobalEnv)
+}

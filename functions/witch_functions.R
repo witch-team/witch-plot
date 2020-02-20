@@ -133,6 +133,7 @@ source('functions/energy_plots.R')
 source('functions/emission_plots.R')
 source('functions/climate_plots.R')
 source('functions/policy_cost.R')
+source('functions/inequality_plots.R')
 
 
 

@@ -294,6 +294,21 @@ shinyServer(function(input, output, session) {
       
     })
     
+    
+    output$inequalityplot <- renderPlot({
+      #get input from sliders/buttons
+      variable_ineq <- input$variable_selected
+      yearmin = input$yearmin
+      yearmax = input$yearmax
+      additional_set_selected <- input$additional_set_id_selected
+      additional_set_selected2 <- input$additional_set_id_selected2
+      regions <- input$regions_selected
+      scenarios <- input$scenarios_selected
+      inequality_plot_type_selected <- input$inequality_plot_type_selected
+      inequality_value_share <- input$inequality_value_share
+      plot_inequality(varname = variable_ineq, plot_type = inequality_plot_type_selected, value_share = inequality_value_share, quantile_set = "dist", regions = regions, years = seq(yearmin, yearmax, 1), scenplot = scenarios)
+    })
+    
 
     output$Diagnostics <- renderPlot({
       #get input from sliders/buttons
@@ -404,6 +419,7 @@ shinyServer(function(input, output, session) {
       scc_normalization_region <- input$scc_normalization_region
       SCC_plot(scenplot = scenarios, regions = regions, normalization_region = scc_normalization_region)
     })
+
     
     
 })

@@ -4,7 +4,7 @@
 # Policy Costs
 
 Intensity_Plot <- function(years=c(2050, 2100), regions="World", year0=2010, scenplot=scenlist, animate_plot=FALSE){
-  if(animate_plot) {regions="World"; years = seq(2005, 2100, 5); year0 = 2005; require(gganimate)}
+  if(animate_plot) {regions="World"; years = seq(yearmin, yearmax); year0 = 2005; require(gganimate)}
   get_witch_simple("tpes"); tpes_IP <- tpes %>% mutate(value=value*0.0036) %>% rename(PES=value)
   get_witch_simple("Q_EMI"); Q_EMI_IP <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2") %>% select(-e) %>% rename(CO2=value)
   get_witch_simple("Q"); Q_IP <- Q %>% mutate(value=value*1e3) %>% filter(iq=="y") %>% select(-iq) %>% rename(GDP=value)

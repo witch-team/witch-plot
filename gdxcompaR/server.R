@@ -306,7 +306,7 @@ shinyServer(function(input, output, session) {
       scenarios <- input$scenarios_selected
       inequality_plot_type_selected <- input$inequality_plot_type_selected
       inequality_value_share <- input$inequality_value_share
-      plot_inequality(varname = variable_ineq, plot_type = inequality_plot_type_selected, value_share = inequality_value_share, quantile_set = "dist", regions = regions, years = seq(yearmin, yearmax, 1), scenplot = scenarios)
+      plot_inequality(varname = variable_ineq, plot_type = inequality_plot_type_selected, value_share = inequality_value_share, quantile_set = "dist", regions = regions, years = seq(yearmin, yearmax), scenplot = scenarios)
     })
     
 

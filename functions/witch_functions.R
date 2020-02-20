@@ -27,11 +27,9 @@ show_numbers_2100 = FALSE
 ssp_grid = FALSE
 legend_position="bottom"    # "none", "bottom", or "right"
 write_plotdata_csv = F #if true, saves data of plot as csv file
-yearmin = 1980
-yearmax = 2100
+yearmin = 1980; yearmax = 2100; #default for plots
 varlist_combine_old_new_j <- c("Q_EN", "K_EN", "I_EN", "Q_IN")  #variables for which to combine old and new j technologies
-
-
+if(!exists("year0")) {year0 = 2005; tstep = 5;}
 ## End of Local Options ##
 
 
@@ -74,8 +72,6 @@ region_id <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) 
 }
 get_witch_simple("n")
 witch_regions <- unique(n$V1)
-
-if(!exists("year0")) year0 = 2005; tstep = 5;
 
 if(!exists("display_regions")){display_regions <- witch_regions}
 region_palette <- setNames(rainbow(length(witch_regions)), witch_regions) #just in case have a fall back colour

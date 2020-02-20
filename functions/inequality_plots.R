@@ -23,7 +23,7 @@ plot_inequality <- function(varname, plot_type = "quantiles", value_share="value
   else if(plot_type=="lorenz_curve"){
     #Lorenz curve
     #plot(Lc(lcdat_cpc[lcdat_cpc$file=="BAU",]$value, lcdat_pop[lcdat_pop$file=="BAU",]$value),col="black",lwd=2)
-    p <- ggplot(ineq_data %>% filter(t==1)) + stat_lorenz(aes(value, color=file)) + geom_abline(color = "grey") + xlab("") + ylab("") + facet_grid(. ~ n)
+    p <- ggplot(ineq_data %>% filter(t %in% range(ineq_data$t)) %>% mutate(year=ttoyear(t))) + stat_lorenz(aes(value, color=file)) + geom_abline(color = "grey") + xlab("") + ylab("") + facet_grid(n  ~ year)
   }
   p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank())
   saveplot(paste("Distribution of", varname, "as", plot_type))

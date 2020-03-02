@@ -1,18 +1,19 @@
 # Inequality plots
 
-plot_inequality <- function(varname, plot_type = "quantiles", q_vector = NA, value_share="value", quantile_set = "dist", per_capita_var = 1, scenplot = scenlist, regions = witch_regions, years = seq(yearmin, yearmax), years_lorenz = range(yearmin, yearmax)){
+plot_inequality <- function(varname, plot_type = "quantiles", q_shares = NULL, value_share="value", quantile_set = "dist", per_capita_var = 1000, scenplot = scenlist, regions = witch_regions, years = seq(yearmin, yearmax), years_lorenz = NULL){
   # dist_type="value|share"
   # plot_type = "quantiles|lorenz_curve|gini|distribution"
   res <- lapply(c('reldist', 'ineq', 'gglorenz', 'GB2', 'GB2group', 'VGAM'), require_package)
   ineq_data <- get_witch_simple(varname, results = "return")
   ineq_data <- ineq_data %>% filter(file %in% scenplot & ttoyear(t) %in% years & n %in% regions)
   if(quantile_set %in% names(ineq_data)){
-  q_vector <- rep(1/nrow(unique(ineq_data[quantile_set])),nrow(unique(ineq_data[quantile_set]))) 
+  if(is.null(q_shares)) q_shares <- data.frame(dist=unique(ineq_data[quantile_set]), share=rep(1/nrow(unique(ineq_data[quantile_set])),nrow(unique(ineq_data[quantile_set])))); setnames(q_shares, "dist", quantile_set)
+  if(is.null(years_lorenz)) years_lorenz <- range(unique(ttoyear(ineq_data$t)))
   if(value_share == "share") ineq_data <- ineq_data %>% group_by_at(setdiff(names(ineq_data), c("value", quantile_set))) %>% mutate(value=value/sum(value))
   ineq_data_indices <- ineq_data %>% group_by_at(setdiff(names(ineq_data), c("value", quantile_set))) %>% summarize(gini=gini(value))
   if(plot_type=="quantiles"){
     #facetted plot of quantiles over files and regions
-    p <- ggplot(ineq_data) + geom_area(aes(ttoyear(t), value, fill=get(quantile_set))) + facet_grid(file ~ n) + xlab("")+ ylab(varname) + scale_fill_brewer(palette = "YlGnBu" , name = "Quantile")
+    p <- ggplot(ineq_data) + geom_area(aes_string("ttoyear(t)", "value", fill=quantile_set)) + facet_grid(file ~ n) + xlab("")+ ylab(varname) + scale_fill_brewer(palette = "YlGnBu" , name = "Quantile")
   }
   else if(plot_type=="gini"){
     #Gini plot based on Quantiles
@@ -23,30 +24,43 @@ plot_inequality <- function(varname, plot_type = "quantiles", q_vector = NA, val
     p <- ggplot(ineq_data %>% filter(ttoyear(t) %in% years_lorenz) %>% mutate(year=ttoyear(t))) + stat_lorenz(aes(value, color=file)) + geom_abline(color = "grey") + xlab("") + ylab("") + facet_grid(n  ~ year)
   }
   else if(plot_type=="distribution"){
-    total_data <- get_witch_simple(total_var, results = "return")
-    total_data <- total_data %>% filter(t %in% unique(ineq_data$t))
-    population_data <- get_witch_simple(population_var, results = "return")
-    population_data <- population_data %>% filter(t %in% unique(ineq_data$t))
-    #combine data
+    if(is.numeric(per_capita_var[1])) ineq_data$per_capita <- per_capita_var else ineq_data <- ineq_data %>% full_join(get_witch_simple(per_capita_var, results = "return") %>% filter(t %in% unique(ineq_data$t)) %>% rename(per_capita=value))
+    #Create complete dataframe
+    ineq_data_plot <- ineq_data %>% full_join(ineq_data_indices) %>% full_join(q_shares) %>% mutate(value_cst_dist=value/share * per_capita) %>% filter(ttoyear(t) %in% years_lorenz)
     
-    #1) generate sample based on quantiles
-    value_pc = 40000
-    q_test <- c(0.05,0.10, 0.12, 0.15, 0.58)
-    q_values <- data.frame(x = q_test/q_vector * value_pc, p = q_test)
-
-    #Singh-Maddala Distribution
-    fitdist <- fitgroup.sm(y = q_test, x = q_vector, pc.inc = value_pc, gini.e = gini_test, rescale = 1000)
-    fitdistparam <- unlist((fitdist$nls.estimation))[1,]
-    #Plot distribution CDF
-    ggplot(q_values, aes(x)) + stat_ecdf(geom = "step") + stat_function(fun = psinmad, args = list(scale = 1000*fitdistparam["b"], shape1.a = fitdistparam["a"], shape3.q = fitdistparam["q"]), colour = "red") + xlab("") + ylab("") + xlim(0,NA)
+    ### FUNCTIONS ###
     #Plot Lorenz curve
-    Lc_manual <- Lc(x = q_test, n = q_vector)
-    Lc_manual <- data.frame(p=Lc_manual$p, Lc=Lc_manual$L)
+    Lc_manual <- function(x, n, return_param = "df"){
+      .Lc <- Lc(x = x, n = n)
+      .Lc <- data.frame(p=.Lc$p, Lc=.Lc$L)
+      if(return_param=="df") return(.Lc) else return(.Lc[return_param])
+    }
+    #Singh-Maddala Distribution
+    fit_parametric_dist <- function(y, x, pc.inc, gini.e, return_param){
+      fitdist <- fitgroup.sm(y = y, x = x, pc.inc = pc.inc, gini.e = gini.e, rescale = 1000)
+      fitdistparam <- unlist((fitdist$nls.estimation))[1,]
+      return(fitdistparam[return_param])
+    }
     LCsingh <- function(p,a,q){pbeta(q = (1 - (1 - p)^(1/q)), shape1 = (1 + 1/a), shape2 = (q-1/a))} #Source: http://www.vcharite.univ-mrs.fr/PP/lubrano/cours/Lecture-4.pdf
     #Gini
     GINIsingh <- function(a,q){return(1-((gamma(q)*gamma(2*q-1/a))/(gamma(q-1/a)*gamma(2*q))))}
-    GINIsingh(fitdistparam["a"],fitdistparam["q"])
-    ggplot(data.frame(x=seq(0,1,1000))) +  stat_function(fun = LCsingh, args = list(a=fitdistparam["a"], q=fitdistparam["q"]), color = "red") + geom_line(data = Lc_manual, aes(p,Lc)) + xlab("") + ylab("") + geom_abline(color = "grey")
+    ### END FUNCTIONS ###
+    
+    #compute fitted distribution parameters in dataframe
+    ineq_data_plot_agg <- ineq_data_plot %>% group_by_at(c("t", file_group_columns, "pathdir")) %>% summarize(gini=mean(gini), per_capita=mean(per_capita), a = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini, return_param = "a"), q = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini, return_param = "q"), b = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini, return_param = "b")) %>% as.data.frame()
+    
+    ineq_data_plot_everything <- ineq_data_plot %>% full_join(ineq_data_plot_agg) %>% mutate(year=ttoyear(t)) %>% select(-t, -gini,-per_capita) %>% as.data.frame()
+    
+    #for now only one figure of first year and n in dataset (multiple not yet working as requires different stat-functions per facets)
+    ineq_data_plot_everything <- ineq_data_plot_everything %>% filter(n %in% unique(ineq_data_plot$n)[1] & year %in% unique(ineq_data_plot_everything$year)[1] & file %in% unique(ineq_data_plot$file)[1])
+    
+    #Plot one distribution CDF
+    p_cdf <- ggplot(ineq_data_plot_everything, aes(value_cst_dist)) + stat_ecdf(geom = "step") + stat_function(fun = psinmad, args = list(scale = 1000*mean(ineq_data_plot_everything$b), shape1.a = mean(ineq_data_plot_everything$a), shape3.q = mean(ineq_data_plot_everything$q)), colour = "red") + xlab("") + ylab("") + xlim(0,NA) #+ facet_grid(n  ~ year)
+    
+    #Plot one Lorenz curve
+    p_lorenz <- ggplot(data.frame(x=seq(0,1,1000))) + geom_line(data = Lc_manual(ineq_data_plot_everything$value, ineq_data_plot_everything$share), aes(p,Lc)) + xlab("") + ylab("") + geom_abline(color = "grey") + stat_function(fun = LCsingh, args = list(a=mean(ineq_data_plot_everything$a), q=mean(ineq_data_plot_everything$q)), color = "red") + geom_text(aes(0.4, 0.8), label = paste("Gini (q):",round(gini(ineq_data_plot_everything$value, ineq_data_plot_everything$share),3), "(dist):", round(GINIsingh(mean(ineq_data_plot_everything$a), mean(ineq_data_plot_everything$q)),3))) #+ facet_grid(n  ~ year)
+    p <- ggarrange(p_cdf, p_lorenz, ncol = 1)
+    #saveplot("Distribution and Lorenz curve with fitted distribution")
   }  
   #common for all plots
   p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank())

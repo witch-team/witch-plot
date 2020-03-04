@@ -1,19 +1,23 @@
 # Inequality plots
 
-plot_inequality <- function(varname, plot_type = "quantiles", q_shares = NULL, value_share="value", quantile_set = "dist", per_capita_var = 1000, scenplot = scenlist, regions = witch_regions, years = seq(yearmin, yearmax), years_lorenz = NULL){
-  # dist_type="value|share"
+plot_inequality <- function(varname, plot_type = "quantiles", q_shares = NULL, value_share="value", quantile_set = "dist", per_capita_var = 1000, scenplot = scenlist, regions = witch_regions, years = seq(yearmin, yearmax), years_lorenz = NULL, q_plot = NULL, q_fit = NULL){
+  # dist_type="value|share" if share, already shares (sum to 1, not 100!!), if value compute shares
   # plot_type = "quantiles|lorenz_curve|gini|distribution"
+  # q_shares: dataframe with column quantile_set and share (in increasing order!)
   res <- lapply(c('reldist', 'ineq', 'gglorenz', 'GB2', 'GB2group', 'VGAM'), require_package)
   ineq_data <- get_witch_simple(varname, results = "return")
   ineq_data <- ineq_data %>% filter(file %in% scenplot & ttoyear(t) %in% years & n %in% regions)
   if(quantile_set %in% names(ineq_data)){
-  if(is.null(q_shares)) q_shares <- data.frame(dist=unique(ineq_data[quantile_set]), share=rep(1/nrow(unique(ineq_data[quantile_set])),nrow(unique(ineq_data[quantile_set])))); setnames(q_shares, "dist", quantile_set)
+  setnames(ineq_data, quantile_set, "dist")
+  if(is.null(q_shares)) q_shares <- data.frame(dist=unique(ineq_data["dist"]), share=rep(1/nrow(unique(ineq_data["dist"])),nrow(unique(ineq_data["dist"]))))
+  ineq_data$dist <- factor(ineq_data$dist, levels = rev(q_shares$dist))
   if(is.null(years_lorenz)) years_lorenz <- range(unique(ttoyear(ineq_data$t)))
-  if(value_share == "share") ineq_data <- ineq_data %>% group_by_at(setdiff(names(ineq_data), c("value", quantile_set))) %>% mutate(value=value/sum(value))
-  ineq_data_indices <- ineq_data %>% group_by_at(setdiff(names(ineq_data), c("value", quantile_set))) %>% summarize(gini=gini(value))
+  if(value_share == "value") ineq_data <- ineq_data %>% group_by_at(setdiff(names(ineq_data), c("value", "dist"))) %>% mutate(value=value/sum(value))
+  if(!is.null(q_plot)) ineq_data <- ineq_data %>% filter(dist %in% q_plot)
+  ineq_data_indices <- ineq_data %>% group_by_at(setdiff(names(ineq_data), c("value", "dist"))) %>% summarize(gini=gini(value))
   if(plot_type=="quantiles"){
     #facetted plot of quantiles over files and regions
-    p <- ggplot(ineq_data) + geom_area(aes_string("ttoyear(t)", "value", fill=quantile_set)) + facet_grid(file ~ n) + xlab("")+ ylab(varname) + scale_fill_brewer(palette = "YlGnBu" , name = "Quantile")
+    ggplot(ineq_data)  + geom_bar(aes(ttoyear(t), value, fill=dist), stat = "identity", position = "stack") + facet_grid(file ~ n) + xlab("")+ ylab(varname) #+ scale_fill_manual(values = quantile_colors, name = "Quantiles")
   }
   else if(plot_type=="gini"){
     #Gini plot based on Quantiles
@@ -35,9 +39,10 @@ plot_inequality <- function(varname, plot_type = "quantiles", q_shares = NULL, v
       .Lc <- data.frame(p=.Lc$p, Lc=.Lc$L)
       if(return_param=="df") return(.Lc) else return(.Lc[return_param])
     }
-    #Singh-Maddala Distribution
+    #Singh-Maddala Distribution (rescale is just for fit, not per capita value!)
+    rescale_fit <- 1000
     fit_parametric_dist <- function(y, x, pc.inc, gini.e, return_param){
-      fitdist <- fitgroup.sm(y = y, x = x, pc.inc = pc.inc, gini.e = gini.e, rescale = 1000)
+      fitdist <- fitgroup.sm(y = y, x = x, pc.inc = pc.inc, gini.e = gini.e, rescale = rescale_fit)
       fitdistparam <- unlist((fitdist$nls.estimation))[1,]
       return(fitdistparam[return_param])
     }
@@ -47,18 +52,19 @@ plot_inequality <- function(varname, plot_type = "quantiles", q_shares = NULL, v
     ### END FUNCTIONS ###
     
     #compute fitted distribution parameters in dataframe
-    ineq_data_plot_agg <- ineq_data_plot %>% group_by_at(c("t", file_group_columns, "pathdir")) %>% summarize(gini=mean(gini), per_capita=mean(per_capita), a = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini, return_param = "a"), q = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini, return_param = "q"), b = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini, return_param = "b")) %>% as.data.frame()
-    
-    ineq_data_plot_everything <- ineq_data_plot %>% full_join(ineq_data_plot_agg) %>% mutate(year=ttoyear(t)) %>% select(-t, -gini,-per_capita) %>% as.data.frame()
+    ineq_data_plot_agg <- ineq_data_plot 
+    if(!is.null(q_fit)) ineq_data_plot_agg <- ineq_data_plot_agg %>% filter(dist %in% q_fit)
+    ineq_data_plot_agg <- ineq_data_plot_agg %>% group_by_at(c("t", file_group_columns, "pathdir")) %>% summarize(gini=mean(gini), per_capita=mean(per_capita), a = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini, return_param = "a"), q = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini, return_param = "q"), b = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini, return_param = "b")) %>% as.data.frame()
+    ineq_data_plot_everything <- (ineq_data_plot %>% full_join(ineq_data_plot_agg)) %>% mutate(year=ttoyear(t)) %>% select(-gini,-per_capita) %>% as.data.frame()
     
     #for now only one figure of first year and n in dataset (multiple not yet working as requires different stat-functions per facets)
     ineq_data_plot_everything <- ineq_data_plot_everything %>% filter(n %in% unique(ineq_data_plot$n)[1] & year %in% unique(ineq_data_plot_everything$year)[1] & file %in% unique(ineq_data_plot$file)[1])
     
     #Plot one distribution CDF
-    p_cdf <- ggplot(ineq_data_plot_everything, aes(value_cst_dist)) + stat_ecdf(geom = "step") + stat_function(fun = psinmad, args = list(scale = 1000*mean(ineq_data_plot_everything$b), shape1.a = mean(ineq_data_plot_everything$a), shape3.q = mean(ineq_data_plot_everything$q)), colour = "red") + xlab("") + ylab("") + xlim(0,NA) #+ facet_grid(n  ~ year)
+    p_cdf <- ggplot(ineq_data_plot_everything, aes(value_cst_dist)) + stat_ecdf(geom = "step") + stat_function(fun = psinmad, args = list(scale = rescale_fit*mean(ineq_data_plot_everything$b), shape1.a = mean(ineq_data_plot_everything$a), shape3.q = mean(ineq_data_plot_everything$q)), colour = "red") + xlab("") + ylab("") + xlim(0,NA) #+ facet_grid(n  ~ year)
     
     #Plot one Lorenz curve
-    p_lorenz <- ggplot(data.frame(x=seq(0,1,1000))) + geom_line(data = Lc_manual(ineq_data_plot_everything$value, ineq_data_plot_everything$share), aes(p,Lc)) + xlab("") + ylab("") + geom_abline(color = "grey") + stat_function(fun = LCsingh, args = list(a=mean(ineq_data_plot_everything$a), q=mean(ineq_data_plot_everything$q)), color = "red") + geom_text(aes(0.4, 0.8), label = paste("Gini (q):",round(gini(ineq_data_plot_everything$value, ineq_data_plot_everything$share),3), "(dist):", round(GINIsingh(mean(ineq_data_plot_everything$a), mean(ineq_data_plot_everything$q)),3))) #+ facet_grid(n  ~ year)
+    p_lorenz <- ggplot(data.frame(x=seq(0,1,0.001))) + geom_line(data = Lc_manual(ineq_data_plot_everything$value, ineq_data_plot_everything$share), aes(p,Lc)) + xlab("") + ylab("") + geom_abline(color = "grey") + stat_function(fun = LCsingh, args = list(a=mean(ineq_data_plot_everything$a), q=mean(ineq_data_plot_everything$q)), color = "red") + geom_text(aes(0.4, 0.8), label = paste("Gini (q):",round(gini(ineq_data_plot_everything$value, ineq_data_plot_everything$share),3), "(dist):", round(GINIsingh(mean(ineq_data_plot_everything$a), mean(ineq_data_plot_everything$q)),3))) #+ facet_grid(n  ~ year)
     p <- ggarrange(p_cdf, p_lorenz, ncol = 1)
     #saveplot("Distribution and Lorenz curve with fitted distribution")
   }  

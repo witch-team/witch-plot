@@ -1,11 +1,12 @@
 # Inequality plots
 
-plot_inequality <- function(varname, plot_type = "quantiles", q_shares = NULL, value_share="value", quantile_set = "dist", per_capita_var = 1000, scenplot = scenlist, regions = witch_regions, years = seq(yearmin, yearmax), years_lorenz = NULL, q_plot = NULL, q_fit = NULL){
+plot_inequality <- function(variable, plot_type = "quantiles", q_shares = NULL, value_share="value", quantile_set = "dist", per_capita_var = 1000, scenplot = scenlist, regions = witch_regions, years = seq(yearmin, yearmax), years_lorenz = NULL, q_plot = NULL, q_fit = NULL, verbose = T){
+  # variable can either be a variable name or dataframe.
   # dist_type="value|share" if share, already shares (sum to 1, not 100!!), if value compute shares
   # plot_type = "quantiles|lorenz_curve|gini|distribution"
   # q_shares: dataframe with column quantile_set and share (in increasing order!)
   res <- lapply(c('reldist', 'ineq', 'gglorenz', 'GB2', 'GB2group', 'VGAM'), require_package)
-  ineq_data <- get_witch_simple(varname, results = "return")
+  if(is.character(variable))ineq_data <- get_witch_simple(variable, results = "return") else{ineq_data <- variable; variable <- deparse(substitute(variable))}
   ineq_data <- ineq_data %>% filter(file %in% scenplot & ttoyear(t) %in% years & n %in% regions)
   if(quantile_set %in% names(ineq_data)){
   setnames(ineq_data, quantile_set, "dist")
@@ -17,7 +18,7 @@ plot_inequality <- function(varname, plot_type = "quantiles", q_shares = NULL, v
   ineq_data_indices <- ineq_data %>% group_by_at(setdiff(names(ineq_data), c("value", "dist"))) %>% summarize(gini=gini(value))
   if(plot_type=="quantiles"){
     #facetted plot of quantiles over files and regions
-    ggplot(ineq_data)  + geom_bar(aes(ttoyear(t), value, fill=dist), stat = "identity", position = "stack") + facet_grid(file ~ n) + xlab("")+ ylab(varname) #+ scale_fill_manual(values = quantile_colors, name = "Quantiles")
+    ggplot(ineq_data)  + geom_bar(aes(ttoyear(t), value, fill=dist), stat = "identity", position = "stack") + facet_grid(file ~ n) + xlab("")+ ylab(variable) #+ scale_fill_manual(values = quantile_colors, name = "Quantiles")
   }
   else if(plot_type=="gini"){
     #Gini plot based on Quantiles
@@ -30,6 +31,7 @@ plot_inequality <- function(varname, plot_type = "quantiles", q_shares = NULL, v
   else if(plot_type=="distribution"){
     if(is.numeric(per_capita_var[1])) ineq_data$per_capita <- per_capita_var else ineq_data <- ineq_data %>% full_join(get_witch_simple(per_capita_var, results = "return") %>% filter(t %in% unique(ineq_data$t)) %>% rename(per_capita=value))
     #Create complete dataframe
+    ineq_data$dist <- as.character(ineq_data$dist); q_shares$dist <- as.character(q_shares$dist)
     ineq_data_plot <- ineq_data %>% full_join(ineq_data_indices) %>% full_join(q_shares) %>% mutate(value_cst_dist=value/share * per_capita) %>% filter(ttoyear(t) %in% years_lorenz)
     
     ### FUNCTIONS ###
@@ -57,6 +59,11 @@ plot_inequality <- function(varname, plot_type = "quantiles", q_shares = NULL, v
     ineq_data_plot_agg <- ineq_data_plot_agg %>% group_by_at(c("t", file_group_columns, "pathdir")) %>% summarize(gini=mean(gini), per_capita=mean(per_capita), a = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini, return_param = "a"), q = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini, return_param = "q"), b = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini, return_param = "b")) %>% as.data.frame()
     ineq_data_plot_everything <- (ineq_data_plot %>% full_join(ineq_data_plot_agg)) %>% mutate(year=ttoyear(t)) %>% select(-gini,-per_capita) %>% as.data.frame()
     
+    if(verbose){
+      print("Estimated Maddala-Sing Distribution Parameters")
+      print(ineq_data_plot_agg %>% mutate(P99=qsinmad(0.99, shape1.a = a, shape3.q = q , scale = rescale_fit*b)))
+    }
+    
     #for now only one figure of first year and n in dataset (multiple not yet working as requires different stat-functions per facets)
     ineq_data_plot_everything <- ineq_data_plot_everything %>% filter(n %in% unique(ineq_data_plot$n)[1] & year %in% unique(ineq_data_plot_everything$year)[1] & file %in% unique(ineq_data_plot$file)[1])
     
@@ -70,6 +77,6 @@ plot_inequality <- function(varname, plot_type = "quantiles", q_shares = NULL, v
   }  
   #common for all plots
   p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank())
-  saveplot(paste("Distribution of", varname, "as", plot_type))
+  saveplot(paste("Distribution of", variable, "as", plot_type))
   }else{print("No distributional information in this variable.")}
 }

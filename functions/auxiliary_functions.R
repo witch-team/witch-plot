@@ -32,7 +32,7 @@ yeartot <- function(year){t=((as.numeric(as.character(year)) - year0) / tstep) +
 
 
 
-saveplot <- function(plotname, width=7, height=5, text_size=10, plotdata=NULL, suffix="", transparent=FALSE, add_title=TRUE){
+saveplot <- function(plotname, width=7, height=5, text_size=10, plotdata=NULL, suffix="", transparent=FALSE, add_title=TRUE, forpaper=F){
   if(!dir.exists(graphdir)){dir.create(graphdir)} #create directory for graphs
   if(figure_format!="png"){transparent = FALSE}
   if(figure_format=="pdf"){plot_device=cairo_pdf}else{plot_device=figure_format}
@@ -45,6 +45,10 @@ saveplot <- function(plotname, width=7, height=5, text_size=10, plotdata=NULL, s
   print(ggplot2::last_plot()) 
   ggsave(filename=file.path(graphdir,paste0(as.character(gsub("[ |_|-]", "_", plotname)),suffix,".",figure_format)), plot = ggplot2::last_plot() + if(add_title){labs(title=plotname)}else{labs(title="")} + theme(text = element_text(size=text_size), legend.position=legend_position, legend.direction = legend_direction, legend.key = element_rect(colour = NA), legend.title=element_blank()), width=width, height=height, bg = "transparent", device = plot_device)
   if(!is.null(plotdata) & write_plotdata_csv){write.xlsx(subset(plotdata), file = file.path(graphdir,paste0(as.character(gsub("[ |_|-]", "_", plotname, suffix)),".xlsx")))}
+  if(forpaper){
+    if(!dir.exists(file.path(graphdir, "forpaper"))){dir.create(file.path(graphdir, "forpaper"))}
+    file.copy(file.path(graphdir,paste0(as.character(gsub("[ |_|-]", "_", plotname)),suffix,".",figure_format)), file.path(graphdir, "forpaper", paste0(as.character(gsub("[ |_|-]", "_", plotname)),suffix,".",figure_format)), overwrite = T)
+  }
 }
 
 

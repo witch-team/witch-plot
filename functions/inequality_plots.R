@@ -10,7 +10,7 @@ plot_inequality <- function(variable, plot_type = "quantiles", q_shares = NULL, 
   ineq_data <- ineq_data %>% filter(file %in% scenplot & ttoyear(t) %in% years & n %in% regions)
   if(quantile_set %in% names(ineq_data)){
   setnames(ineq_data, quantile_set, "dist")
-  if(is.null(q_shares)) q_shares <- data.frame(dist=unique(ineq_data["dist"]), share=rep(1/nrow(unique(ineq_data["dist"])),nrow(unique(ineq_data["dist"]))))
+  if(is.null(q_shares)) q_shares <- data.frame(dist=unique(ineq_data[["dist"]]), share=rep(1/length(unique(ineq_data[["dist"]])),length(unique(ineq_data[["dist"]]))))
   ineq_data$dist <- factor(ineq_data$dist, levels = rev(q_shares$dist))
   if(is.null(years_lorenz)) years_lorenz <- range(unique(ttoyear(ineq_data$t)))
   if(value_share == "value") ineq_data <- ineq_data %>% group_by_at(setdiff(names(ineq_data), c("value", "dist"))) %>% mutate(value=value/sum(value))
@@ -78,5 +78,6 @@ plot_inequality <- function(variable, plot_type = "quantiles", q_shares = NULL, 
   #common for all plots
   p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank())
   saveplot(paste("Distribution of", variable, "as", plot_type))
+  return(ineq_data_indices) #return inequality indices
   }else{print("No distributional information in this variable.")}
 }

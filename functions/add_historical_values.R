@@ -1,11 +1,24 @@
 
 add_historical_values <- function(variable, varname=deparse(substitute(variable)), scenplot=scenlist, check_calibration=FALSE, verbose=T){
   
+  #for different models or variable names, use mapping
+  if(exists("map_var_hist")){
+    if(varname %in% map_var_hist$varname_model){
+      if(!is.na(map_var_hist[varname_model==varname]$set_witch)){
+        variable <- cbind(tempset=map_var_hist[varname_model==varname]$element_witch, variable)
+        setnames(variable, "tempset", map_var_hist[varname_model==varname]$set_witch)
+        variable$value <- variable$value * map_var_hist[varname_model==varname]$conv
+      }
+      #rename varname to WITCH one
+      varname <- map_var_hist[varname_model==varname]$var_witch
+    }
+  }
+  
   #have to decide what to do with years with both model and historical data
   display_years = "model"#historical" #"model" #"historical"
 
   valid_suffix <- "_valid"
-  #if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"}
+  if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"}
   if(varname=="quantiles"){valid_suffix <- "_valid_swiid"} #for quantiles
   if(varname=="K_EN"){valid_suffix <- c("_valid_platts_tot", "_valid_irena", "_valid_iaea", "_valid_gcpt")} #for quantiles, set it to 
   
@@ -18,6 +31,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   gdxhistlist <- list.files(path=file.path(witch_folder, paste0("data_", region_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
   
   for(.gdxname in gdxhistlist){
+    #print(.gdxname)
     .gdx <- gdx(.gdxname)
     if(length(grep(paste(paste0("^", tolower(varname), valid_suffix), collapse = '|'), .gdx$parameters$name, value = TRUE))!=0){break} #to find the hist file with the valid data (only one!)
   }
@@ -65,7 +79,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     else{
       #if not check_calibration and historical files are added to the scenarios, compute the mean in case multiple historical sources for one sub-item (e.g., elhydro) and drop the file column
       .hist$file <- NULL
-      .hist <- .hist %>% group_by_at(setdiff(names(.hist), "value")) %>% summarize(value=mean(value)) %>% as.data.table()
+      .hist <- .hist %>% group_by_at(setdiff(names(.hist), "value")) %>% summarize(value=mean(value), .groups = "drop") %>% as.data.table()
     }
 
 
@@ -127,6 +141,9 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     merged_variable <- rbind(variable, .hist)
     merged_variable$t <- as.numeric(merged_variable$t)
     #assign("varname", merged_variable, envir = .GlobalEnv)
+    #print(merged_variable)
+    #remove additional columns if using mapping
+    if(exists("map_var_hist")) if((varname %in% map_var_hist$varname_model)) variable <- variable %>% filter(map_var_hist[var_witch==varname]$set_witch==map_var_hist[var_witch==varname]$element_witch) %>% select(-one_of(map_var_hist[var_witch==varname]$set_witch)) 
     return(merged_variable)
     }
   else

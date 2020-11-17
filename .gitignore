@@ -11,5 +11,6 @@ plotgdx_*.R
 vignettes/*.html
 vignettes/*.pdf
 !plotgdx_default.R
+!plotgdx_rice50x.R
 .httr-oauth
 .Rproj.user

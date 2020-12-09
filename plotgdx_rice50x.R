@@ -1,5 +1,5 @@
 rm(list = ls())
-witch_folder = "C:/Users/Emmerling/Documents/Dropbox (CMCC)/EIEE/RICE+/super-rice-cleaned" #Where you're RICE50x code is located
+witch_folder = "../RICE50x-clean" #Where you're RICE50x code is located
 #main directory of your results files
 main_directory <- witch_folder # by default, the witch source folder
 subdir = c("") #can be multiple directories
@@ -8,7 +8,7 @@ region_id = "ed57"
 year0 = 2015
 tstep = 5
 
-restrict_files = c("results_") #to all scenarios matching partly one of its arguments
+restrict_files = c("") #to all scenarios matching partly one of its arguments
 exclude_files = c("")
 removepattern = c("results_")
 

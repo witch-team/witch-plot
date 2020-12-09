@@ -6,7 +6,7 @@ main_directory <- witch_folder # by default, the witch source folder
 subdir = c("") #can be multiple directories
 
 
-restrict_files = c("results_ssp2_bau") #to all scenarios matching partly one of its arguments
+restrict_files = c("results_") #to all scenarios matching partly one of its arguments
 exclude_files = c("db_")
 removepattern = c("results_", "_calib", "all_data_temp_ela_bau_y")
 

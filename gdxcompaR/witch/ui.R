@@ -4,7 +4,7 @@ shinyUI(fluidPage(pageWithSidebar(
     
   
   # Application title
-  headerPanel("WITCH - gdxcompaR"),
+  headerPanel("WITCH gdxcompaR"),
   
   # Sidebar with a slider of years and set elements
   sidebarPanel(

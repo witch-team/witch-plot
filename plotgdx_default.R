@@ -24,7 +24,7 @@ yearmax = 2100
 source('functions/witch_functions.R')
 
 #gdxcompaR (Standard gdxcompaR based on typical variables, otherwise edit in gdxcompaR/server.R)
-runApp(appDir = "gdxcompaR")
+runApp(appDir = "gdxcompaR/witch")
 
 stop("Just load everything")
 

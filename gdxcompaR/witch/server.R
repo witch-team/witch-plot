@@ -104,13 +104,13 @@ shinyServer(function(input, output, session) {
         afd <- subset(afd, get(additional_set_id) %in% additional_set_selected)
         afd[[additional_set_id]] <- NULL #remove additional set column
         #afd$t <- as.character(afd$t)
-        if(length(additional_set_selected) >1) afd <- afd %>% group_by_at(setdiff(names(afd), "value")) %>% summarize(value=sum(value))
+        if(length(additional_set_selected) >1) afd <- afd %>% group_by_at(setdiff(names(afd), "value")) %>% summarize(value=sum(value), .groups = 'drop')
         }
       if(additional_set_id2!="na"){
         afd[[additional_set_id2]] <- tolower(afd[[additional_set_id2]]) # to fix erroneous gams cases (y and Y etc.)
         afd <- subset(afd, get(additional_set_id2) %in% additional_set_selected2)
         afd[[additional_set_id2]] <- NULL #remove additional set column
-        if(length(additional_set_selected2) >1) afd <- afd %>% group_by_at(setdiff(names(afd), "value")) %>% summarize(value=sum(value))
+        if(length(additional_set_selected2) >1) afd <- afd %>% group_by_at(setdiff(names(afd), "value")) %>% summarize(value=sum(value), .groups = 'drop')
       }
      
       #time frame
@@ -125,12 +125,12 @@ shinyServer(function(input, output, session) {
         afd_global$n <- NULL
         if(variable %in% default_meta_param()$parameter){
           if(default_meta_param()[parameter==variable & type=="nagg"]$value=="sum"){
-            afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value))
+            afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value), .groups = 'drop')
             }else if(default_meta_param()[parameter==variable & type=="nagg"]$value=="mean"){
-              afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=mean(value))
+              afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=mean(value), .groups = 'drop')
             }
             }else{
-              afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value))
+              afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value), .groups = 'drop')
             }
       afd_global <- afd_global %>% mutate(n = "World") %>% as.data.frame()
       afd <- rbind(afd, afd_global[,c("t","n","value",file_group_columns, "pathdir")])
@@ -233,13 +233,13 @@ shinyServer(function(input, output, session) {
         afd <- subset(afd, get(additional_set_id) %in% additional_set_selected)
         afd[[additional_set_id]] <- NULL #remove additional set column
         #afd$t <- as.character(afd$t)
-        if(length(additional_set_selected) >1) afd <- afd %>% group_by_at(setdiff(names(afd), "value")) %>% summarize(value=sum(value))
+        if(length(additional_set_selected) >1) afd <- afd %>% group_by_at(setdiff(names(afd), "value")) %>% summarize(value=sum(value), .groups = 'drop')
       }
       if(additional_set_id2!="na"){
         afd[[additional_set_id2]] <- tolower(afd[[additional_set_id2]]) # to fix erroneous gams cases (y and Y etc.)
         afd <- subset(afd, get(additional_set_id2) %in% additional_set_selected2)
         afd[[additional_set_id2]] <- NULL #remove additional set column
-        if(length(additional_set_selected2) >1) afd <- afd %>% group_by_at(setdiff(names(afd), "value")) %>% summarize(value=sum(value))
+        if(length(additional_set_selected2) >1) afd <- afd %>% group_by_at(setdiff(names(afd), "value")) %>% summarize(value=sum(value), .groups = 'drop')
       }
       
       #time frame
@@ -254,11 +254,11 @@ shinyServer(function(input, output, session) {
         afd_global$n <- NULL
         if(variable %in% default_meta_param()$parameter){
           if(default_meta_param()[parameter==variable & type=="nagg"]$value=="sum"){
-            afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value))
+            afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value), .groups = 'drop')
           }else if(default_meta_param()[parameter==variable & type=="nagg"]$value=="mean"){
-            afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=mean(value))
+            afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=mean(value), .groups = 'drop')
           }else{
-            afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value))
+            afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value), .groups = 'drop')
           }
         }
         afd_global <- afd_global %>% mutate(n = "World") %>% as.data.frame()
@@ -276,13 +276,13 @@ shinyServer(function(input, output, session) {
       if(regions[1]=="World" | length(regions)==1){#if only World is displayed or only one region, show files with colors
         p_dyn <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conv$unit) + xlim(yearmin,yearmax)
         if(ylim_zero) p_dyn <- p_dyn + ylim(0, NA)
-        p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", size=1.0, linetype="solid")
+        #p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", size=1.0, linetype="solid")
         p_dyn <- p_dyn + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year,value,colour=file), size=4.0, shape=18)
         #legends:
         p_dyn <- p_dyn + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
       }else{
         p_dyn <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=n, linetype=file)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unit_conv$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
-        p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(ttoyear(t),value,colour=n), linetype = "solid", stat="identity", size=1.0)
+        #p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(ttoyear(t),value,colour=n), linetype = "solid", stat="identity", size=1.0)
         p_dyn <- p_dyn + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year,value, shape=file), size=4.0)
         #legends:
         p_dyn <- p_dyn + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 2), linetype=guide_legend(title=NULL))

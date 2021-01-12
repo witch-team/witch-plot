@@ -39,20 +39,24 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   if(length(grep(paste(paste0("^", tolower(varname), valid_suffix), collapse = '|'), .gdx$parameters$name, value = TRUE))!=0){
     if(verbose) print(paste0("Historical values added for '", varname, "'."))
     item <- grep(paste(paste0("^", tolower(varname), valid_suffix), collapse = '|'), .gdx$parameters$name, value = TRUE) #use grep with ^ to have them start by varname
+    #if check calibration, just take the first (unique) element)
+    #if(check_calibration) item <- item[1]
     for(.item in item){.hist_single <- as.data.table(.gdx[.item]); .hist_single$file <- gsub(paste0(tolower(varname), "_"), "", .item); if(.item==item[1]){.hist <- .hist_single}else{.hist <- rbind(.hist,.hist_single)} } 
     
     #get set dependency based on /build/ folder
-    use_build <- F; if(use_build){
+    use_build <- F; 
+    if(use_build){
       .gdxiso3 <- gdx(file.path(witch_folder, "input", "build", basename(.gdxname))); 
-      print(str(.hist)); print(str(variable)); print(str(.gdxiso3[item[1]]))
+      #print(str(.hist)); print(str(variable)); print(str(.gdxiso3[item[1]]))
       colnames(.hist) <- c(colnames(.gdxiso3[item[1]]), "file")	
       #in built global data have set "global", but in input folder it gets converted to iso3, so:
-      colnames(.hist) <- gsub("global", "iso3", colnames(.hist)) #add "World" if no country level data but global
+      colnames(.hist) <- gsub("global", "iso3", colnames(.hist)) 
+      #add "World" if no country level data but global
       if(!("iso3" %in% colnames(.hist))){.hist$n = "World"}else{colnames(.hist) <- gsub("iso3", "n", colnames(.hist))}
       setnames(.hist, "year", "t")
       #print(.hist)
     }else{
-      if(!("iso3" %in% colnames(.hist))) .hist$n = "World"
+      if(!("iso3" %in% colnames(.hist)) & length(.hist)==2) .hist$n = "World"
       #try to get dependency from variable itself
       setdep <- setdiff(names(variable), c("n", "file", "pathdir", "t", "value"))
       setdep <- c(setdep, "t")

@@ -32,7 +32,7 @@ E, , , Q_EMI, e, co2, 0.2727273
 ")
 
 #gdxcompaR(Standard gdxcompaR based on typical variables, otherwise edit in gdxcompaR/server.R)
-runApp(appDir = "gdxcompaR")
+runApp(appDir = "gdxcompaR/rice50x")
 
 get_witch_variable("E")
 get_witch_simple("Y")

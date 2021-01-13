@@ -4,7 +4,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   #for different models or variable names, use mapping
   if(exists("map_var_hist")){
     if(varname %in% map_var_hist$varname_model){
-      if(!is.na(map_var_hist[varname_model==varname]$set_witch)){
+      if(map_var_hist[varname_model==varname]$set_witch!=""){
         variable <- cbind(tempset=map_var_hist[varname_model==varname]$element_witch, variable)
         setnames(variable, "tempset", map_var_hist[varname_model==varname]$set_witch)
         variable$value <- variable$value * map_var_hist[varname_model==varname]$conv
@@ -148,7 +148,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     #assign("varname", merged_variable, envir = .GlobalEnv)
     #print(merged_variable)
     #remove additional columns if using mapping
-    if(exists("map_var_hist")) if((varname %in% map_var_hist$varname_model)) variable <- variable %>% filter(map_var_hist[var_witch==varname]$set_witch==map_var_hist[var_witch==varname]$element_witch) %>% select(-one_of(map_var_hist[var_witch==varname]$set_witch)) 
+    if(exists("map_var_hist")) if((varname %in% map_var_hist$var_witch) & map_var_hist[var_witch==varname]$set_witch!="") merged_variable <- merged_variable %>% filter(get(map_var_hist[var_witch==varname]$set_witch)==map_var_hist[var_witch==varname]$element_witch) %>% select(-one_of(map_var_hist[var_witch==varname]$set_witch)) 
     return(merged_variable)
     }
   else

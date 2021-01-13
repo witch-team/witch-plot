@@ -29,6 +29,8 @@ source('functions/witch_functions.R')
 map_var_hist <- fread("varname_model, set_model, element_model, var_witch, set_witch, element_witch, conv
 Y, , , Q, g, y, 1
 E, , , Q_EMI, e, co2, 0.2727273
+pop, , , l, , , 1e-3
+K, , , K, g, fg, 1
 ")
 
 #gdxcompaR(Standard gdxcompaR based on typical variables, otherwise edit in gdxcompaR/server.R)
@@ -36,7 +38,7 @@ runApp(appDir = "gdxcompaR/rice50x")
 
 get_witch_variable("E")
 get_witch_simple("Y")
-
+get_witch_simple("pop")
 
 
 

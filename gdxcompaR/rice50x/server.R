@@ -350,18 +350,16 @@ shinyServer(function(input, output, session) {
       
     })
     
+
     
-    output$Diagnostics <- renderPlot({
+    output$gdxcompaRmap <- renderPlot({
       #get input from sliders/buttons
+      variable <- input$variable_selected
       yearmin = input$yearmin
       yearmax = input$yearmax
-      additional_set_selected <- input$additional_set_id_selected
-      regions <- input$regions_selected
       scenarios <- input$scenarios_selected
-      diagnostics_plots(scenplot = scenarios)
+      map_new(varname = variable, yearmap = yearmax, scenplot = scenarios, title=str_glue("{variable} in {yearmax}"))
     })
-    
-   
     
     
 })

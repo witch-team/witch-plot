@@ -204,4 +204,30 @@ CalcDists <- function(longlats) {
 
 
 
+#New maps for RICE+
+map_new <- function(varname, yearmap=2100, title="", scenplot=scenlist) {
+  data <- get_witch_simple(varname, results = "return")
+  world <- ne_countries(scale = "medium", returnclass = "sf")
+  #add geometry
+  world <- suppressWarnings(cbind(world, st_coordinates(st_centroid(world$geometry))))
+  #get model iso3 mapping
+  mod.countries = readLines(file.path(witch_folder, paste0("data_", region_id, "/regions.inc")))
+  mod.countries = mod.countries[mod.countries != ""]                     # Remove empty lines
+  mod.countries = mod.countries[!str_detect(mod.countries, "^\\*")]      # Remove * comments
+  mod.countries = str_trim(str_split_fixed(mod.countries, "#", 2)[, 1])  # Remove # comments
+  mod.countries = mod.countries[(grep("map_n_iso3(n,iso3)*", tolower(mod.countries))[1] + 1):(grep("map_n_iso3(n,iso3)*", tolower(mod.countries))[1] + grep(";", mod.countries[grep("map_n_iso3(n,iso3)*", tolower(mod.countries))[1]:length(mod.countries)])[1] -2)]                            # Keep mapping data
+  mod.countries = str_split(mod.countries, "\\.")
+  mod.countries <- data.table(matrix(unlist(mod.countries), ncol = 2, byrow = T))
+  setnames(mod.countries, c("n", "iso_a3"))
+  #Add data to iso3 list
+  data <- data %>% filter(t == yeartot(yearmap) & file %in% scenlist)
+  data <- data %>% full_join(mod.countries)
+  #Add data to world polygon
+  data_map <-
+    data %>% select(-n) %>% full_join(world) %>% filter(!is.na(value) & !is.na(iso_a3) & !is.na(file))
+  p_map <- ggplot(data = data_map) + geom_sf(aes(fill = value, geometry = geometry)) +  scale_fill_viridis_c(option = "plasma", direction = -1) + xlab("") + ylab("")  + ggtitle(title) + labs(fill = varname) + facet_wrap(file ~ .) + theme_bw() + theme(strip.background = element_rect(fill = "white"))
+  saveplot("Map", width = 12, height = 10)
+}
+
+
 

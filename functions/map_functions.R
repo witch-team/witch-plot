@@ -2,7 +2,7 @@
 
 
 
-witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scale_min=0, scale_max=0, mapcolor="Reds", map_name="map", map_legend="Legend", plot_witch_regions=FALSE, add_region_names=FALSE, add_bars=FALSE, figure_format = "png"){
+witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scale_min=0, scale_max=0, mapcolor="Reds", map_name="map", map_legend="Legend", add_region_names=FALSE, add_bars=FALSE, figure_format = "png"){
   #Palettes: Diverging: BrBG, PiYG, PRGn, PuOr, RdBu, RdGy, RdYlBu, RdYlGn, Spectral
   #Palettes: Qualitative: Accent, Dark2, Paired, Pastel1, Pastel2, Set1, Set2, Set3
   #Palettes: Sequential: Blues, BuGn, BuPu, GnBu, Greens, Greys, Oranges, OrRd, PuBu, PuBuGn, PuRd, Purples, RdPu, Reds, YlGn, YlGnBu, YlOrBr, YlOrRd
@@ -53,7 +53,6 @@ witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scal
   Nations = merge(Nations,witch_data_on_iso3,by=c("ISO3"))
   #get center location:
   region_centers <- aggregate(cbind(long, lat) ~ n, data=subset(Nations), FUN=function(x)mean(x+360)-360);
-  if(!plot_witch_regions){
   if(scale_min==0){scale_min = min(data_for_map_n$value); scale_max = max(data_for_map_n$value)}
   World.map <- ggplot(Nations, aes(x = long, y = lat))
   Country.layer <- c(geom_polygon(data = Nations, aes(x = long, y = lat, group = group, fill=value)))
@@ -75,26 +74,8 @@ witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scal
   #limit to Europe:   coord_cartesian(xlim = c(-10,33), ylim = c(36,73)) +
   print(p)
   savemap(map_name, figure_format = figure_format)
-  }
   
-  #Map of WITCH regional mapping:
-  if(plot_witch_regions){
-  World.map <- ggplot(Nations, aes(x = long, y = lat))
-  Country.layer <- c(geom_polygon(data = Nations, aes(x = long, y = lat, group = group, fill=n)))
-  Borders.layer <- c(geom_path(data = Nations, aes(x = long, y = lat, group = group), color="darkgray", size=0.1))  
-  p <- World.map + Country.layer + Borders.layer +
-  theme_minimal() + labs(x = "", y =  "") +
-  theme(axis.line=element_blank(), axis.text.x=element_blank(), axis.text.y=element_blank(),axis.ticks=element_blank(),
-  axis.title.x=element_blank(),axis.title.y=element_blank(), panel.grid.major=element_blank(),plot.background=element_blank(), panel.grid.minor=element_blank()) +
-  scale_fill_manual(values = region_palette)
-  if(add_region_names){p <- p + geom_text(data=region_centers, aes(long, lat, label = n), size=4)}
-  #p <- p + theme(legend.position = "none")
-  print(p)
-  savemap(map_name, figure_format = figure_format)  
-  print("Region centers and distances:")
-  assign("region_centers", region_centers, envir = .GlobalEnv)
-  assign("region_distances", as.matrix(CalcDists(region_centers)), envir = .GlobalEnv)
-  }
+  
 }
 
 
@@ -228,6 +209,30 @@ map_new <- function(varname, yearmap=2100, title="", scenplot=scenlist) {
   p_map <- ggplot(data = data_map) + geom_sf(aes(fill = value, geometry = geometry)) +  scale_fill_viridis_c(option = "plasma", direction = -1) + xlab("") + ylab("")  + ggtitle(title) + labs(fill = varname) + facet_wrap(file ~ .) + theme_bw() + theme(strip.background = element_rect(fill = "white"))
   saveplot("Map", width = 12, height = 10)
 }
+
+
+
+
+#New maps for RICE+
+plot_map_region_definition <- function() {
+  world <- ne_countries(scale = "medium", returnclass = "sf")
+  #add geometry
+  world <- suppressWarnings(cbind(world, st_coordinates(st_centroid(world$geometry))))
+  #get model iso3 mapping
+  mod.countries = readLines(file.path(witch_folder, paste0("data_", region_id, "/regions.inc")))
+  mod.countries = mod.countries[mod.countries != ""]                     # Remove empty lines
+  mod.countries = mod.countries[!str_detect(mod.countries, "^\\*")]      # Remove * comments
+  mod.countries = str_trim(str_split_fixed(mod.countries, "#", 2)[, 1])  # Remove # comments
+  mod.countries = mod.countries[(grep("map_n_iso3(n,iso3)*", tolower(mod.countries))[1] + 1):(grep("map_n_iso3(n,iso3)*", tolower(mod.countries))[1] + grep(";", mod.countries[grep("map_n_iso3(n,iso3)*", tolower(mod.countries))[1]:length(mod.countries)])[1] -2)]                            # Keep mapping data
+  mod.countries = str_split(mod.countries, "\\.")
+  mod.countries <- data.table(matrix(unlist(mod.countries), ncol = 2, byrow = T))
+  setnames(mod.countries, c("n", "iso_a3"))
+  p_map <- ggplot(data = mod.countries %>% full_join(world) %>% filter(!is.na(n) & !is.na(iso_a3))) + geom_sf(aes(fill = n, geometry = geometry)) +  scale_fill_manual(values = region_palette) + xlab("") + ylab("")  + ggtitle(str_glue("Regional aggregation: {region_id}")) + theme_bw() + theme(strip.background = element_rect(fill = "white"), legend.position="bottom") + guides(fill = guide_legend(nrow = 3))
+  saveplot(str_glue("region_definition_{region_id}"), width = 12, height = 8, add_title = F)
+}
+
+
+
 
 
 

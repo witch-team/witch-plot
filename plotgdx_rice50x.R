@@ -1,5 +1,5 @@
 rm(list = ls())
-witch_folder = "../RICE50x-clean" #Where you're RICE50x code is located
+witch_folder = "../RICE50x" #Where you're RICE50x code is located
 #main directory of your results files
 main_directory <- witch_folder # by default, the witch source folder
 subdir = c("") #can be multiple directories
@@ -31,6 +31,7 @@ Y, , , Q, g, y, 1
 E, , , Q_EMI, e, co2, 0.2727273
 pop, , , l, , , 1e-3
 K, , , K, g, fg, 1
+I, , , I, g, fg, 1
 ")
 
 #gdxcompaR(Standard gdxcompaR based on typical variables, otherwise edit in gdxcompaR/server.R)

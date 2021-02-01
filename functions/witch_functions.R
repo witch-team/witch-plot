@@ -12,7 +12,7 @@ if(any(!dir.exists(fullpathdir))){stop("Please check the main directory and sub 
 if(!dir.exists(witch_folder)){stop("Please check your witch directory!")}
 
 source('functions/get_libraries.R')
-pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'taRifx', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap','sf', 'rnaturalearth', 'plotly', 'purrr')
+pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'taRifx', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap','sf', 'rnaturalearth', 'plotly', 'purrr', 'reldist')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 

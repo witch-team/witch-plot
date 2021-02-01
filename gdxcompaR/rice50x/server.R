@@ -313,9 +313,9 @@ shinyServer(function(input, output, session) {
             afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value), .groups = 'drop')
           }else if(default_meta_param()[parameter==variable & type=="nagg"]$value=="mean"){
             afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=mean(value), .groups = 'drop')
-          }else{
-            afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value), .groups = 'drop')
           }
+        }else{
+          afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value), .groups = 'drop')
         }
         afd_global <- afd_global %>% mutate(n = "World") %>% as.data.frame()
         afd <- rbind(afd, afd_global[,c("t","n","value",file_group_columns, "pathdir")])
@@ -372,16 +372,22 @@ shinyServer(function(input, output, session) {
       get_witch_simple("elapsed")
       get_witch_simple("C")
       get_witch_simple("TATM")
-      #get_witch_simple("MIU")
-      #get_witch_simple("pop")
+      get_witch_simple("MIU")
+      get_witch_simple("pop")
       #get_witch_simple("DAMFRAC")
-      
+      #compute Gini index
+      gini <- C %>% left_join(pop %>% rename(pop=value)) %>% group_by(t,file,pathdir) %>% summarize(value=reldist::gini(value/pop, weights = pop))
       diagplot <- ggarrange(
-        ggplot(elapsed %>% filter(file %in% scenarios)) + geom_bar(aes(file,value, fill=file), stat = "identity") + ylab("Run time") +  theme(axis.text.x=element_text(angle=90,hjust=1)) + theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_y_time(),
+        ggplot(elapsed %>% filter(file %in% scenarios)) + geom_bar(aes(file,value, fill=file), stat = "identity") + ylab("Run time (minutes)") +  theme(axis.text.x=element_text(angle=90,hjust=1)) + theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_y_time(labels = function(l) strftime(l, '%M:%S')),
+        ggarrange(
+          ggplot(MIU %>% group_by(t,file,pathdir) %>% summarise(value=mean(value)) %>% filter(file %in% scenarios)) + geom_line(aes(ttoyear(t),value, color=file)) + ylab("MIU") + xlab(""),
+          ggplot(C  %>% filter(file %in% scenarios) %>% group_by(t,file,pathdir) %>% summarise(value=sum(value))) + geom_line(aes(ttoyear(t),value, color=file)) + ylab("Consumption [T$]") + xlab(""),
+          ncol=2, common.legend = T, legend="none"),
         ggarrange(
           ggplot(TATM %>% filter(file %in% scenarios)) + geom_line(aes(ttoyear(t),value, color=file)) + ylab("TATM") + xlab(""),
-          ggplot(C  %>% filter(file %in% scenarios) %>% group_by(t,file,pathdir) %>% summarise(value=sum(value))) + geom_line(aes(ttoyear(t),value, color=file)) + ylab("Consumption [T$]") + xlab(""),
-          ncol=2, common.legend = T, legend="none"), nrow=2, common.legend=T, legend = "bottom")
+          ggplot(gini  %>% filter(file %in% scenarios)) + geom_line(aes(ttoyear(t),value, color=file)) + ylab("Gini index") + xlab("") + ylim(0,1),
+          ncol=2, common.legend = T, legend="none"),
+        nrow=3, common.legend=T, legend = "bottom")
       print(diagplot)
       
       

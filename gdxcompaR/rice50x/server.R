@@ -362,4 +362,31 @@ shinyServer(function(input, output, session) {
     })
     
     
+    output$diagnostics <- renderPlot({
+      #get input from sliders/buttons
+      variable <- input$variable_selected
+      yearmin = input$yearmin
+      yearmax = input$yearmax
+      scenarios <- input$scenarios_selected
+      
+      get_witch_simple("elapsed")
+      get_witch_simple("C")
+      get_witch_simple("TATM")
+      #get_witch_simple("MIU")
+      #get_witch_simple("pop")
+      #get_witch_simple("DAMFRAC")
+      
+      diagplot <- ggarrange(
+        ggplot(elapsed %>% filter(file %in% scenarios)) + geom_bar(aes(file,value, fill=file), stat = "identity") + ylab("Run time") +  theme(axis.text.x=element_text(angle=90,hjust=1)) + theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_y_time(),
+        ggarrange(
+          ggplot(TATM %>% filter(file %in% scenarios)) + geom_line(aes(ttoyear(t),value, color=file)) + ylab("TATM") + xlab(""),
+          ggplot(C  %>% filter(file %in% scenarios) %>% group_by(t,file,pathdir) %>% summarise(value=sum(value))) + geom_line(aes(ttoyear(t),value, color=file)) + ylab("Consumption [T$]") + xlab(""),
+          ncol=2, common.legend = T, legend="none"), nrow=2, common.legend=T, legend = "bottom")
+      print(diagplot)
+      
+      
+    })
+    
+    
+    
 })

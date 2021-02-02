@@ -5,11 +5,13 @@ shinyServer(function(input, output, session) {
     verbose = FALSE
     save_plot = FALSE
     
-    #get list of variables
-    mygdx <- gdx(paste(file.path(fullpathdir[1], filelist[1]),".gdx",sep=""))
-    list_of_variables <- c(all_items(mygdx)$variables, all_items(mygdx)$parameters)
-    #now instead by hand
-    if(exists("conf")) list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_FEN", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l")
+    #get list of variables and parameters in all files
+    list_of_variables <- NULL
+    for(f in filelist){
+      .gdx <- gdx(paste(file.path(fullpathdir[1], f),".gdx",sep=""))
+      list_of_variables <- c(list_of_variables, all_items(.gdx)$variables, all_items(.gdx)$parameters)
+    }
+    list_of_variables <- unique(list_of_variables)
     
     #Scenario selector
     output$select_scenarios <- renderUI({

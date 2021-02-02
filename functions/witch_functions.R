@@ -15,6 +15,9 @@ source('functions/get_libraries.R')
 pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'taRifx', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap','sf', 'rnaturalearth', 'plotly', 'purrr', 'reldist')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
+library(dplyr, warn.conflicts = FALSE)
+# Suppress summarise info
+options(dplyr.summarise.inform = FALSE)
 
 #In case creating data Excel files creates a problem with old zip!!!
 #Sys.setenv(R_ZIPCMD= "C:/apps/Rtools/bin/zip")   

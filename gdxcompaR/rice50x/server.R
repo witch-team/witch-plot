@@ -5,10 +5,13 @@ shinyServer(function(input, output, session) {
     verbose = FALSE
     save_plot = FALSE
     
-    #get list of variables
-    mygdx <- gdx(paste(file.path(fullpathdir[1], filelist[1]),".gdx",sep=""))
-    custom_items <- "TAX"
-    list_of_variables <- c(all_items(mygdx)$variables, all_items(mygdx)$parameters, custom_items)
+    #get list of variables and parameters in all files
+    list_of_variables <- NULL
+    for(f in filelist){
+      .gdx <- gdx(paste(file.path(fullpathdir[1], f),".gdx",sep=""))
+      list_of_variables <- c(list_of_variables, all_items(.gdx)$variables, all_items(.gdx)$parameters)
+    }
+    list_of_variables <- unique(list_of_variables)
     
     #Scenario selector
     output$select_scenarios <- renderUI({
@@ -376,7 +379,7 @@ shinyServer(function(input, output, session) {
       get_witch_simple("pop")
       #get_witch_simple("DAMFRAC")
       #compute Gini index
-      gini <- C %>% left_join(pop %>% rename(pop=value)) %>% group_by(t,file,pathdir) %>% summarize(value=reldist::gini(value/pop, weights = pop))
+      gini <- C %>% left_join(pop %>% rename(pop=value), by = c("t", "n", "file", "pathdir")) %>% group_by(t,file,pathdir) %>% summarize(value=reldist::gini(value/pop, weights = pop))
       #style
       diagplot <- ggarrange(
         ggplot(elapsed %>% filter(file %in% scenarios)) + geom_bar(aes(file,value, fill=file), stat = "identity") + ylab("Run time (minutes)") +  theme(axis.text.x=element_text(angle=90,hjust=1)) + theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_y_time(labels = function(l) strftime(l, '%M:%S')),
@@ -385,7 +388,7 @@ shinyServer(function(input, output, session) {
           ggplot(C  %>% filter(file %in% scenarios) %>% group_by(t,file,pathdir) %>% summarise(value=sum(value))) + geom_line(aes(ttoyear(t),value, color=file), size=1) + ylab("Consumption [T$]") + xlab(""),
           ncol=2, common.legend = T, legend="none"),
         ggarrange(
-          ggplot(TATM %>% filter(file %in% scenarios)) + geom_line(aes(ttoyear(t),value, color=file), size=1) + ylab("TATM") + xlab(""),
+          ggplot(TATM %>% filter(file %in% scenarios & !is.na(value))) + geom_line(aes(ttoyear(t),value, color=file), size=1) + ylab("TATM") + xlab(""),
           ggplot(gini  %>% filter(file %in% scenarios)) + geom_line(aes(ttoyear(t),value, color=file), size=1) + ylab("Gini index") + xlab("") + ylim(0,1),
           ncol=2, common.legend = T, legend="none"),
         nrow=3, common.legend=T, legend = "bottom")

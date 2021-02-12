@@ -27,7 +27,7 @@ source('functions/witch_functions.R')
 
 #mapping of variables to historical and validation statistics and unit conversion to WITCH units
 map_var_hist <- fread("varname_model, set_model, element_model, var_witch, set_witch, element_witch, conv
-Y, , , Q, g, y, 1
+Y, , , SOCECON, *, gdp-ppp, 1
 E, , , Q_EMI, e, co2, 0.2727273
 pop, , , l, , , 1e-3
 K, , , K, g, fg, 1

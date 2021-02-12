@@ -19,6 +19,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
 
   valid_suffix <- "_valid"
   if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"}
+  if(varname=="Q_IN"){valid_suffix <- "_valid_notcompatible"}
   if(varname=="quantiles"){valid_suffix <- "_valid_swiid"} #for quantiles
   if(varname=="K_EN"){valid_suffix <- c("_valid_platts_tot", "_valid_irena", "_valid_iaea", "_valid_gcpt")} #for quantiles, set it to 
   

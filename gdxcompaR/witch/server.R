@@ -12,6 +12,7 @@ shinyServer(function(input, output, session) {
       list_of_variables <- c(list_of_variables, all_items(.gdx)$variables, all_items(.gdx)$parameters)
     }
     list_of_variables <- unique(list_of_variables)
+    list_of_variables <- c(sort(str_subset(list_of_variables, "^[:upper:]")), sort(str_subset(list_of_variables, "^[:lower:]")))
     
     #Scenario selector
     output$select_scenarios <- renderUI({

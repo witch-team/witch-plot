@@ -402,14 +402,13 @@ shinyServer(function(input, output, session) {
     output$inequalityplot <- renderPlot({
       #get input from sliders/buttons
       variable_ineq <- input$variable_selected
-      print(variable_ineq)
       yearmin = input$yearmin
       yearmax = input$yearmax
       regions <- input$regions_selected
       scenarios <- input$scenarios_selected
       inequality_plot_type_selected <- input$inequality_plot_type_selected
       inequality_value_share <- input$inequality_value_share
-      plot_inequality(variable = variable_ineq, plot_type = inequality_plot_type_selected, value_share = inequality_value_share, quantile_set = "dist", regions = regions, years = seq(yearmin, yearmax), years_lorenz = range(yearmin, yearmax), scenplot = scenarios)
+      plot_inequality(variable = variable_ineq, plot_type = inequality_plot_type_selected, value_share = inequality_value_share, quantile_set = "dist", regions = regions[1], years = seq(yearmin, yearmax), years_lorenz = range(yearmin, yearmax), scenplot = scenarios)
     })
     
     

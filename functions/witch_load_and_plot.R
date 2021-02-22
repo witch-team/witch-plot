@@ -1,5 +1,5 @@
 # Load GDX of all scenarios and basic pre-processing 
-get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=T, field = "l", postprocesssuffix=NULL){
+get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=F, field = "l", postprocesssuffix=NULL){
   if(!exists(variable_name) | (variable_name %in% c("t", "n", "p", "I")) | force_reload){
     if(exists("allfilesdata", envir = .GlobalEnv)){rm(allfilesdata, envir = .GlobalEnv)}
     variable_name_save=as.character(gsub("_", " ", variable_name_save))
@@ -253,3 +253,18 @@ getvar_witchhist <- function(varname, unit_conversion=1, hist_varname=varname, a
   print(ggplot(tempvar) + geom_line(aes(ttoyear(t), value, color=file, linetype=n)) + xlab("") + ylab(ylab))
   assign(varname, tempvar, envir = .GlobalEnv)
 }
+
+
+#Function to create a snapshot and setup the data for gdxompaR witch-online to be self-containted and deployed e.g. through shinyapps.io
+create_witch_online <- function(list_of_variables=c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "I_RD", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l"), deploy = F) {
+  #preload all variables (execult eht followig lines separately before deploying)
+  aux_vars <- c("ghg", "csi", "allerr", "allinfoiter", "all_optimal", "all_feasible", "price_iter")
+  lapply(c(aux_vars, list_of_variables), get_witch_simple)
+  save.image(file="gdxcompaR//witch-online//allvariables.Rdata")
+  #deploy app
+  if(deploy){
+    library(rsconnect)
+    deployApp(appDir = "gdxcompaR/witch-online/")
+  }
+}
+

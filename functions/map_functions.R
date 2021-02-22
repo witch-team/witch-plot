@@ -8,9 +8,9 @@ witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scal
   #Palettes: Sequential: Blues, BuGn, BuPu, GnBu, Greens, Greys, Oranges, OrRd, PuBu, PuBuGn, PuRd, Purples, RdPu, Reds, YlGn, YlGnBu, YlOrBr, YlOrRd
   savemap <- function(plotname, figure_format = "png"){
     if(figure_format=="pdf"){plot_device=cairo_pdf}else{plot_device=figure_format}
-    if (!dir.exists(graphdir)){dir.create(graphdir)}
+    if(!deploy_online) if (!dir.exists(graphdir)){dir.create(graphdir)}
     print(ggplot2::last_plot()) 
-    ggsave(filename=file.path(graphdir,paste0(gsub(" ", "_", as.character(plotname)),"_map.", figure_format)), plot = ggplot2::last_plot(), width=14, height=7, device = plot_device)
+    if(!deploy_online) ggsave(filename=file.path(graphdir,paste0(gsub(" ", "_", as.character(plotname)),"_map.", figure_format)), plot = ggplot2::last_plot(), width=14, height=7, device = plot_device)
   }
   # Get World data
   Nations <- data.table(map_data("world"))

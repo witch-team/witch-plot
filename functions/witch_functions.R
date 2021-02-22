@@ -11,10 +11,27 @@ graphdir = if(length(fullpathdir)>1){file.path(main_directory, "graphs") }else{f
 if(any(!dir.exists(fullpathdir))){stop("Please check the main directory and sub directory!")}
 if(!dir.exists(witch_folder)){stop("Please check your witch directory!")}
 
-source('functions/get_libraries.R')
+# gdxtools
+require_gdxtools <- function(){ 
+  if(!is.element("gdxtools", .packages(all.available = TRUE))){
+  require_package("devtools")
+  install_github('lolow/gdxtools')
+}
+if(packageVersion("gdxtools")<numeric_version("0.4.0")){
+  stop("You need to install a newer version of gdxtools (>=0.4.0). Please run remove.packages('gdxtools'), restart R and rerun this script.")
+}
+suppressPackageStartupMessages(library(gdxtools, quietly = TRUE))
+}
+#Install and load packages
+require_package <- function(package){
+  if(!is.element(package, .packages(all.available = TRUE))){
+    try(install.packages(package, repos="http://cran.rstudio.com"), silent = TRUE)
+  }
+  suppressPackageStartupMessages(library(package,character.only=T, quietly = TRUE))  
+}
+
 pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'taRifx', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap','sf', 'rnaturalearth', 'plotly', 'purrr', 'reldist')
 res <- lapply(pkgs, require_package)
-require_gdxtools()
 library(dplyr, warn.conflicts = FALSE)
 # Suppress summarise info
 options(dplyr.summarise.inform = FALSE)
@@ -23,6 +40,7 @@ options(dplyr.summarise.inform = FALSE)
 #Sys.setenv(R_ZIPCMD= "C:/apps/Rtools/bin/zip")   
 
 ## Local Options ##
+deploy_online <- FALSE #if not deployed onlinse save graphs
 figure_format="png"
 historical = TRUE  #add historical data where available
 theme_set(theme_bw())
@@ -66,6 +84,10 @@ print(scenlist)
 #file to separate check
 if(exists("file_separate")) file_group_columns <- c("file", unname(file_separate[3:length(file_separate)])) else file_group_columns <- "file"
 
+
+#get variable description of all variables
+mygdx <- gdx(file.path(fullpathdir[1],paste0(filelist[1],".gdx")))
+all_var_descriptions <- rbind(data.frame(name=mygdx$variables$name, description=mygdx$variables$text), data.frame(name=mygdx$parameters$name, description=mygdx$parameters$text))
 
 #Palettes for WITCH regions and regional aggregation
 if(!exists("region_id")){

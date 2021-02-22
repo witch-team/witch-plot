@@ -14,3 +14,6 @@ vignettes/*.pdf
 !plotgdx_rice50x.R
 .httr-oauth
 .Rproj.user
+# data from online deployed gdxcompaR
+gdxcompaR/witch-online/*.RData
+gdxcompaR/witch-online/rsconnect

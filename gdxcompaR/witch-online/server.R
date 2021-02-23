@@ -21,7 +21,7 @@ require('sf')
 require('rnaturalearth')
 require('plotly')
 require('purrr')
-require('reldist')
+
 
 shinyServer(function(input, output, session) {
   
@@ -30,8 +30,7 @@ shinyServer(function(input, output, session) {
     save_plot = FALSE
     
     list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "I_RD", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l")
-
-    deploy_online <- TRUE
+    
     
     #Scenario selector
     output$select_scenarios <- renderUI({
@@ -112,7 +111,7 @@ shinyServer(function(input, output, session) {
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
       scenarios <- input$scenarios_selected
-      
+      print(deploy_online)
       #in case they have not yet been set, set to default values
       if(is.null(regions)) regions <- display_regions
       if(is.null(additional_set_selected)) additional_set_selected <- set_elements[1]

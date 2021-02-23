@@ -260,6 +260,8 @@ create_witch_online <- function(list_of_variables=c("Q", "Q_EN", "Q_FUEL", "Q_OU
   #preload all variables (execult eht followig lines separately before deploying)
   aux_vars <- c("ghg", "csi", "allerr", "allinfoiter", "all_optimal", "all_feasible", "price_iter")
   lapply(c(aux_vars, list_of_variables), get_witch_simple)
+  if(file.exists("gdxcompaR//witch-online//allvariables.Rdata")) file.remove("gdxcompaR//witch-online//allvariables.Rdata")
+  assign("deploy_online", TRUE, envir = .GlobalEnv)
   save.image(file="gdxcompaR//witch-online//allvariables.Rdata")
   #deploy app
   if(deploy){

@@ -1,6 +1,8 @@
 
-add_historical_values <- function(variable, varname=deparse(substitute(variable)), scenplot=scenlist, check_calibration=FALSE, verbose=T){
+add_historical_values <- function(variable, varname=deparse(substitute(variable)), scenplot=scenlist, check_calibration=FALSE, overlap_years="model", verbose=T){
   
+  #have to decide what to do with years with both model and historical data: overlap_years = #historical"  or "model" 
+
   #for different models or variable names, use mapping
   if(exists("map_var_hist")){
     if(varname %in% map_var_hist$varname_model){
@@ -13,9 +15,6 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
       varname <- map_var_hist[varname_model==varname]$var_witch
     }
   }
-  
-  #have to decide what to do with years with both model and historical data
-  display_years = "model"#historical" #"model" #"historical"
 
   valid_suffix <- "_valid"
   if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"}
@@ -57,7 +56,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
       setnames(.hist, "year", "t")
       #print(.hist)
     }else{
-      if(!("iso3" %in% colnames(.hist)) & length(.hist)==2) .hist$n = "World"
+      if(!("iso3" %in% colnames(.hist))) .hist$n = "World"
       #try to get dependency from variable itself
       setdep <- setdiff(names(variable), c("n", "file", "pathdir", "t", "value"))
       setdep <- c(setdep, "t")
@@ -90,11 +89,6 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
 
 
     #special case where categories do not match exactly
-    if("q_fen_valid_weo" %in% item)
-    {
-      setnames(.hist, "sec", "z")
-      setnames(.hist, "fuel", "fr")
-    }
 
     if("q_in_valid_weo" %in% item) #add fuel column
     {
@@ -130,7 +124,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
         .hist_temp$pathdir <- pd
         if(pd==basename(fullpathdir)[1]){.hist=.hist_temp}else{.hist <-rbind(.hist,.hist_temp)}
       }
-      if(display_years=="model"){
+      if(overlap_years=="model"){
         #display model data for overlapping years, delete historical data
         .hist <- subset(.hist, !(t %in% seq(1,10)))
       }else{

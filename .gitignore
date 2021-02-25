@@ -2,7 +2,8 @@
 .Rhistory
 .Rapp.history
 .RData
-plotgdx_*.R
+plotgdx_witch_*.R
+plotgdx_rice50x_*.R
 # Example code in package build process
 *-Ex.R
 # RStudio files
@@ -10,7 +11,7 @@ plotgdx_*.R
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
-!plotgdx_default.R
+!plotgdx_witch.R
 !plotgdx_rice50x.R
 .httr-oauth
 .Rproj.user

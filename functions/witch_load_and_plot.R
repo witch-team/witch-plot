@@ -1,6 +1,6 @@
 # Load GDX of all scenarios and basic pre-processing 
 get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=F, field = "l", postprocesssuffix=NULL){
-  if(!exists(variable_name) | (variable_name %in% c("t", "n", "p", "I")) | force_reload){
+  if(!is.data.frame(variable_name) | (variable_name %in% c("t", "n", "p", "I")) | force_reload){
     if(exists("allfilesdata", envir = .GlobalEnv)){rm(allfilesdata, envir = .GlobalEnv)}
     variable_name_save=as.character(gsub("_", " ", variable_name_save))
     for (current_pathdir in fullpathdir){

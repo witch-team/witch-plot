@@ -60,6 +60,7 @@ if(!exists("yearmax")) yearmax = 2100
 #load basic functions
 source('functions/auxiliary_functions.R')
 source('functions/witch_load_and_plot.R')
+source('functions/add_historical_values.R')
 
 filelist = gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
 if(restrict_files[1]!="") {
@@ -151,7 +152,6 @@ names(region_palette_longnames) <- mapvalues(names(region_palette), as.character
 
 #load specialized functions
 source('functions/map_functions.R')
-source('functions/add_historical_values.R')
 source('functions/export_variables.R')
 source('functions/diagnostics.R')
 source('functions/impact_plots.R')

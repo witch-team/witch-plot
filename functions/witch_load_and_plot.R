@@ -11,6 +11,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
           if(is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$parameters) | is.element(variable_name, all_items(mygdx)$sets) | is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$equations))
           {
             tempdata <- data.table(mygdx[variable_name, field = field])
+            if(!("n" %in% names(tempdata))) tempdata$n <- "World"
             tempdata$file <- as.character(file)
             if(length(fullpathdir)>=1){tempdata$pathdir <- basename(current_pathdir)}
             if(!exists("allfilesdata")){allfilesdata<-tempdata}else{allfilesdata <-rbind(allfilesdata,tempdata)}

@@ -57,7 +57,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
       setnames(.hist, "year", "t")
       #print(.hist)
     }else{
-      if(!("iso3" %in% colnames(.hist))) .hist$n = "World"
+      if(!("n" %in% colnames(.hist))) .hist$n = "World"
       #try to get dependency from variable itself
       setdep <- setdiff(names(variable), c("n", "file", "pathdir", "t", "value"))
       setdep <- c(setdep, "t")

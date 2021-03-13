@@ -373,14 +373,14 @@ shinyServer(function(input, output, session) {
       yearmax = input$yearmax
       scenarios <- input$scenarios_selected
       
-      get_witch_simple("elapsed")
+      get_witch_simple("elapsed"); if(!exists("elapsed")) elapsed <- data.frame(file=scenlist, value=0)
       get_witch_simple("C")
       get_witch_simple("TATM")
       get_witch_simple("MIU")
-      get_witch_simple("pop")
+      get_witch_simple("l")
       #get_witch_simple("DAMFRAC")
       #compute Gini index
-      gini <- C %>% left_join(pop %>% rename(pop=value), by = c("t", "n", "file", "pathdir")) %>% group_by(t,file,pathdir) %>% summarize(value=reldist::gini(value/pop, weights = pop))
+      gini <- C %>% left_join(l %>% rename(pop=value), by = c("t", "n", "file", "pathdir")) %>% group_by(t,file,pathdir) %>% summarize(value=reldist::gini(value/pop, weights = pop))
       #style
       diagplot <- ggarrange(
         ggplot(elapsed %>% filter(file %in% scenarios)) + geom_bar(aes(file,value, fill=file), stat = "identity") + ylab("Run time (minutes)") +  theme(axis.text.x=element_text(angle=90,hjust=1)) + theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_y_time(labels = function(l) strftime(l, '%M:%S')),

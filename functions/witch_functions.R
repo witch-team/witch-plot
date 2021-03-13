@@ -87,7 +87,7 @@ print(scenlist)
 if(exists("file_separate")) file_group_columns <- c("file", unname(file_separate[3:length(file_separate)])) else file_group_columns <- "file"
 
 
-#get variable description of all variables
+#get variable description of all variables from the 1st file
 mygdx <- gdx(file.path(fullpathdir[1],paste0(filelist[1],".gdx")))
 all_var_descriptions <- rbind(data.frame(name=mygdx$variables$name, description=mygdx$variables$text), data.frame(name=mygdx$parameters$name, description=mygdx$parameters$text))
 
@@ -98,19 +98,17 @@ if(!(exists("conf"))) stop("No conf set found. Please specify region_i = x manua
 if(length(unique(subset(conf, V1=="regions")$V2))>1) print("Be careful: not all results files were run with the same regional aggregation!")
 region_id <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) & V1=="regions")$V2
 }
-get_witch_simple("n")
-witch_regions <- unique(n$V1)
+n <- suppressWarnings(batch_extract("n", files = file.path(fullpathdir,paste0(filelist,".gdx"))))
+if(is.null(n$n)) witch_regions <- "World" else witch_regions <- unique(n$n$V1)
+display_regions <- witch_regions
 
-if(!exists("display_regions")){display_regions <- witch_regions}
-region_palette <- setNames(rainbow(length(witch_regions)), witch_regions) #just in case have a fall back colour
-region_palette_specific <- c(usa="darkblue",Usa="darkblue",oldeuro="blue", neweuro="cornflowerblue",kosau="darkgreen",Kosau="darkgreen",cajaz="chartreuse4",Cajaz="chartreuse4",te="gold2",Te="gold2",mena="darkgoldenrod4",Mena="darkgoldenrod4",ssa="goldenrod",Ssa="goldenrod",sasia="darkorange2","South Asia"="darkorange2",china="deeppink3",PRC="deeppink3",easia="orangered",ESEAP="orangered",laca="#fbb714",Laca="#fbb714",india="#fbf003",India="#fbf003",europe="blue",Europe="blue",indonesia="lightsalmon3",Indonesia="lightsalmon3",Rest_of_World="grey48",chinaw="darkorange",chinac="darkorange2",chinae="darkorange4",italy="green",mexico="slateblue2",brazil="tomato4",canada="blueviolet",jpnkor="darkseagreen",oceania="forestgreen",southafrica="indianred3",seasia="orangered",World="black", "Global Pool"="black")
+region_palette_specific <- setNames(rainbow(length(witch_regions)), witch_regions) #just in case have a fall back colour
+region_palette_witch <- c(usa="darkblue",Usa="darkblue",oldeuro="blue", neweuro="cornflowerblue",kosau="darkgreen",Kosau="darkgreen",cajaz="chartreuse4",Cajaz="chartreuse4",te="gold2",Te="gold2",mena="darkgoldenrod4",Mena="darkgoldenrod4",ssa="goldenrod",Ssa="goldenrod",sasia="darkorange2","South Asia"="darkorange2",china="deeppink3",PRC="deeppink3",easia="orangered",ESEAP="orangered",laca="#fbb714",Laca="#fbb714",india="#fbf003",India="#fbf003",europe="blue",Europe="blue",indonesia="lightsalmon3",Indonesia="lightsalmon3",Rest_of_World="grey48",chinaw="darkorange",chinac="darkorange2",chinae="darkorange4",italy="green",mexico="slateblue2",brazil="tomato4",canada="blueviolet",jpnkor="darkseagreen",oceania="forestgreen",southafrica="indianred3",seasia="orangered",World="black", "Global Pool"="black")
 #add ed57 region colors for RICE50+
-colors_ed57 <- c("arg" =  "#000000","aus" =  "#48d1cc","aut" =  "#ae8000","bel" =  "#800000","bgr" =  "#003366","blt" =  "#bf4040","bra" =  "#ffd633","can" =  "#6600cc","chl" =  "#ffece6","chn" =  "#ff531a","cor" =  "#adebad","cro" =  "#808080","dnk" =  "#ff9933","egy" =  "#0044cc","esp" =  "#ffd6cc","fin" =  "#00cccc","fra" =  "#cc0000","gbr" =  "#ffffff","golf57"  =  "#33d6ff","grc" =  "#00ffcc","hun" =  "#9999ff","idn" =  "#996633","irl" =  "#ff4dff","ita" =  "#ffff00","jpn" =  "#006600","meme"=  "#b32d00","mex" =  "#ccff33","mys" =  "#145252","nde" =  "#00d900","nld" =  "#c309bd","noan"=  "#ffff99","noap"=  "#ecf2f9","nor" =  "#ff3399","oeu" =  "#ffb3ff","osea"=  "#008fb3","pol" =  "#d6f5d6","prt" =  "#003300","rcam"=  "#4d1919","rcz" =  "#00ffff","rfa" =  "#deb887","ris" =  "#000080","rjan57"  =  "#bf00ff","rom" =  "#ff00ff","rsaf"=  "#ff8000","rsam"=  "#0000ff","rsas"=  "#ccd6dd","rsl" =  "#00ff00","rus" =  "#66757f","slo" =  "#ff3091","sui" =  "#61a62f","swe" =  "#cb1942","tha" =  "#efff14","tur" =  "#4b0082","ukr" =  "#c198ff","usa" =  "#ffcc00","vnm" =  "#3377ff","zaf" =  "#b3ccff")
-if(exists("conf")) region_palette <- region_palette_specific #c(region_palette_specific, region_palette_rainbow)
-if(region_id=="ed57") region_palette <- colors_ed57
-if(!exists("regions_focus")){regions_focus <- witch_regions}
-print(paste("Regional aggregation:", region_id))
-witch_colors_alphabetic <- c("chartreuse4", "deeppink3", "orangered", "khaki1", "darkgreen", "gold", "darkgoldenrod4", "cornflowerblue", "blue", "darkorange2", "goldenrod", "gold2", "darkblue")
+region_palette_ed57 <- c("arg" =  "#000000","aus" =  "#48d1cc","aut" =  "#ae8000","bel" =  "#800000","bgr" =  "#003366","blt" =  "#bf4040","bra" =  "#ffd633","can" =  "#6600cc","chl" =  "#ffece6","chn" =  "#ff531a","cor" =  "#adebad","cro" =  "#808080","dnk" =  "#ff9933","egy" =  "#0044cc","esp" =  "#ffd6cc","fin" =  "#00cccc","fra" =  "#cc0000","gbr" =  "#ffdddd","golf57"  =  "#33d6ff","grc" =  "#00ffcc","hun" =  "#9999ff","idn" =  "#996633","irl" =  "#ff4dff","ita" =  "#ffff00","jpn" =  "#006600","meme"=  "#b32d00","mex" =  "#ccff33","mys" =  "#145252","nde" =  "#00d900","nld" =  "#c309bd","noan"=  "#ffff99","noap"=  "#ecf2f9","nor" =  "#ff3399","oeu" =  "#ffb3ff","osea"=  "#008fb3","pol" =  "#d6f5d6","prt" =  "#003300","rcam"=  "#4d1919","rcz" =  "#00ffff","rfa" =  "#deb887","ris" =  "#000080","rjan57"  =  "#bf00ff","rom" =  "#ff00ff","rsaf"=  "#ff8000","rsam"=  "#0000ff","rsas"=  "#ccd6dd","rsl" =  "#00ff00","rus" =  "#66757f","slo" =  "#ff3091","sui" =  "#61a62f","swe" =  "#cb1942","tha" =  "#efff14","tur" =  "#4b0082","ukr" =  "#c198ff","usa" =  "#ffcc00","vnm" =  "#3377ff","zaf" =  "#b3ccff")
+region_palette <- replace(region_palette_specific, names(region_palette_witch), region_palette_witch)
+region_palette <- replace(region_palette, names(region_palette_ed57), region_palette_ed57)
+print(paste("Numbers of regions considered:", length(witch_regions)))
 
 witch_name_short <- function(witch_name){
   witch_name  <- gsub("indonesia", "IDN", witch_name)
@@ -121,7 +119,7 @@ witch_name_short <- function(witch_name){
   witch_name_shortened <- gsub("TE", "TEC", witch_name_shortened)
   return(witch_name_shortened)
 }
-region_palette_specific_short <- region_palette_specific; names(region_palette_specific_short) <- witch_name_short(names(region_palette_specific))
+region_palette_specific_short <- region_palette; names(region_palette_specific_short) <- witch_name_short(names(region_palette_specific))
 
 witch_region_names <-"n,longname
 canada,Canada
@@ -161,5 +159,6 @@ source('functions/climate_plots.R')
 source('functions/policy_cost.R')
 source('functions/inequality_plots.R')
 
+if(!dir.exists(file.path(witch_folder, paste0("data_", region_id)))) print("No data_* directory for historical data found.")
 
 

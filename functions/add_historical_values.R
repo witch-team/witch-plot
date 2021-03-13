@@ -18,6 +18,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
 
   valid_suffix <- "_valid"
   if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"}
+  #if(varname=="SOCECON"){valid_suffix <- "_valid_wdi_sum"}
   if(varname=="Q_IN"){valid_suffix <- "_valid_notcompatible"}
   if(varname=="quantiles"){valid_suffix <- "_valid_swiid"} #for quantiles
   if(varname=="K_EN"){valid_suffix <- c("_valid_platts_tot", "_valid_irena", "_valid_iaea", "_valid_gcpt")} #for quantiles, set it to 
@@ -27,7 +28,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   if(str_detect(varname, "HECTOR")) varname <- gsub("HECTOR", "", varname)
   
   #check which GDX file to use (all files that start with data_historical*.gdx)
-  if(!dir.exists(file.path(witch_folder, paste0("data_", region_id)))){stop("Please check your witch/data_* directory!")}
+  if(!dir.exists(file.path(witch_folder, paste0("data_", region_id)))) return(as.data.table(variable))
   gdxhistlist <- list.files(path=file.path(witch_folder, paste0("data_", region_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
   
   for(.gdxname in gdxhistlist){

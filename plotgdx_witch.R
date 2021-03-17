@@ -21,7 +21,7 @@ yearmax = 2100
 #scenplot_global_order <- c(5,3,1)
 
 #Initialize default options, load all witch and other functionsget
-source('functions/witch_functions.R')
+source('R/witch_functions.R')
 
 #gdxcompaR (Standard gdxcompaR based on typical variables, otherwise edit in gdxcompaR/server.R)
 runApp(appDir = "gdxcompaR/witch")
@@ -85,7 +85,7 @@ saveplot("welfare correction")
 diagnostics_plots() #Basic diagnostic plots
 
 #Main part, get data plots etc.
-Plot_Global_Emissions(show_ar5=TRUE, ar5_budget=1180, bauscen = "bau")
+Plot_Global_Emissions(bauscen = "bau")
 get_witch_variable("carbonprice", "Carbon Price", "na", "na", aggregation =  "global_mean")
 get_witch_variable("Q", "GDP", "iq", "y", aggregation = "global_sum")
 get_witch_variable("Q", "GDP", "iq", "y", aggregation = "regional")

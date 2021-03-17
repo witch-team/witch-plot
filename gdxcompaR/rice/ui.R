@@ -4,7 +4,7 @@ shinyUI(fluidPage(pageWithSidebar(
     
   
   # Application title
-  headerPanel("RICE50+ gdxcompaR"),
+  headerPanel("RICE gdxcompaR"),
   
   # Sidebar with a slider of years and set elements
   sidebarPanel(

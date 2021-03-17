@@ -3,7 +3,7 @@
 .Rapp.history
 .RData
 plotgdx_witch_*.R
-plotgdx_rice50x_*.R
+plotgdx_rice_*.R
 # Example code in package build process
 *-Ex.R
 # RStudio files
@@ -12,7 +12,7 @@ plotgdx_rice50x_*.R
 vignettes/*.html
 vignettes/*.pdf
 !plotgdx_witch.R
-!plotgdx_rice50x.R
+!plotgdx_rice.R
 .httr-oauth
 .Rproj.user
 # data from online deployed gdxcompaR

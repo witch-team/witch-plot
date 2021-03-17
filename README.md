@@ -1,63 +1,38 @@
-witchplotR - ploting tools for the WITCH model
+witch-plot - A library of (static and dynamic) ploting tools for the WITCH model and DICE/RICE model series.
 
-Started in 2014 by Johannes Emmerling to have quick and reproducible sets of graphs for diagnostics, inspection, and publication. Happy to share and have people contributing to improve further.
-Note that it is work in progress!!
+Started in 2014 by Johannes Emmerling to have quick and reproducible sets of graphs for diagnostics, inspection, and publication.
 
+## Requirements
 
-## Main Functions and their arguments
+1) **Installation:** Install R, Rtools, RStudio, GAMS, Github Desktop, (and optionally VSCode as advanced editor)
 
-gdxcompaR
+* R from https://cran.r-project.org/bin/windows/base/
+* Rtools from https://cran.r-project.org/bin/windows/Rtools/
+* RStudio from https://rstudio.com/products/rstudio/download/#download
+* GAMS from https://www.gams.com/download/ (Run the installer in advanced mode and mark the check-box `Add GAMS directory to PATH environment variable`).
+* GitHub Desktop from https://desktop.github.com/ and log-in with your personal GitHub Account.
+* VisualStudio Code from https://code.visualstudio.com/ (optional)
 
-  ShinyApp based dynamic comparison tool for multipleGDX files
-  Simply run gdxcompaR.R in the main directory specifying you WITCH and results folders in this file.
+## Installation and running the program
 
+Get the source code either cloning it in Github desktop (preferred), or download it from https://github.com/witch-team/witch-plot, or using git at the command line.
 
-get_witch_variable
- 
-	variable_name, 	“K_EN”
-	variable_name_save=variable_name, 	“Cars”
-	additional_set="na",	“jreal“
-	additional_set_id="na", 	“trad_cars” OR “all” for loading all elements (“all” does only load data, not produce the graph), or “sum” for summing over all elements of additional_set
-	convert=1, 	1  to convert units (multiplying
-	unit="", 	“GtCO2” (for charts y-axis)
-	aggregation="regional", 	“regional” | “global_sum” | “global_mean”	
-	bar="", 	“region” | “set”  if you want bar chart (use “regional” agg,)
-	bar_x="time", 	“time” | “file2100”  over time or files/scenarios for one year
-	bar_y="value", 	“value” | “share”
-	bar_setvalues=".", 	c(“trad_cars”, “hybrid”)
-	bar_colors=region_palette)	c(“black”, “blue”)
- 
-witchmap
+To run the program, open teh folder "witch-plot" in Rstudio as a project or execute on the command line
+```Shell
+Rscript plotgdx_[witch|rice].R
+```
 
-	variable_report, 	“K_EN”
-	file_report, 	“results_ssp2_bau”
-	t_report=20,	20 for 2100
-	scale_min=0,	minimum of scale (0 for min of data)
-	scale_max=0,	maximum of scale (0 for min of data)
-	map_name="map"	“Temperature in 2100 in the BAU”
-	map_legend="Legend"	Title of legend with colours	
-	graphdir = "./"	folder to store the “map_name”.png file 
- 
-saveplot
+The script will automatically search all results_*.gdx files in the specified folder in the second line of the script and include all in the analysis and plots.
 
-	plotname
-	width=7
-	height=5
-	text_size=6
-	
-Primary_Energy_Mix
+## Main Functions
 
-Primary_Energy_Mix_Regional
+### get_witch_simple("varname")
 
-Electricity_Mix
+Loads the variable "varname" from all results GDX files and stores them in a data.frame names "varname".
 
-Intensity_Plot
-
-Carbon_Price
-
-Sectoral_Emissions
-
-Electricity_Mix_Regional
+### gdxcompaR
+ShinyApp based dynamic comparison tool for multiple results files.
+Simplyu run 'runApp(appDir = "gdxcompaR/witch")' or runApp(appDir = "gdxcompaR/witch") to launch the interactive App after sourcing the main file 'plotgdx-witch.R' or 'plotgdx-rice.R'.
 
 
 

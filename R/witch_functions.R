@@ -58,9 +58,9 @@ if(!exists("yearmax")) yearmax = 2100
 
 
 #load basic functions
-source('functions/auxiliary_functions.R')
-source('functions/witch_load_and_plot.R')
-source('functions/add_historical_values.R')
+source('R/auxiliary_functions.R')
+source('R/witch_load_and_plot.R')
+source('R/add_historical_values.R')
 
 filelist = gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
 if(restrict_files[1]!="") {
@@ -149,15 +149,15 @@ region_palette_longnames <- region_palette
 names(region_palette_longnames) <- mapvalues(names(region_palette), as.character(witch_region_names$n), paste0(as.character(witch_region_names$longname), " (",as.character(witch_region_names$n),")"), warn_missing = F)
 
 #load specialized functions
-source('functions/map_functions.R')
-source('functions/export_variables.R')
-source('functions/diagnostics.R')
-source('functions/impact_plots.R')
-source('functions/energy_plots.R')
-source('functions/emission_plots.R')
-source('functions/climate_plots.R')
-source('functions/policy_cost.R')
-source('functions/inequality_plots.R')
+source('R/map_functions.R')
+source('R/export_variables.R')
+source('R/diagnostics.R')
+source('R/impact_plots.R')
+source('R/energy_plots.R')
+source('R/emission_plots.R')
+source('R/climate_plots.R')
+source('R/policy_cost.R')
+source('R/inequality_plots.R')
 
 if(!dir.exists(file.path(witch_folder, paste0("data_", region_id)))) print("No data_* directory for historical data found.")
 

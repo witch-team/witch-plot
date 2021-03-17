@@ -36,3 +36,7 @@ Simplyu run 'runApp(appDir = "gdxcompaR/witch")' or runApp(appDir = "gdxcompaR/w
 
 
 
+## Further Information
+
+For further information please contact johannes.emmerling@eiee.org
+

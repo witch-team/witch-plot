@@ -1,4 +1,4 @@
-witch-plot - A library of (static and dynamic) ploting tools for the WITCH model and DICE/RICE model series.
+witch-plot - A library of (static and dynamic) plotting tools for the WITCH model and DICE/RICE model series.
 
 Started in 2014 by Johannes Emmerling to have quick and reproducible sets of graphs for diagnostics, inspection, and publication.
 
@@ -10,14 +10,14 @@ Started in 2014 by Johannes Emmerling to have quick and reproducible sets of gra
 * Rtools from https://cran.r-project.org/bin/windows/Rtools/
 * RStudio from https://rstudio.com/products/rstudio/download/#download
 * GAMS from https://www.gams.com/download/ (Run the installer in advanced mode and mark the check-box `Add GAMS directory to PATH environment variable`).
-* GitHub Desktop from https://desktop.github.com/ and log-in with your personal GitHub Account.
+* GitHub Desktop from https://desktop.github.com/ and log-in with your personal GitHub account.
 * VisualStudio Code from https://code.visualstudio.com/ (optional)
 
 ## Installation and running the program
 
-Get the source code either cloning it in Github desktop (preferred), or download it from https://github.com/witch-team/witch-plot, or using git at the command line.
+Get the source code either cloning it in Github desktop (preferred), download it from https://github.com/witch-team/witch-plot, or using git at the command line.
 
-To run the program, open teh folder "witch-plot" in Rstudio as a project or execute on the command line
+To run the program, open the folder "witch-plot" in Rstudio as a project or execute on the command line
 ```Shell
 Rscript plotgdx_[witch|rice].R
 ```
@@ -32,7 +32,7 @@ Loads the variable "varname" from all results GDX files and stores them in a dat
 
 ### gdxcompaR
 ShinyApp based dynamic comparison tool for multiple results files.
-Simplyu run 'runApp(appDir = "gdxcompaR/witch")' or runApp(appDir = "gdxcompaR/witch") to launch the interactive App after sourcing the main file 'plotgdx-witch.R' or 'plotgdx-rice.R'.
+Simplyu run 'runApp(appDir = "gdxcompaR/witch")' or runApp(appDir = "gdxcompaR/rice") to launch the interactive App after sourcing the main file 'plotgdx_witch.R' or 'plotgdx_rice.R'.
 
 
 

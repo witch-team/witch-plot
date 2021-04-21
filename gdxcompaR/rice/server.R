@@ -374,19 +374,19 @@ shinyServer(function(input, output, session) {
       scenarios <- input$scenarios_selected
       
       get_witch_simple("elapsed"); if(!exists("elapsed")) elapsed <- data.frame(file=scenlist, value=0)
-      get_witch_simple("C")
+      get_witch_simple("Y")
       get_witch_simple("TATM")
       get_witch_simple("MIU")
       get_witch_simple("l")
       #get_witch_simple("DAMFRAC")
       #compute Gini index
-      gini <- C %>% left_join(l %>% rename(pop=value), by = c("t", "n", "file", "pathdir")) %>% group_by(t,file,pathdir) %>% summarize(value=reldist::gini(value/pop, weights = pop))
+      gini <- Y %>% left_join(l %>% rename(pop=value), by = c("t", "n", "file", "pathdir")) %>% group_by(t,file,pathdir) %>% summarize(value=reldist::gini(value/pop, weights = pop))
       #style
       diagplot <- ggarrange(
         ggplot(elapsed %>% filter(file %in% scenarios)) + geom_bar(aes(file,value, fill=file), stat = "identity") + ylab("Run time (minutes)") +  theme(axis.text.x=element_text(angle=90,hjust=1)) + theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) + scale_y_time(labels = function(l) strftime(l, '%M:%S')),
         ggarrange(
           ggplot(MIU %>% group_by(t,file,pathdir) %>% summarise(value=mean(value)) %>% filter(file %in% scenarios)) + geom_line(aes(ttoyear(t),value, color=file), size=1) + ylab("MIU") + xlab(""),
-          ggplot(C  %>% filter(file %in% scenarios) %>% group_by(t,file,pathdir) %>% summarise(value=sum(value))) + geom_line(aes(ttoyear(t),value, color=file), size=1) + ylab("Consumption [T$]") + xlab(""),
+          ggplot(Y  %>% filter(file %in% scenarios) %>% group_by(t,file,pathdir) %>% summarise(value=sum(value))) + geom_line(aes(ttoyear(t),value, color=file), size=1) + ylab("GDP [T$]") + xlab(""),
           ncol=2, common.legend = T, legend="none"),
         ggarrange(
           ggplot(TATM %>% filter(file %in% scenarios & !is.na(value))) + geom_line(aes(ttoyear(t),value, color=file), size=1) + ylab("TATM") + xlab(""),

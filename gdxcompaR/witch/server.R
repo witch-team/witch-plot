@@ -4,16 +4,16 @@ shinyServer(function(input, output, session) {
     #some global flags
     verbose = FALSE
     save_plot = FALSE
-    
+  
     #get list of variables and parameters in all files
-    # list_of_variables <- NULL
-    # for(f in filelist){
-    #   .gdx <- gdx(paste(file.path(fullpathdir[1], f),".gdx",sep=""))
-    #   list_of_variables <- c(list_of_variables, all_items(.gdx)$variables, all_items(.gdx)$parameters)
-    # }
-    # list_of_variables <- unique(list_of_variables)
-    # #list_of_variables <- c(sort(str_subset(list_of_variables, "^[:upper:]")), sort(str_subset(list_of_variables, "^[:lower:]")))
-    list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_FEN", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l")
+     list_of_variables <- NULL
+     for(f in filelist){
+       .gdx <- gdx(paste(file.path(fullpathdir[1], f),".gdx",sep=""))
+       list_of_variables <- c(list_of_variables, all_items(.gdx)$variables, all_items(.gdx)$parameters)
+     }
+     list_of_variables <- unique(list_of_variables)
+     list_of_variables <- c(sort(str_subset(list_of_variables, "^[:upper:]")), sort(str_subset(list_of_variables, "^[:lower:]")))
+    #list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_FEN", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l")
     
     #Scenario selector
     output$select_scenarios <- renderUI({

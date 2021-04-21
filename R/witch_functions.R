@@ -30,7 +30,7 @@ require_package <- function(package){
   suppressPackageStartupMessages(library(package,character.only=T, quietly = TRUE))  
 }
 
-pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'taRifx', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap','sf', 'rnaturalearth', 'plotly', 'purrr', 'reldist')
+pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'taRifx', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap','sf', 'rnaturalearth', 'plotly', 'purrr', 'reldist', 'tidytidbits')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 library(dplyr, warn.conflicts = FALSE)
@@ -64,11 +64,15 @@ source('R/add_historical_values.R')
 
 filelist = gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
 if(restrict_files[1]!="") {
-  for(i in 1:length(restrict_files)){
-    .filelist_res = filelist[apply(outer(filelist, restrict_files[i], str_detect), 1, all)]
-    if(i==1) .filelist_res_all <- .filelist_res else .filelist_res_all <- c(.filelist_res_all, .filelist_res)
-  }
-  filelist <- unique(.filelist_res_all)
+  if(all(paste0("results_", restrict_files) %in% filelist)){
+    filelist <- paste0("results_", restrict_files)
+  }else{
+    for(i in 1:length(restrict_files)){
+      .filelist_res = filelist[apply(outer(filelist, restrict_files[i], str_detect), 1, all)]
+      if(i==1) .filelist_res_all <- .filelist_res else .filelist_res_all <- c(.filelist_res_all, .filelist_res)
+    }
+    filelist <- unique(.filelist_res_all)
+    }
 }
 if(exclude_files[1]!="") filelist = filelist[!str_detect(filelist, paste(exclude_files, collapse = '|'))]
 if(length(filelist)==0){stop("No GDX files found.")}

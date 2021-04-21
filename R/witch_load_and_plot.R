@@ -1,6 +1,6 @@
 # Load GDX of all scenarios and basic pre-processing 
 get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=F, field = "l", postprocesssuffix=NULL){
-  if(!is.data.frame(variable_name) | (variable_name %in% c("t", "n", "p", "I")) | force_reload){
+  if(!exists(variable_name) | (variable_name %in% c("t", "n", "p", "I")) | force_reload){
     if(exists("allfilesdata", envir = .GlobalEnv)){rm(allfilesdata, envir = .GlobalEnv)}
     variable_name_save=as.character(gsub("_", " ", variable_name_save))
     for (current_pathdir in fullpathdir){
@@ -50,7 +50,11 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
       # also save as data.table
       allfilesdata <- as.data.table(allfilesdata)
       #in case separate file to more meaningful columns
-      if(exists("file_separate")) allfilesdata <- filetosep(allfilesdata, type = file_separate[1], sep = file_separate[2], names = file_separate[-c(1,2)])
+      if(exists("file_separate")){
+        allfilesdata <- filetosep(allfilesdata, type = file_separate[1], sep = file_separate[2], names = file_separate[-c(1,2)])
+        for(sep in unname(file_separate[3:length(file_separate)])) allfilesdata[[sep]] <- gsub(sep, "", allfilesdata[[sep]])
+      }
+      
       if(("t" %in% names(allfilesdata)) & (!any(str_detect(allfilesdata$t, "_")))) allfilesdata$t <- as.numeric(allfilesdata$t)
       if(results=="assign") assign(variable_name,allfilesdata,envir = .GlobalEnv)
       if(results=="return") return(allfilesdata)

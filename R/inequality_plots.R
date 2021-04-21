@@ -85,3 +85,57 @@ plot_inequality <- function(variable = variable, plot_type = "quantiles", q_shar
   return(ineq_data_indices) #return inequality indices
   }else{print("No distributional information in this variable.")}
 }
+
+
+
+
+
+#Winners and Losers over time plot
+plot_winners_losers_time <- function(scen0, scen1, showvar = "people", yeardist=2100) {
+  if(showvar=="people") conv = 100; ylabel <- "Population share [%]"
+  if(showvar=="money") conv = 1e-3; ylabel <- "Total gain or loss [T$]"
+  
+  get_witch_simple("CPC_DIST")
+  get_witch_simple("pop") 
+  
+  #population weights, no weighting on relative gains: who is better of?
+  inequality_plot_data <- left_join( 
+    CPC_DIST %>% 
+      group_by_at(c("n", "dist", "pathdir", file_group_columns)) %>% complete(t=seq(min(t), max(t), 0.2)) %>% mutate(value=approxfun(t, value)(t)) %>% #expands and interpolates to yearly data
+      mutate(dist = as.numeric(str_remove(dist,"D"))) %>%
+      group_by(n,file, dist) %>% mutate(cpc2020=value[t==2]) %>% ungroup() %>%
+      group_by(t,n,dist) %>%
+      mutate(cpc=value) %>% 
+      execute_if_else(showvar=="people", mutate(value = sign(value[file==scen1] - value[file==scen0])), mutate(value = value[file==scen1] - value[file==scen0])) %>%
+      filter(file != scen0), 
+    pop  %>% 
+      filter(t %in% unique(CPC_DIST$t)) %>%
+      group_by_at(c("n", "pathdir", file_group_columns)) %>% complete(t=seq(min(t), max(t), 0.2)) %>% mutate(value=approxfun(t, value)(t)) %>% #expands and interpolates to yearly datafilter(file==scen1) %>%
+      group_by(t) %>%
+      execute_if_else(showvar=="people", mutate(pop = value/(10*sum(value))), mutate(pop = value/10) ) %>%
+      mutate(pop_quantile=pop/10) %>%
+      select(-value) ) %>% 
+    mutate(w = pop*value) %>%
+    as.data.frame()
+  
+  #two half plots
+  # ggplot() + 
+  #   geom_area(data = inequality_plot_data %>% filter(t > 3 & w < 0), aes(x=ttoyear(t),y=w*conv, fill=n, alpha=as.factor(dist))) +
+  #   scale_fill_manual(values = region_palette) + 
+  #   scale_color_manual(values = region_palette) + xlab("") + ylab(ylabel) + guides(alpha = FALSE) + geom_area(data = inequality_plot_data %>% filter(t > 3 & w > 0), aes(x=ttoyear(t),y=reorder(w*conv, sort(cpc2020)), fill=n, alpha=as.factor(dist)))
+  
+  ggplot() + 
+    geom_area(data = inequality_plot_data %>% filter(t > 3), aes(x=ttoyear(t),y=w*conv, fill=n, alpha=as.factor(dist))) +
+    scale_fill_manual(values = region_palette) + 
+    scale_color_manual(values = region_palette) + xlab("") + ylab(ylabel) + guides(alpha = FALSE)
+  saveplot("Inequality Plot - Winners and Losers")
+  
+  #now also plot thw two distributions in yeardist
+  #since weihgte not fully working with grouped data, replicate based on million inhabitants
+  dist_data <- CPC_DIST %>% filter(ttoyear(t)==yeardist) %>% left_join(pop %>% mutate(popdist=value/10) %>% select(-value)) %>% mutate(mil=as.integer(popdist))
+  dist_data <- dist_data[rep(seq_len(nrow(dist_data)), dist_data$mil),]
+  bw = 0.1  # (0.01 shows deciles all separately, 0.1 relatively smooth)
+  ggplot(dist_data) + geom_density(aes(x=value*1e3, y=..count../sum(..count..), fill=n, color=n, group=n), position="stack", alpha = 0.8, bw=bw) + scale_fill_manual(values = region_palette) + scale_color_manual(values = region_palette) + scale_x_log10(breaks = c(100,1000,10000,100000, 1000000), labels=function(n){format(n, scientific = FALSE)}) + xlab("") + ylab(str_glue("Consumption distribution in {yeardist}")) + facet_wrap(file ~ ., scales = "free_y", nrow = 2)
+  saveplot("Inequality Distribution Comparison")
+  
+}

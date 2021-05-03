@@ -144,7 +144,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     #assign("varname", merged_variable, envir = .GlobalEnv)
     #print(merged_variable)
     #remove additional columns if using mapping
-    if(exists("map_var_hist")) if((varname %in% map_var_hist$var_witch) & map_var_hist[var_witch==varname]$set_witch!="") merged_variable <- merged_variable %>% filter(get(map_var_hist[var_witch==varname]$set_witch)==map_var_hist[var_witch==varname]$element_witch) %>% select(-one_of(map_var_hist[var_witch==varname]$set_witch)) 
+    if(exists("map_var_hist")) if((varname %in% map_var_hist$var_witch)) if(map_var_hist[var_witch==varname]$set_witch!="") merged_variable <- merged_variable %>% filter(get(map_var_hist[var_witch==varname]$set_witch)==map_var_hist[var_witch==varname]$element_witch) %>% select(-one_of(map_var_hist[var_witch==varname]$set_witch)) 
     return(merged_variable)
     }
   else

@@ -124,10 +124,14 @@ plot_winners_losers_time <- function(scen0, scen1, showvar = "people", yeardist=
   #   scale_fill_manual(values = region_palette) + 
   #   scale_color_manual(values = region_palette) + xlab("") + ylab(ylabel) + guides(alpha = FALSE) + geom_area(data = inequality_plot_data %>% filter(t > 3 & w > 0), aes(x=ttoyear(t),y=reorder(w*conv, sort(cpc2020)), fill=n, alpha=as.factor(dist)))
   
-  ggplot() + 
+  print("Unambiguos winners or losers in year t")
+  print(inequality_plot_data %>% group_by(n, t) %>% summarize(allsame=ifelse(sign(max(w))==sign(min(w)), sign(max(w)), NA)) %>% filter(t==18 & !is.na(allsame)) %>% select(n, allsame))
+  
+  p <- ggplot() + 
     geom_area(data = inequality_plot_data %>% filter(t > 3), aes(x=ttoyear(t),y=w*conv, fill=n, alpha=as.factor(dist))) +
     scale_fill_manual(values = region_palette) + 
     scale_color_manual(values = region_palette) + xlab("") + ylab(ylabel) + guides(alpha = FALSE)
+  if(showvar=="people") p <- p + geom_text(data=inequality_plot_data %>% group_by(t) %>% summarize(share_idifferent=sum(w[value==0])/sum(w)) %>% filter(ttoyear(t) %in% seq(2020,yearmax, 20)) %>% mutate(percent_indifferent=paste0(round(share_idifferent),"%")), aes(ttoyear(t), 0, label=percent_indifferent), color="grey20")
   saveplot("Inequality Plot - Winners and Losers")
   
   #now also plot thw two distributions in yeardist
@@ -138,4 +142,5 @@ plot_winners_losers_time <- function(scen0, scen1, showvar = "people", yeardist=
   ggplot(dist_data) + geom_density(aes(x=value*1e3, y=..count../sum(..count..), fill=n, color=n, group=n), position="stack", alpha = 0.8, bw=bw) + scale_fill_manual(values = region_palette) + scale_color_manual(values = region_palette) + scale_x_log10(breaks = c(100,1000,10000,100000, 1000000), labels=function(n){format(n, scientific = FALSE)}) + xlab("") + ylab(str_glue("Consumption distribution in {yeardist}")) + facet_wrap(file ~ ., scales = "free_y", nrow = 2)
   saveplot("Inequality Distribution Comparison")
   
+  assign("inequality_plot_data", inequality_plot_data, envir = .GlobalEnv)
 }

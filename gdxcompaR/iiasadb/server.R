@@ -1,3 +1,5 @@
+#Create gdxcompaR based on iiasa forma csv or xlsx files
+
 #SSP database
 iiasadb_file <-  "V:\\WITCH\\IIASADB snapshots\\SSP_IAM_World_5Regs_2017-01-23.csv.zip"
 #CD-LINKS database
@@ -5,10 +7,21 @@ iiasadb_file <-  "V:\\WITCH\\IIASADB snapshots\\SSP_IAM_World_5Regs_2017-01-23.c
 #iiasadb_file <-  "C:\\Users\\Emmerling\\Documents\\Dropbox (CMCC)\\EIEE\\Happiness\\iiasadb\\cdlinks_compare_20180615-153808.csv.zip"
 #Effort Sharing
 #iiasadb_file <-  "V:\\WITCH\\IIASADB snapshots\\cdlinks_effort_sharing_compare_20190604-191132.csv.zip"
+
+iiasadb_file <-  "C:\\Users\\Emmerling\\Dropbox (CMCC)\\EIEE\\discounting_runs_submission\\original_gdx\\IPCC_AR6_WG3_Global_sectoral_Pathways_scenario_template_v2.1_for_submission_part1_21-04-30_21-27-38.xlsx"
+
 # Define server 
 shinyServer(function(input, output, session) {
     # IIASADB snapshot file to read
-    if(!exists("iiasadb_snapshot"))iiasadb_snapshot <- fread(cmd=paste0('unzip -cq "', file.path(iiasadb_file),'" ', gsub(".zip","",basename(file.path(iiasadb_file)))), header=T, quote="\"", sep=",", check.names = FALSE)
+    if(str_detect(iiasadb_file, ".xlsx")){
+      iiasadb_snapshot <- read.xlsx(iiasadb_file)
+      names(iiasadb_snapshot) <- toupper(names(iiasadb_snapshot))
+    } 
+    #from zipped CSV files (old iiasadb snapshots)
+    if(str_detect(iiasadb_file, ".csv.zip")){
+    iiasadb_snapshot <- fread(cmd=paste0('unzip -cq "', file.path(iiasadb_file),'" ', gsub(".zip","",basename(file.path(iiasadb_file)))), header=T, quote="\"", sep=",", check.names = FALSE)
+    }
+    if(!exists("iiasadb_snapshot")) stop("Please check you specified a correct iiasadb file.")
 
     #some global flags
     verbose = FALSE
@@ -29,7 +42,7 @@ shinyServer(function(input, output, session) {
     
 
     #Get historical data
-    region_id <- c("r5", "limits10", "cdlinksg20")
+    region_id <- c("r5", "limits10", "cdlinksg20", "witch17")
     gdxhistnames <- list.files(path=file.path(witch_folder, paste0("data_", region_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
     gdxhistnames <- gdxhistnames[file.exists(gdxhistnames)]
     iamc_hist_match <- "iamc_name, hist_param_name, setid, setelement, conversion
@@ -260,3 +273,4 @@ shinyServer(function(input, output, session) {
     
     
 })
+

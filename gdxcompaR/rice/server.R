@@ -41,6 +41,12 @@ shinyServer(function(input, output, session) {
     selectInput("regions_selected", "Select regions", regions_for_selector, size=min(17,length(regions_for_selector)), selectize = F, multiple = T, selected = witch_regions)
     })
   
+    observeEvent(input$button_saveplotdata, {
+      variable <- input$variable_selected
+      print("Current plot saved in subdirectory 'graphs'")
+      saveplot(variable, width = 14, height = 7)
+    })
+    
     #Additional selector for specific Panels
     
     
@@ -79,6 +85,12 @@ shinyServer(function(input, output, session) {
         selectInput("additional_set_id_selected", "Additional set element", set_elements, size=size_elements, selectize = F, multiple = T, selected = sel)
       })
   
+      observeEvent(input$button_saveplotdata, {
+        variable <- input$variable_selected
+        print("Current plot saved in subdirectory 'graphs'")
+        saveplot(variable)
+      })
+      
       #get input from sliders/buttons
       yearmin = input$yearmin
       yearmax = input$yearmax
@@ -149,7 +161,6 @@ shinyServer(function(input, output, session) {
       }
       if(length(fullpathdir)!=1){p <- p + facet_grid(. ~ pathdir)}
       print(p + labs(title=variable))
-      if(save_plot) saveplot(variable)
   })
     
     

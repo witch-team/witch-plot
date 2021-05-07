@@ -3,17 +3,9 @@ shinyServer(function(input, output, session) {
   
     #some global flags
     verbose = FALSE
-    save_plot = FALSE
   
-    #get list of variables and parameters in all files
-     list_of_variables <- NULL
-     for(f in filelist){
-       .gdx <- gdx(paste(file.path(fullpathdir[1], f),".gdx",sep=""))
-       list_of_variables <- c(list_of_variables, all_items(.gdx)$variables, all_items(.gdx)$parameters)
-     }
-     list_of_variables <- unique(list_of_variables)
-     list_of_variables <- c(sort(str_subset(list_of_variables, "^[:upper:]")), sort(str_subset(list_of_variables, "^[:lower:]")))
-    #list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_FEN", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l")
+    #For WITCH, select variables by hand collected in this vector (since there are too many)
+    list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_FEN", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l")
     
     #Scenario selector
     output$select_scenarios <- renderUI({
@@ -37,6 +29,12 @@ shinyServer(function(input, output, session) {
     selectInput("regions_selected", "Select regions", regions_for_selector, size=length(regions_for_selector), selectize = F, multiple = T, selected = witch_regions)
     })
   
+    observeEvent(input$button_saveplotdata, {
+      variable <- input$variable_selected
+      print("Current plot saved in subdirectory 'graphs'")
+      saveplot(variable, width = 14, height = 7)
+    })
+    
     #Additional selector for specific Panels
     
     
@@ -165,7 +163,6 @@ shinyServer(function(input, output, session) {
       }
       if(length(fullpathdir)!=1){p <- p + facet_grid(. ~ pathdir)}
       print(p + labs(title=variable))
-      if(save_plot) saveplot(variable)
   })
     
     

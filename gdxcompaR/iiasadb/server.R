@@ -10,6 +10,9 @@ iiasadb_file <-  "V:\\WITCH\\IIASADB snapshots\\SSP_IAM_World_5Regs_2017-01-23.c
 
 iiasadb_file <-  "C:\\Users\\Emmerling\\Dropbox (CMCC)\\EIEE\\discounting_runs_submission\\original_gdx\\IPCC_AR6_WG3_Global_sectoral_Pathways_scenario_template_v2.1_for_submission_part1_21-04-30_21-27-38.xlsx"
 
+#graphs are stored in a subdirectory "graphs" there
+assign("graphdir", file.path(dirname(iiasadb_file), "graphs"), envir = .GlobalEnv)
+
 # Define server 
 shinyServer(function(input, output, session) {
     # IIASADB snapshot file to read
@@ -22,10 +25,9 @@ shinyServer(function(input, output, session) {
     iiasadb_snapshot <- fread(cmd=paste0('unzip -cq "', file.path(iiasadb_file),'" ', gsub(".zip","",basename(file.path(iiasadb_file)))), header=T, quote="\"", sep=",", check.names = FALSE)
     }
     if(!exists("iiasadb_snapshot")) stop("Please check you specified a correct iiasadb file.")
-
+    
     #some global flags
     verbose = FALSE
-    save_plot = FALSE
     
     #get list of variables
     regions <- unique(iiasadb_snapshot$REGION)
@@ -42,7 +44,8 @@ shinyServer(function(input, output, session) {
     
 
     #Get historical data
-    region_id <- c("r5", "limits10", "cdlinksg20", "witch17")
+    #from all data_* folders in the witch directory
+    region_id <- c("r5", "limits10", "cdlinksg20", "witch17", "witch13")
     gdxhistnames <- list.files(path=file.path(witch_folder, paste0("data_", region_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
     gdxhistnames <- gdxhistnames[file.exists(gdxhistnames)]
     iamc_hist_match <- "iamc_name, hist_param_name, setid, setelement, conversion
@@ -59,6 +62,8 @@ shinyServer(function(input, output, session) {
         item <- iamc_hist_match[iamc_name==variable]$hist_param_name 
         for(.file in gdxhistnames){
           gdxhist <- gdx(.file)
+          #for IIASA, format upper case regions seems default
+          gdxhist$n <- toupper(gdxhist$n)
           .hist <- gdxhist[item]
           #get set dependency based on /build/ folder
           .gdxiso3 <- gdx(file.path(witch_folder, "input", "build", basename(.file))); 
@@ -127,9 +132,21 @@ shinyServer(function(input, output, session) {
     #REGION selector
     output$select_regions <- renderUI({
       regions_for_selector <- regions
-    selectInput("regions_selected", "Select regions", regions_for_selector, size=length(regions_for_selector), selectize = F, multiple = T, selected = "World")
+    selectInput("regions_selected", "Select regions", regions_for_selector, size=1, selectize = F, multiple = F, selected = "World")
     })
-  
+    
+    #Compare models or scenarios
+    # output$compare_models_scenarios <- renderUI({
+    #   compare_models_scenarios_selector <- "Scenarios"
+    #   radioButtons("choice_models_scenarios", "Use color for", c("Scenarios", "Models"),selected = "Scenarios", inline=T) 
+    # })
+
+    observeEvent(input$button_saveplotdata, {
+      variable <- input$variable_selected
+      print("Current plot saved in subdirectory 'graphs'")
+      saveplot(variable, width = 14, height = 7)
+    })
+    
     #Additional selector for specific Panels
     
     
@@ -137,8 +154,6 @@ shinyServer(function(input, output, session) {
     # MAIN CODE FOR PLOT GENERATION  
     output$iiasadb_compaRplot <- renderPlot({
       ylim_zero <- input$ylim_zero
-      button_writecsv <- input$button_writecsv
-      button_saveplot <- input$button_saveplot
       variable <- input$variable_selected
       if(is.null(variable)) variable <- variables[1]
       #get data
@@ -177,14 +192,18 @@ shinyServer(function(input, output, session) {
       #clean data
       allfilesdata <- subset(allfilesdata, !is.na(value))
      
-       if(is.null(regions)) regions <- "World"
+      if(is.null(regions)) regions <- "World"
       
       if(regions[1]=="World" | length(regions)==1){#if only World is displayed or only one region, show files with colors
-        p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=MODEL, linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax)
+        if(length(models_selected)==1){
+          p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("") + ylab(unitplot) + xlim(yearmin,yearmax)
+        }else{
+          p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=MODEL, linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("") + ylab(unitplot) + xlim(yearmin,yearmax)
+        }
         p <- p + geom_line(data=subset(allfilesdata, REGION %in% regions & SCENARIO=="historical"), aes(YEAR,value), stat="identity", size=1.0, colour = "black")
         if(ylim_zero) p <- p + ylim(0, NA)
         #legends:
-        p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
+        p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL), linetype=guide_legend(title=NULL))
        }else{
         p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=interaction(REGION, MODEL), linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax) + facet_grid(. ~ REGION)
         p <- p + geom_line(data=subset(allfilesdata, REGION %in% regions & SCENARIO=="historical"), aes(YEAR,value,colour=REGION), stat="identity", size=1.0)
@@ -193,7 +212,6 @@ shinyServer(function(input, output, session) {
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 2), linetype=guide_legend(title=NULL))
       }
       print(p + labs(title=variable))
-      if(save_plot) saveplot(variable)
       })
     
     
@@ -206,8 +224,6 @@ shinyServer(function(input, output, session) {
     # MAIN CODE FOR PLOT GENERATION  
     output$iiasadb_compaRly <- renderPlotly({
       ylim_zero <- input$ylim_zero
-      button_writecsv <- input$button_writecsv
-      button_saveplot <- input$button_saveplot
       variable <- input$variable_selected
       if(is.null(variable)) variable <- variables[1]
       #get data
@@ -248,8 +264,20 @@ shinyServer(function(input, output, session) {
       
       if(is.null(regions)) regions <- "World"
       
+      if(length(models_selected)==1){
+        color_aesthetics <- "SCENARIO"
+        linetype_aesthetics <- "MODEL"
+      }else{
+        color_aesthetics <- "MODEL"
+        linetype_aesthetics <- "SCENARIO"
+      } 
+      
       if(regions[1]=="World" | length(regions)==1){#if only World is displayed or only one region, show files with colors
-        p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=MODEL, linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax)
+        if(length(models_selected)==1){
+          p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=SCENARIO)) + geom_line(stat="identity", size=1) + xlab("") + ylab(unitplot) + xlim(yearmin,yearmax)
+        }else{
+          p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=MODEL, linetype=SCENARIO)) + geom_line(stat="identity", size=1) + xlab("") + ylab(unitplot) + xlim(yearmin,yearmax)
+        }
         p <- p + geom_line(data=subset(allfilesdata, REGION %in% regions & SCENARIO=="historical"), aes(YEAR,value), stat="identity", size=1.0, colour = "black")
         if(ylim_zero) p <- p + ylim(0, NA)
         #legends:

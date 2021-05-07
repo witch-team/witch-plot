@@ -26,8 +26,8 @@ shinyUI(fluidPage(pageWithSidebar(
     uiOutput("select_scenarios"),
     uiOutput("select_regions"),
     div(style="display:inline-block",checkboxInput("add_historical", "Add historical values", value = T)),
-    div(style="display:inline-block",checkboxInput("ylim_zero", "Set y-axis limit to zero", value = F))
-    #div(style="display:inline-block",checkboxInput("plotly_dynamic", "Dynamic plot(!)", value = F))
+    div(style="display:inline-block",checkboxInput("ylim_zero", "Set y-axis limit to zero", value = F)),
+    div(style="display:inline-block",actionButton("button_saveplotdata", "Save Plot"))
 ),
     
 

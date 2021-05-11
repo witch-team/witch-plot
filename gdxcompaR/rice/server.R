@@ -84,12 +84,6 @@ shinyServer(function(input, output, session) {
         size_elements <- min(length(set_elements), 5)
         selectInput("additional_set_id_selected", "Additional set element", set_elements, size=size_elements, selectize = F, multiple = T, selected = sel)
       })
-  
-      observeEvent(input$button_saveplotdata, {
-        variable <- input$variable_selected
-        print("Current plot saved in subdirectory 'graphs'")
-        saveplot(variable)
-      })
       
       #get input from sliders/buttons
       yearmin = input$yearmin

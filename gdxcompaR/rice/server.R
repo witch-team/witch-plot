@@ -4,6 +4,7 @@ shinyServer(function(input, output, session) {
     #some global flags
     verbose = FALSE
     save_plot = FALSE
+    growth_rate = FALSE
     
     #get list of variables and parameters in all files
     list_of_variables <- NULL
@@ -55,6 +56,7 @@ shinyServer(function(input, output, session) {
     output$gdxcompaRplot <- renderPlot({
       assign("historical", input$add_historical, envir = .GlobalEnv)
       ylim_zero <- input$ylim_zero
+      growth_rate <- input$growth_rate
       #plotly_dynamic <- input$plotly_dynamic
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
@@ -130,11 +132,16 @@ shinyServer(function(input, output, session) {
       afd <- rbind(afd, afd_global[,c("t","n","value",file_group_columns, "pathdir")])
       }
       
+      #in case growth rates
+      if(growth_rate) afd <- afd %>% group_by_at(setdiff(names(afd), c("t","value"))) %>% arrange(t) %>% mutate(year=ttoyear(t), growthrate=((value/lag(value))^(1/(year-lag(year)))-1)*100) %>% select(-year, -value) %>% dplyr::rename(value=growthrate) %>% mutate(value=ifelse(is.na(value),0,value)) %>% ungroup()
+      
+      
       #scenarios, potentially add stochastic scenarios to show
       afd <- subset(afd, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)")) | str_detect(file, "historical") | str_detect(file, "valid"))
     
       #Unit conversion
       unit_conv <- unit_conversion(variable)
+      if(growth_rate) unit_conv$unit <- " % p.a."; unit_conv$convert <- 1
       afd$value <- afd$value * unit_conv$convert   
       afd$year <- ttoyear(afd$t)
       
@@ -259,6 +266,7 @@ shinyServer(function(input, output, session) {
     output$gdxompaRplotly <- renderPlotly({
       assign("historical", input$add_historical, envir = .GlobalEnv)
       ylim_zero <- input$ylim_zero
+      growth_rate <- input$growth_rate
       plotly_dynamic <- input$plotly_dynamic
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
@@ -330,11 +338,15 @@ shinyServer(function(input, output, session) {
         afd <- rbind(afd, afd_global[,c("t","n","value",file_group_columns, "pathdir")])
       }
       
+      #in case growth rates
+      if(growth_rate) afd <- afd %>% group_by_at(setdiff(names(afd), c("t","value"))) %>% arrange(t) %>% mutate(year=ttoyear(t), growthrate=((value/lag(value))^(1/(year-lag(year)))-1)*100) %>% select(-year, -value) %>% dplyr::rename(value=growthrate) %>% ungroup()
+      
       #scenarios, potentially add stochastic scenarios to show
       afd <- subset(afd, file %in% c(scenarios, paste0(scenarios, "(b1)"),paste0(scenarios, "(b2)"), paste0(scenarios, "(b3)")) | str_detect(file, "historical") | str_detect(file, "valid"))
       
       #Unit conversion
       unit_conv <- unit_conversion(variable)
+      if(growth_rate) unit_conv$unit <- " % p.a."; unit_conv$convert <- 1
       afd$value <- afd$value * unit_conv$convert   
       afd$year <- ttoyear(afd$t)
       

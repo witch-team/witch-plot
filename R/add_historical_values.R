@@ -41,7 +41,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     if(verbose) print(paste0("Historical values added for '", varname, "'."))
     item <- grep(paste(paste0("^", tolower(varname), valid_suffix), collapse = '|'), .gdx$parameters$name, value = TRUE) #use grep with ^ to have them start by varname
     #if check calibration, just take the first (unique) element)
-    #if(check_calibration) item <- item[1]
+    if(check_calibration) item <- item[1]
     for(.item in item){.hist_single <- as.data.table(.gdx[.item]); .hist_single$file <- gsub(paste0(tolower(varname), "_"), "", .item); if(.item==item[1]){.hist <- .hist_single}else{.hist <- rbind(.hist,.hist_single)} } 
     
     #get set dependency based on /build/ folder

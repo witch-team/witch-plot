@@ -80,9 +80,7 @@ if(!exists("scenlist")){scenlist <- gsub(paste(removepattern, collapse="|"), "",
 if(!exists("scenplot_global_order")){scenplot_global_order = seq(1:length(scenlist))}
 print("GDX Files:")
 print(filelist)
-print("Scenario names:")
-print(scenlist)
-print("Scenarios actually used:")
+print(paste("Scenarios used:", length(scenlist)))
 filelist <- filelist[scenplot_global_order]
 scenlist <- scenlist[scenplot_global_order]
 print(scenlist)

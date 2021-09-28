@@ -214,7 +214,8 @@ map_new <- function(varname, yearmap=2100, title="", scenplot=scenlist) {
 
 
 #New maps for RICE+
-plot_map_region_definition <- function() {
+plot_map_region_definition <- function(regional_focus="World") {
+  #regional_focus = "Europe" or "World"
   world <- ne_countries(scale = "medium", returnclass = "sf")
   #add geometry
   world <- suppressWarnings(cbind(world, st_coordinates(st_centroid(world$geometry))))
@@ -227,7 +228,8 @@ plot_map_region_definition <- function() {
   mod.countries = str_split(mod.countries, "\\.")
   mod.countries <- data.table(matrix(unlist(mod.countries), ncol = 2, byrow = T))
   setnames(mod.countries, c("n", "iso_a3"))
-  p_map <- ggplot(data = mod.countries %>% full_join(world) %>% filter(!is.na(n) & !is.na(iso_a3))) + geom_sf(aes(fill = n, geometry = geometry)) +  scale_fill_manual(values = region_palette) + xlab("") + ylab("")  + ggtitle(str_glue("Regional aggregation: {region_id}")) + theme_bw() + theme(strip.background = element_rect(fill = "white"), legend.position="bottom") + guides(fill = guide_legend(nrow = 3))
+  p_map <- ggplot(data = mod.countries %>% full_join(world) %>% filter(!is.na(n) & !is.na(iso_a3))) + geom_sf(aes(fill = n, geometry = geometry)) +  scale_fill_manual(values = region_palette) + xlab("") + ylab("")  + ggtitle(str_glue("Regional aggregation: {region_id}")) + theme_bw() + theme(strip.background = element_rect(fill = "white"), legend.position="bottom") + guides(fill = guide_legend(nrow = 3)) 
+  if(regional_focus=="Europe") p_map <- p_map + coord_sf(xlim = c(-10,33), ylim = c(36,73), expand = FALSE)
   saveplot(str_glue("region_definition_{region_id}"), width = 12, height = 8, add_title = F)
 }
 

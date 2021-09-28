@@ -8,7 +8,7 @@ iiasadb_file <-  "V:\\WITCH\\IIASADB snapshots\\SSP_IAM_World_5Regs_2017-01-23.c
 #Effort Sharing
 #iiasadb_file <-  "V:\\WITCH\\IIASADB snapshots\\cdlinks_effort_sharing_compare_20190604-191132.csv.zip"
 
-iiasadb_file <-  "C:\\Users\\Emmerling\\Dropbox (CMCC)\\EIEE\\discounting_runs_submission\\original_gdx\\IPCC_AR6_WG3_Global_sectoral_Pathways_scenario_template_v2.1_for_submission_part1_21-04-30_21-27-38.xlsx"
+iiasadb_file <-  "C:\\Users\\Emmerling\\Dropbox (CMCC)\\EIEE\\discounting_runs_submission\\IPCC_AR6_WG3_Global_sectoral_Pathways_scenario_template_v2.1_for_submission_part1_21-05-14_22-47-46.xlsx"
 
 #graphs are stored in a subdirectory "graphs" there
 assign("graphdir", file.path(dirname(iiasadb_file), "graphs"), envir = .GlobalEnv)
@@ -17,7 +17,7 @@ assign("graphdir", file.path(dirname(iiasadb_file), "graphs"), envir = .GlobalEn
 shinyServer(function(input, output, session) {
     # IIASADB snapshot file to read
     if(str_detect(iiasadb_file, ".xlsx")){
-      iiasadb_snapshot <- read.xlsx(iiasadb_file)
+      iiasadb_snapshot <- read.xlsx(iiasadb_file, sheet = "data")
       names(iiasadb_snapshot) <- toupper(names(iiasadb_snapshot))
     } 
     #from zipped CSV files (old iiasadb snapshots)

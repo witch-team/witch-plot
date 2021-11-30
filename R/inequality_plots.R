@@ -44,14 +44,13 @@ plot_inequality <- function(variable = variable, plot_type = "quantiles", q_shar
       .Lc <- data.frame(p=.Lc$p, Lc=.Lc$L)
       if(return_param=="df") return(.Lc) else return(.Lc[return_param])
     }
-    #Singh-Maddala Distribution (rescale is just for fit, not per capita value!)
-    rescale_fit <- 1000
-    fit_parametric_dist <- function(y, x, pc.inc, gini.e, return_param){
-      fitdist <- fitgroup.sm(y = y, x = x, pc.inc = pc.inc, gini.e = gini.e, rescale = rescale_fit)
+    fit_parametric_dist <- function(y, pc.inc, gini.e){
+      #Singh-Maddala Distribution (rescale is just for fit, not per capita value!)
+      rescale_fit <- 1
+      fitdist <- suppressMessages(suppressWarnings(fitgroup.sm(y = y, pc.inc = pc.inc, gini.e = gini.e)))
       fitdistparam <- unlist((fitdist$ewmd.estimation))[1,]
-      return(fitdistparam[return_param])
+      return(as.data.frame(t(fitdistparam)))
     }
-    LCsingh <- function(p,a,q){pbeta(q = (1 - (1 - p)^(1/q)), shape1 = (1 + 1/a), shape2 = (q-1/a))}   
     #Source: http://www.vcharite.univ-mrs.fr/PP/lubrano/cours/Lecture-4.pdf
     #Gini
     GINIsingh <- function(a,q){return(1-((gamma(q)*gamma(2*q-1/a))/(gamma(q-1/a)*gamma(2*q))))}
@@ -60,7 +59,7 @@ plot_inequality <- function(variable = variable, plot_type = "quantiles", q_shar
     #compute fitted distribution parameters in dataframe
     ineq_data_plot_agg <- ineq_data_plot 
     if(!is.null(q_fit)) ineq_data_plot_agg <- ineq_data_plot_agg %>% filter(dist %in% q_fit)
-    ineq_data_plot_agg <- ineq_data_plot_agg %>% group_by_at(c("t", file_group_columns, "pathdir")) %>% summarize(gini=mean(gini), per_capita=mean(per_capita), a = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini, return_param = "a"), q = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini, return_param = "q"), b = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini, return_param = "b")) %>% as.data.frame()
+    ineq_data_plot_agg <- ineq_data_plot_agg %>% group_by_at(c("t", file_group_columns, "pathdir")) %>% summarize(gini=mean(gini), per_capita=mean(per_capita), params = fit_parametric_dist(y=value, x=share, pc.inc=per_capita, gini.e=gini)) %>% unpack(cols = params) %>% as.data.frame()
     ineq_data_plot_everything <- (ineq_data_plot %>% full_join(ineq_data_plot_agg)) %>% mutate(year=ttoyear(t)) %>% select(-gini,-per_capita) %>% as.data.frame()
     
     if(verbose){
@@ -92,8 +91,8 @@ plot_inequality <- function(variable = variable, plot_type = "quantiles", q_shar
 
 #Winners and Losers over time plot
 plot_winners_losers_time <- function(scen0, scen1, showvar = "people", yeardist=2100) {
-  if(showvar=="people") conv = 100; ylabel <- "Population share [%]"
-  if(showvar=="money") conv = 1e-3; ylabel <- "Total gain or loss [T$]"
+  if(showvar=="people") {conv = 100; ylabel <- "Population share [%]"}
+  if(showvar=="money") {conv = 1e-3; ylabel <- "Total gain or loss [T$]"}
   
   get_witch_simple("CPC_DIST")
   get_witch_simple("pop") 
@@ -107,18 +106,18 @@ plot_winners_losers_time <- function(scen0, scen1, showvar = "people", yeardist=
       group_by(t,n,dist) %>%
       mutate(cpc=value) %>% 
       execute_if_else(showvar=="people", mutate(value = sign(value[file==scen1] - value[file==scen0])), mutate(value = value[file==scen1] - value[file==scen0])) %>%
-      filter(file != scen0), 
+      filter(file == scen1), 
     pop  %>% 
-      filter(t %in% unique(CPC_DIST$t)) %>%
+      filter(t %in% unique(CPC_DIST$t) & file == scen1) %>%
       group_by_at(c("n", "pathdir", file_group_columns)) %>% complete(t=seq(min(t), max(t), 0.2)) %>% mutate(value=approxfun(t, value)(t)) %>% #expands and interpolates to yearly datafilter(file==scen1) %>%
       group_by(t) %>%
-      execute_if_else(showvar=="people", mutate(pop = value/(10*sum(value))), mutate(pop = value/10) ) %>%
+      execute_if_else(showvar=="people", mutate(pop = value/(sum(value))), mutate(pop = value) ) %>%
       mutate(pop_quantile=pop/10) %>%
       select(-value) ) %>% 
-    mutate(w = pop*value) %>%
+    mutate(w = value*pop_quantile) %>%
     as.data.frame()
   
-  #two half plots
+#two half plots
   # ggplot() + 
   #   geom_area(data = inequality_plot_data %>% filter(t > 3 & w < 0), aes(x=ttoyear(t),y=w*conv, fill=n, alpha=as.factor(dist))) +
   #   scale_fill_manual(values = region_palette) + 
@@ -130,9 +129,11 @@ plot_winners_losers_time <- function(scen0, scen1, showvar = "people", yeardist=
   p <- ggplot() + 
     geom_area(data = inequality_plot_data %>% filter(t > 3), aes(x=ttoyear(t),y=w*conv, fill=n, alpha=as.factor(dist))) +
     scale_fill_manual(values = region_palette) + 
-    scale_color_manual(values = region_palette) + xlab("") + ylab(ylabel) + guides(alpha = FALSE)
+    scale_color_manual(values = region_palette) + xlab("") + ylab(ylabel) + guides(alpha = "none")
   if(showvar=="people") p <- p + geom_text(data=inequality_plot_data %>% group_by(t) %>% summarize(share_idifferent=sum(w[value==0])/sum(w)) %>% filter(ttoyear(t) %in% seq(2020,yearmax, 20)) %>% mutate(percent_indifferent=paste0(round(share_idifferent),"%")), aes(ttoyear(t), 0, label=percent_indifferent), color="grey20")
   saveplot("Inequality Plot - Winners and Losers")
+  
+
   
   #now also plot thw two distributions in yeardist
   #since weihgte not fully working with grouped data, replicate based on million inhabitants
@@ -144,3 +145,64 @@ plot_winners_losers_time <- function(scen0, scen1, showvar = "people", yeardist=
   
   assign("inequality_plot_data", inequality_plot_data, envir = .GlobalEnv)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#additional functions for computing inequality measures
+
+
+#computes (model and historical) Gini and deciles at the global level based on Y_DIST and Y (=assumes GDP at PPP in the model! (historical is always using PPP))
+compute_global_inequality <- function(Y_DIST="Y_DIST", Y="Y", l="l"){
+  Y_DIST <- get_witch_simple(Y_DIST, results = "return", force_reload = T)
+  l <- get_witch_simple(l, results = "return", force_reload = T)
+  Y <- get_witch_simple(Y, results = "return", force_reload = T)
+  inequality_dataset_model <- Y_DIST %>% full_join(Y %>% dplyr::rename(Y=value)) %>% full_join(l %>% dplyr::rename(pop=value)) %>% mutate(year=ttoyear(t), gdppcppp=Y*1e6/pop, value=value/Y)
+  
+  #now get historical data on ed57 aggregation
+  data_hist_quantiles <- gdx(file.path(witch_folder, paste0("data_", region_id), "data_historical_values_inequality_converted.gdx"))
+  data_hist_quantiles <- data_hist_quantiles["quantiles"] %>% mutate(year=as.numeric(year))
+  data_historical <- gdx(file.path(witch_folder, paste0("data_", region_id), "data_historical_values.gdx"))
+  gdp_historical <- data_historical["ykali_valid_wdi"] %>% dplyr::rename(Y=value) %>% full_join(data_historical["l_valid_wdi"] %>% dplyr::rename(pop=value)) %>% full_join(data_historical["mer2ppp_valid_wdi"] %>% dplyr::rename(mer2ppp=value))
+  #Extrapolate fix PPP2MER rates
+  gdp_historical <- gdp_historical %>% group_by(n) %>% tidyr::fill(mer2ppp, mer2ppp, .direction = "updown")
+  gdp_historical <- gdp_historical %>% mutate(gdppcppp=Y*1e6*mer2ppp/pop, V1=as.numeric(V1)) %>% dplyr::rename(year=V1) %>% as.data.frame() %>% select(-mer2ppp)
+  inequality_dataset_historical_modelregions <- data_hist_quantiles %>% full_join(gdp_historical) %>% mutate(file="historical")
+  #combine model and historical at model regions
+  inequality_dataset_merged <- rbind(inequality_dataset_historical_modelregions, inequality_dataset_model %>% select_at(names(inequality_dataset_historical_modelregions)))
+  #global_inequality(inequality_dataset_merged %>% dplyr::rename(iso3=n), "value", "pop", "gdppcppp", na.rm = T)
+  inequality_dataset_merged <- inequality_dataset_merged %>% group_by(n, year, file) %>% mutate(quantile_pcvalue = value *10 * gdppcppp)
+  global_gini_past_future <- inequality_dataset_merged %>% group_by(year, file) %>% filter(!is.na(value) & !is.na(gdppcppp)) %>% dplyr::summarize(gini_total=reldist::gini(quantile_pcvalue, weights = pop), gini_between_unweighted=reldist::gini(gdppcppp), gini_between_popweighted=reldist::gini(gdppcppp, weights = pop), gdppcppp=weighted.mean(gdppcppp, w = pop), variance=wtd.var(quantile_pcvalue, weight = pop),
+theil_total=dineq::mld_decomp(quantile_pcvalue, n, weights = pop)$mld_decomp$mld_total, theil_between=dineq::mld_decomp(quantile_pcvalue, n, weights = pop)$mld_decomp$mld_between, theil_within=dineq::mld_decomp(quantile_pcvalue, n, weights = pop)$mld_decomp$mld_within,
+pop=sum(pop)) %>% mutate(CV=sqrt(variance)/gdppcppp) %>% as.data.frame()
+  #Global Gini plot
+  print(ggplot(global_gini_past_future, aes(year, gini_total, color=toupper(file))) + geom_line() + geom_point()+ theme(legend.position = "bottom") + xlab("") + ylab("Global Gini Index") + theme(legend.position = "right")) #+ scale_x_continuous(breaks=seq(1990,2100, 10), minor_breaks = NULL) + ylim(0.2,.8)
+  #add theil MLD based decomposition (=GE(0)) which can be convertet to Atkinson(1)
+  
+  #now also compute deciles at the global level
+  global_quantiles <- inequality_dataset_merged %>% group_by(file, year) %>% filter(!is.na(value)) %>% mutate(gdppcppp_pc = gdppcppp*value/0.1, pop_pc=pop/10) %>% arrange(gdppcppp_pc) %>% mutate(gdp_cum=cumsum(gdppcppp_pc*pop_pc), pop_cum=cumsum(pop_pc), gdp_between_cum=cumsum(gdppcppp*pop_pc)) %>% summarize(decile_global=reldist::wtd.quantile(gdp_cum, q=seq(0.1,1.0,0.1), na.rm = FALSE, weight=pop_pc), decile_between_popweighted=reldist::wtd.quantile(gdp_between_cum, q=seq(0.1,1.0,0.1), na.rm = FALSE, weight=pop_pc))
+  global_quantiles$dist <- rep(paste0("D", seq(1,10)), nrow(global_quantiles)/10)
+  global_quantiles <- global_quantiles %>% full_join(global_quantiles %>% group_by(file, year) %>% summarize(gini_global_globdec=reldist::gini(decile_global), gini_between_popweighted_globdec=reldist::gini(decile_between_popweighted), sum_global=sum(decile_global), sum_between=sum(decile_between_popweighted)), by = c("file", "year")) %>% mutate(decile_global=decile_global/sum_global, decile_between_popweighted=decile_between_popweighted/sum_between, t= yeartot(year)) %>% select(file, t, dist, decile_global, decile_between_popweighted, gini_global_globdec, gini_between_popweighted_globdec)
+  #plot inequality based on global deciles instead
+  print(ggplot(global_quantiles %>% filter(dist=="D1"), aes(year, gini_global_globdec, color=toupper(file))) + geom_line() + geom_point() + theme(legend.position = "bottom") + xlab("") + ylab("Global Gini Index") + theme(legend.position = "right")) + xlim(1990, 2100)
+  
+  #combine data based on model resolution and global deciles
+  global_inequality_data <- global_gini_past_future %>% mutate(t=yeartot(year)) %>% select(file, t, gini_total, gini_between_unweighted, gini_between_popweighted, gdppcppp, CV, theil_total, theil_between, theil_within) %>% full_join(global_quantiles %>% select(-year))
+  return(global_inequality_data)
+}
+
+

@@ -167,10 +167,10 @@ plot_winners_losers_time <- function(scen0, scen1, showvar = "people", yeardist=
 
 
 #computes (model and historical) Gini and deciles at the global level based on Y_DIST and Y (=assumes GDP at PPP in the model! (historical is always using PPP))
-compute_global_inequality <- function(Y_DIST="Y_DIST", Y="Y", l="l"){
-  Y_DIST <- get_witch_simple(Y_DIST, results = "return", force_reload = T)
-  l <- get_witch_simple(l, results = "return", force_reload = T)
-  Y <- get_witch_simple(Y, results = "return", force_reload = T)
+compute_global_inequality <- function(Y_DIST="Y_DIST", Y="Y", l="l", scenplot=scenlist){
+  Y_DIST <- get_witch_simple(Y_DIST, results = "return", force_reload = T, scenplot = scenplot)
+  l <- get_witch_simple(l, results = "return", force_reload = T, scenplot = scenplot)
+  Y <- get_witch_simple(Y, results = "return", force_reload = T, scenplot = scenplot)
   inequality_dataset_model <- Y_DIST %>% full_join(Y %>% dplyr::rename(Y=value)) %>% full_join(l %>% dplyr::rename(pop=value)) %>% mutate(year=ttoyear(t), gdppcppp=Y*1e6/pop, value=value/Y)
   
   #now get historical data on ed57 aggregation
@@ -190,15 +190,19 @@ compute_global_inequality <- function(Y_DIST="Y_DIST", Y="Y", l="l"){
 theil_total=dineq::mld_decomp(quantile_pcvalue, n, weights = pop)$mld_decomp$mld_total, theil_between=dineq::mld_decomp(quantile_pcvalue, n, weights = pop)$mld_decomp$mld_between, theil_within=dineq::mld_decomp(quantile_pcvalue, n, weights = pop)$mld_decomp$mld_within,
 pop=sum(pop)) %>% mutate(CV=sqrt(variance)/gdppcppp) %>% as.data.frame()
   #Global Gini plot
-  print(ggplot(global_gini_past_future, aes(year, gini_total, color=toupper(file))) + geom_line() + geom_point()+ theme(legend.position = "bottom") + xlab("") + ylab("Global Gini Index") + theme(legend.position = "right")) #+ scale_x_continuous(breaks=seq(1990,2100, 10), minor_breaks = NULL) + ylim(0.2,.8)
+  print(ggplot(global_gini_past_future, aes(year, gini_total, color=toupper(file))) + geom_line() + geom_point()+ theme(legend.position = "bottom") + xlab("") + ylab("Global Gini Index") + theme(legend.position = "right"))  + xlim(1990, 2100) #+ scale_x_continuous(breaks=seq(1990,2100, 10), minor_breaks = NULL) + ylim(0.2,.8)
   #add theil MLD based decomposition (=GE(0)) which can be convertet to Atkinson(1)
   
+  #first get full distribution at global level
+  global_distribution <- inequality_dataset_merged %>% group_by(file, year) %>% filter(!is.na(value)) %>% mutate(gdppcppp_pc = gdppcppp*value/0.1, pop_pc=pop/10) %>% arrange(gdppcppp_pc) %>% mutate(gdp_cum=cumsum(gdppcppp_pc*pop_pc), pop_cum=cumsum(pop_pc), gdp_between_cum=cumsum(gdppcppp*pop_pc), pctl=pop_cum/max(pop_cum), decile=(floor((pctl-(1e-9))*10)+1), dist=paste0("D", decile), pop=pop*0.1)
+  assign("global_distribution", global_distribution, envir = .GlobalEnv)
+  global_quantiles <- global_distribution %>% group_by_at(c("file", "year", "dist")) %>% summarize(decile_global=max(gdp_cum), decile_between_popweighted=max(gdp_between_cum))
+  #old approach using wtd quantiles (previous seems more precise)
+  #global_quantiles <- inequality_dataset_merged %>% group_by(file, year) %>% filter(!is.na(value)) %>% mutate(gdppcppp_pc = gdppcppp*value/0.1, pop_pc=pop/10) %>% arrange(gdppcppp_pc) %>% mutate(gdp_cum=cumsum(gdppcppp_pc*pop_pc), pop_cum=cumsum(pop_pc), gdp_between_cum=cumsum(gdppcppp*pop_pc)) %>% summarize(decile_global=reldist::wtd.quantile(gdp_cum, q=seq(0.1,1.0,0.1), na.rm = FALSE, weight=pop_pc), decile_between_popweighted=reldist::wtd.quantile(gdp_between_cum, q=seq(0.1,1.0,0.1), na.rm = FALSE, weight=pop_pc)); global_quantiles$dist <- rep(paste0("D", seq(1,10)), nrow(global_quantiles)/10)
   #now also compute deciles at the global level
-  global_quantiles <- inequality_dataset_merged %>% group_by(file, year) %>% filter(!is.na(value)) %>% mutate(gdppcppp_pc = gdppcppp*value/0.1, pop_pc=pop/10) %>% arrange(gdppcppp_pc) %>% mutate(gdp_cum=cumsum(gdppcppp_pc*pop_pc), pop_cum=cumsum(pop_pc), gdp_between_cum=cumsum(gdppcppp*pop_pc)) %>% summarize(decile_global=reldist::wtd.quantile(gdp_cum, q=seq(0.1,1.0,0.1), na.rm = FALSE, weight=pop_pc), decile_between_popweighted=reldist::wtd.quantile(gdp_between_cum, q=seq(0.1,1.0,0.1), na.rm = FALSE, weight=pop_pc))
-  global_quantiles$dist <- rep(paste0("D", seq(1,10)), nrow(global_quantiles)/10)
   global_quantiles <- global_quantiles %>% full_join(global_quantiles %>% group_by(file, year) %>% summarize(gini_global_globdec=reldist::gini(decile_global), gini_between_popweighted_globdec=reldist::gini(decile_between_popweighted), sum_global=sum(decile_global), sum_between=sum(decile_between_popweighted)), by = c("file", "year")) %>% mutate(decile_global=decile_global/sum_global, decile_between_popweighted=decile_between_popweighted/sum_between, t= yeartot(year)) %>% select(file, t, dist, decile_global, decile_between_popweighted, gini_global_globdec, gini_between_popweighted_globdec)
   #plot inequality based on global deciles instead
-  print(ggplot(global_quantiles %>% filter(dist=="D1"), aes(year, gini_global_globdec, color=toupper(file))) + geom_line() + geom_point() + theme(legend.position = "bottom") + xlab("") + ylab("Global Gini Index") + theme(legend.position = "right")) + xlim(1990, 2100)
+  print(ggplot(global_quantiles %>% filter(dist=="D1"), aes(year, gini_global_globdec, color=toupper(file))) + geom_line() + geom_point() + theme(legend.position = "bottom") + xlab("") + ylab("Global Gini Index") + theme(legend.position = "right") + xlim(1990, 2100))
   
   #combine data based on model resolution and global deciles
   global_inequality_data <- global_gini_past_future %>% mutate(t=yeartot(year)) %>% select(file, t, gini_total, gini_between_unweighted, gini_between_popweighted, gdppcppp, CV, theil_total, theil_between, theil_within) %>% full_join(global_quantiles %>% select(-year))

@@ -18,6 +18,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
 
   valid_suffix <- "_valid"
   if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"}
+  if(varname=="Q"){valid_suffix <- c("_valid_wdi", "_valid_weo")}
   #if(varname=="SOCECON"){valid_suffix <- "_valid_wdi_sum"}
   if(varname=="Q_IN"){valid_suffix <- "_valid_notcompatible"}
   if(varname=="quantiles"){valid_suffix <- "_valid_swiid"} #for quantiles
@@ -40,8 +41,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   if(length(grep(paste(paste0("^", tolower(varname), valid_suffix), collapse = '|'), .gdx$parameters$name, value = TRUE))!=0){
     if(verbose) print(paste0("Historical values added for '", varname, "'."))
     item <- grep(paste(paste0("^", tolower(varname), valid_suffix), collapse = '|'), .gdx$parameters$name, value = TRUE) #use grep with ^ to have them start by varname
-    #if check calibration, just take the first (unique) element)
-    if(check_calibration) item <- item[1]
+    if(!check_calibration) item <- item[1] #if not check calibration, just take the first (unique) element)
     for(.item in item){.hist_single <- as.data.table(.gdx[.item]); .hist_single$file <- gsub(paste0(tolower(varname), "_"), "", .item); if(.item==item[1]){.hist <- .hist_single}else{.hist <- rbind(.hist,.hist_single)} } 
     
     #get set dependency based on /build/ folder
@@ -74,13 +74,13 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     #if check_calibration, add validation as data points!
     if(check_calibration){
       .gdx_validation <- gdx(file.path(witch_folder, paste0("data_", region_id), "data_validation.gdx"))
-      for(.item in item){.hist_validation_single <- as.data.table(.gdx_validation[.item]); .hist_validation_single$file <- gsub(paste0(tolower(varname), "_"), "", .item); if(.item==item[1]){.hist_validation <- .hist_validation_single}else{.hist_validation <- rbind(.hist_validation,.hist_validation_single)} }
-      #.hist_validation <- as.data.table(.gdx_validation[item])
+      for(.item in intersect(item, .gdx_validation$parameters$name)){.hist_validation_single <- as.data.table(.gdx_validation[.item]); .hist_validation_single$file <- gsub(paste0(tolower(varname), "_"), "", .item); if(.item==item[1]){.hist_validation <- .hist_validation_single}else{.hist_validation <- rbind(.hist_validation,.hist_validation_single)} }
+      if(exists(".hist_validation")){
       if(!("n" %in% colnames(.hist_validation))){.hist_validation$n = "World"}
       colnames(.hist_validation) <- colnames(.hist)
-      #for the historical set, use "historical"
-      .hist$file <- gsub("valid", "historical", .hist$file)
+      .hist$file <- gsub("valid", "historical", .hist$file) #for the historical set, use "historical"
       .hist <- rbind(.hist,.hist_validation)
+      }else{.hist$file <- gsub("valid", "historical", .hist$file)}
     }
     else{
       #if not check_calibration and historical files are added to the scenarios, compute the mean in case multiple historical sources for one sub-item (e.g., elhydro) and drop the file column

@@ -163,6 +163,7 @@ source('R/emission_plots.R')
 source('R/climate_plots.R')
 source('R/policy_cost.R')
 source('R/inequality_plots.R')
+source('R/RICE50x_plots.R')
 
 if(!dir.exists(file.path(witch_folder, paste0("data_", region_id)))) print("No data_* directory for historical data found.")
 

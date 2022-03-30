@@ -186,8 +186,8 @@ CalcDists <- function(longlats) {
 
 
 #New maps for RICE+
-map_new <- function(varname, yearmap=2100, title="", scenplot=scenlist) {
-  data <- get_witch_simple(varname, results = "return")
+map_new <- function(data, yearmap=2100, title="", scenplot=scenlist) {
+  if(!is.data.frame(data)) {varname <- data; data <- get_witch_simple(data, results = "return")}else{varname <- deparse(substitute(data))}
   world <- ne_countries(scale = "medium", returnclass = "sf")
   #add geometry
   world <- suppressWarnings(cbind(world, st_coordinates(st_centroid(world$geometry))))
@@ -201,19 +201,18 @@ map_new <- function(varname, yearmap=2100, title="", scenplot=scenlist) {
   mod.countries <- data.table(matrix(unlist(mod.countries), ncol = 2, byrow = T))
   setnames(mod.countries, c("n", "iso_a3"))
   #Add data to iso3 list
-  data <- data %>% filter(t == yeartot(yearmap) & file %in% scenlist)
+  data <- data %>% filter(t == yeartot(yearmap) & file %in% scenplot)
   data <- data %>% full_join(mod.countries)
   #Add data to world polygon
-  data_map <-
-    data %>% select(-n) %>% full_join(world) %>% filter(!is.na(value) & !is.na(iso_a3) & !is.na(file))
-  p_map <- ggplot(data = data_map) + geom_sf(aes(fill = value, geometry = geometry)) +  scale_fill_viridis_c(option = "plasma", direction = -1) + xlab("") + ylab("")  + ggtitle(title) + labs(fill = varname) + facet_wrap(file ~ .) + theme_bw() + theme(strip.background = element_rect(fill = "white"))
+  data_map <- data %>% select(t, file, pathdir, value, iso_a3) %>% full_join(world) %>% filter(!is.na(value) & !is.na(iso_a3) & !is.na(file)) %>% as.data.frame()
+  p_map <- ggplot(data = data_map) + geom_sf(aes(fill = value, geometry = geometry)) +  scale_fill_viridis_c(option = "plasma", direction = -1) + ggtitle(title) + labs(fill = varname) + theme_bw() + theme(strip.background = element_rect(fill = "white"))
+  if(length(scenplot)>1) p_map <- p_map + facet_wrap(file ~ .)
   saveplot("Map", width = 12, height = 10)
 }
 
 
 
-
-#New maps for RICE+
+#Map of region definitions of a model
 plot_map_region_definition <- function(regional_focus="World") {
   #regional_focus = "Europe" or "World"
   world <- ne_countries(scale = "medium", returnclass = "sf")

@@ -198,7 +198,8 @@ pop=sum(pop)) %>% mutate(CV=sqrt(variance)/gdppcppp) %>% as.data.frame()
   #old approach based on wtd quantiles
   #global_distribution <- inequality_dataset_merged %>% group_by(file, year) %>% filter(!is.na(value)) %>% mutate(gdppcppp_pc = gdppcppp*value/0.1, pop_pc=pop/10) %>% arrange(gdppcppp_pc) %>% mutate(gdp_cum=cumsum(gdppcppp_pc*pop_pc), pop_cum=cumsum(pop_pc), gdp_between_cum=cumsum(gdppcppp*pop_pc)); global_distribution %>% summarize(decile_global=reldist::wtd.quantile(gdp_cum, q=seq(0.1,1.0,0.1), na.rm = FALSE, weight=pop_pc), decile_between_popweighted=reldist::wtd.quantile(gdp_between_cum, q=seq(0.1,1.0,0.1), na.rm = FALSE, weight=pop_pc)); global_quantiles$dist <- rep(paste0("D", seq(1,10)), nrow(global_quantiles)/10)
   assign("global_distribution", global_distribution, envir = .GlobalEnv)
-  global_quantiles <- global_distribution %>% group_by_at(c("file", "year", "dist")) %>% summarize(decile_global=max(gdp_cum), decile_between_popweighted=max(gdp_between_cum))
+  global_quantiles <- global_distribution %>% group_by_at(c("file", "year", "dist")) %>% summarize(decile_global=sum(gdppcppp_pc*pop_pc), decile_between_popweighted=sum(gdppcppp*pop_pc))
+  #%>% summarize(decile_global=max(gdp_cum), decile_between_popweighted=max(gdp_between_cum))
   #old approach using wtd quantiles (previous seems more precise)
   #global_quantiles <- inequality_dataset_merged %>% group_by(file, year) %>% filter(!is.na(value)) %>% mutate(gdppcppp_pc = gdppcppp*value/0.1, pop_pc=pop/10) %>% arrange(gdppcppp_pc) %>% mutate(gdp_cum=cumsum(gdppcppp_pc*pop_pc), pop_cum=cumsum(pop_pc), gdp_between_cum=cumsum(gdppcppp*pop_pc)) 
   #now also compute deciles at the global level

@@ -11,7 +11,7 @@ shinyServer(function(input, output, session) {
     for(f in filelist){
       .gdx <- gdx(paste(file.path(fullpathdir[1], f),".gdx",sep=""))
       list_of_variables <- c(list_of_variables, all_items(.gdx)$variables)
-      #list_of_variables <- c(list_of_variables, all_items(.gdx)$parameters) #also all parameters
+      list_of_variables <- c(list_of_variables, all_items(.gdx)$parameters) #also all parameters
     }
     list_of_variables <- unique(list_of_variables)
     list_of_variables <- c(sort(str_subset(list_of_variables, "^[:upper:]")), sort(str_subset(list_of_variables, "^[:lower:]")))

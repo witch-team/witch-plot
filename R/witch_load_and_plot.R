@@ -12,6 +12,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
           {
             tempdata <- data.table(mygdx[variable_name, field = field])
             if(!("n" %in% names(tempdata))) tempdata$n <- "World"
+            if(exists("restrict_regions")) tempdata <- subset(tempdata, n %in% restrict_regions)
             tempdata$file <- as.character(file)
             if(length(fullpathdir)>=1){tempdata$pathdir <- basename(current_pathdir)}
             if(!exists("allfilesdata")){allfilesdata<-tempdata}else{allfilesdata <-rbind(allfilesdata,tempdata)}
@@ -32,7 +33,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
         allfilesdata <- convert_stochastic_gdx(allfilesdata)            
         allfilesdata$t <- as.numeric(allfilesdata$t)
       }
-      if(("n" %in% colnames(allfilesdata)) & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F)}else{allfilesdata$n <- "World"}
+      if(("n" %in% colnames(allfilesdata)) & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F)}else{if(!(variable_name %in% c("eu", "oecd", "eu27", "eu28", "europe"))) allfilesdata$n <- "World"}
       if(str_detect(variable_name, "MAGICC|HECTOR")) {allfilesdata <- suppressWarnings(allfilesdata[,-c("magicc_n", "hector_n")])}
       
       #combine _old, _new, _late to one unit in case present

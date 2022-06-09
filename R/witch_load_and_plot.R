@@ -1,5 +1,5 @@
 # Load GDX of all scenarios and basic pre-processing 
-get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=F, field = "l", postprocesssuffix=NULL){
+get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=F, field = "l", postprocesssuffix=NULL, skip_restrict_regions=F){
   if(!exists(variable_name) | (variable_name %in% c("t", "n", "p", "I")) | force_reload){
     if(exists("allfilesdata", envir = .GlobalEnv)){rm(allfilesdata, envir = .GlobalEnv)}
     variable_name_save=as.character(gsub("_", " ", variable_name_save))
@@ -12,7 +12,6 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
           {
             tempdata <- data.table(mygdx[variable_name, field = field])
             if(!("n" %in% names(tempdata))) tempdata$n <- "World"
-            if(exists("restrict_regions")) tempdata <- subset(tempdata, n %in% restrict_regions)
             tempdata$file <- as.character(file)
             if(length(fullpathdir)>=1){tempdata$pathdir <- basename(current_pathdir)}
             if(!exists("allfilesdata")){allfilesdata<-tempdata}else{allfilesdata <-rbind(allfilesdata,tempdata)}
@@ -50,6 +49,8 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
       if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot, check_calibration=check_calibration, verbose=F)}
       # also save as data.table
       allfilesdata <- as.data.table(allfilesdata)
+      #in case restrict_regions exists keep only these regions
+      if(exists("restrict_regions") & !skip_restrict_regions) allfilesdata <- subset(allfilesdata, n %in% restrict_regions)
       #in case separate file to more meaningful columns
       if(exists("file_separate")){
         allfilesdata <- filetosep(allfilesdata, type = file_separate[1], sep = file_separate[2], names = file_separate[-c(1,2)])
@@ -170,7 +171,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       if(ssp_grid){p <- p + facet_grid(. ~ ssp)}
       if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
       if(length(fullpathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}
-      if(length(fullpathdir)==1){p <- p + guides(linetype=FALSE)}
+      if(length(fullpathdir)==1){p <- p + guides(linetype="none")}
       if(plot){saveplot(variable_name_save, plotdata=subset(allfilesdata))}
     } 
     if (aggregation == "global_mean")
@@ -183,7 +184,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       if(ssp_grid){p <- p + facet_grid(. ~ ssp)}
       if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
       if(length(fullpathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}   
-      if(length(fullpathdir)==1){p <- p + guides(linetype=FALSE)}
+      if(length(fullpathdir)==1){p <- p + guides(linetype="none")}
       if(plot){saveplot(variable_name_save, plotdata=subset(allfilesdata))}
     } 
     if (aggregation == "regional") 

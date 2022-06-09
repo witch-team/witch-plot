@@ -41,7 +41,8 @@ options(dplyr.summarise.inform = FALSE)
 #Sys.setenv(R_ZIPCMD= "C:/apps/Rtools/bin/zip")   
 
 ## Local Options ##
-deploy_online <- FALSE #if not deployed onlinse save graphs
+#restrict_regions <- c("usa") # if exists, only these regions will be loaded everywhere
+deploy_online <- FALSE #if not deployed online save graphs
 figure_format="png"
 historical = TRUE  #add historical data where available
 theme_set(theme_bw())
@@ -113,6 +114,9 @@ region_palette_witch34 <- c("bnl" =  "#800000","northeu" =  "#bf4040","balkan" =
 region_palette <- replace(region_palette_specific, names(region_palette_witch), region_palette_witch)
 region_palette <- replace(region_palette, names(region_palette_ed57), region_palette_ed57)
 region_palette <- replace(region_palette, names(region_palette_witch34), region_palette_witch34)
+#now keep only palette for regions actually used
+region_palette <- region_palette[witch_regions]
+
 print(paste("Numbers of regions considered:", length(witch_regions)))
 
 witch_name_short <- function(witch_name){

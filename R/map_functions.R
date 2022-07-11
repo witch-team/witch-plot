@@ -188,6 +188,7 @@ CalcDists <- function(longlats) {
 #New maps for RICE+
 map_new <- function(data, yearmap=2100, title="", scenplot=scenlist) {
   if(!is.data.frame(data)) {varname <- data; data <- get_witch_simple(data, results = "return")}else{varname <- deparse(substitute(data))}
+  sf::sf_use_s2(FALSE) #to avoid errors
   world <- ne_countries(scale = "medium", returnclass = "sf")
   #add geometry
   world <- suppressWarnings(cbind(world, st_coordinates(st_centroid(world$geometry))))

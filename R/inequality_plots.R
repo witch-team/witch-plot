@@ -105,13 +105,13 @@ plot_winners_losers_time <- function(scen0, scen1, showvar = "people", yeardist=
       group_by(n,file, dist) %>% mutate(cpc2020=value[t==2]) %>% ungroup() %>%
       group_by(t,n,dist) %>%
       mutate(cpc=value) %>% 
-      execute_if_else(showvar=="people", mutate(value = sign(value[file==scen1] - value[file==scen0])), mutate(value = value[file==scen1] - value[file==scen0])) %>%
+      mutate(value = if_else(showvar=="people", sign(value[file==scen1] - value[file==scen0])), value[file==scen1] - value[file==scen0]) %>%
       filter(file == scen1), 
     pop  %>% 
       filter(t %in% unique(CPC_DIST$t) & file == scen1) %>%
       group_by_at(c("n", "pathdir", file_group_columns)) %>% complete(t=seq(min(t), max(t), 0.2)) %>% mutate(value=approxfun(t, value)(t)) %>% #expands and interpolates to yearly datafilter(file==scen1) %>%
       group_by(t) %>%
-      execute_if_else(showvar=="people", mutate(pop = value/(sum(value))), mutate(pop = value) ) %>%
+      mutate(pop = if_else(showvar=="people", value/(sum(value))), value) %>%
       mutate(pop_quantile=pop/10) %>%
       select(-value) ) %>% 
     mutate(w = value*pop_quantile) %>%

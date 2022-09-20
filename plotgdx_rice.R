@@ -10,7 +10,7 @@ tstep = 5
 
 restrict_files = c("") #to all scenarios matching partly one of its arguments
 exclude_files = c("")
-removepattern = c("results_")
+removepattern = c("")
 
 yearmin = 1980
 yearmax = 2300

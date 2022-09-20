@@ -30,7 +30,7 @@ require_package <- function(package){
   suppressPackageStartupMessages(library(package,character.only=T, quietly = TRUE))  
 }
 
-pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'taRifx', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap','sf', 'rnaturalearth', 'plotly', 'purrr', 'reldist', 'tidytidbits', 'forcats')
+pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap','sf', 'rnaturalearth', 'plotly', 'purrr', 'reldist', 'tidytidbits', 'forcats')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 library(dplyr, warn.conflicts = FALSE)
@@ -77,7 +77,7 @@ if(restrict_files[1]!="") {
 }
 if(exclude_files[1]!="") filelist = filelist[!str_detect(filelist, paste(exclude_files, collapse = '|'))]
 if(length(filelist)==0){stop("No GDX files found.")}
-if(!exists("scenlist")){scenlist <- gsub(paste(removepattern, collapse="|"), "", filelist)}
+if(!exists("scenlist")){scenlist <- gsub(paste(removepattern, collapse="|"), "", filelist); scenlist <- gsub("results_", "", scenlist)}
 if(!exists("scenplot_global_order")){scenplot_global_order = seq(1:length(scenlist))}
 print("GDX Files:")
 print(filelist)

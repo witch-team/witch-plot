@@ -31,7 +31,7 @@ Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", re
   p <- ggplot(subset(Policy_Cost, n %in% regions & file!=bauscen)) + geom_bar(position=position_dodge(), stat="identity",aes(file, PC, fill=file), show.legend = TRUE) +ylab(paste("% of", measure, "(NPV)")) + xlab("") + theme(legend.position="bottom",legend.direction="horizontal") + guides(fill=guide_legend(title=NULL, nrow = 1))
   if(length(fullpathdir) > 1){p <- p + facet_grid(. ~ pathdir)}
   if(regions[1] != "World"){p <- p + facet_grid(. ~ n)}
-  if(show_numbers){p <- p + geom_text(data=subset(Policy_Cost, n %in% regions & file!=bauscen), aes(x=file, y=PC+0.1, label=paste0(round(PC, 1),"%")))}
+  if(show_numbers){p <- p + geom_text(data=subset(Policy_Cost, n %in% regions & file!=bauscen), aes(x=file, y=PC+0.1, label=paste0(round(PC, 1),"%")), size=2)}
   p <- p  + theme(axis.ticks = element_blank(), axis.text.x = element_blank())
   saveplot(paste0("Policy Cost (", measure, ")", suffix), plotdata=subset(Policy_Cost, n %in% regions & file!=bauscen))
 }

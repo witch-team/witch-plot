@@ -17,7 +17,7 @@ assign("graphdir", file.path(dirname(iiasadb_file), "graphs"), envir = .GlobalEn
 shinyServer(function(input, output, session) {
     # IIASADB snapshot file to read
     if(str_detect(iiasadb_file, ".xlsx")){
-      iiasadb_snapshot <- read.xlsx(iiasadb_file, sheet = "data")
+      iiasadb_snapshot <- read.xlsx(iiasadb_file, sheet = 1)
       names(iiasadb_snapshot) <- toupper(names(iiasadb_snapshot))
     } 
     #from zipped CSV files (old iiasadb snapshots)

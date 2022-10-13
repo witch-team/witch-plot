@@ -116,6 +116,7 @@ region_palette <- replace(region_palette, names(region_palette_ed57), region_pal
 region_palette <- replace(region_palette, names(region_palette_witch34), region_palette_witch34)
 #now keep only palette for regions actually used
 region_palette <- region_palette[witch_regions]
+if(exists("restrict_regions")) region_palette <- region_palette[restrict_regions]
 
 print(paste("Numbers of regions considered:", length(witch_regions)))
 

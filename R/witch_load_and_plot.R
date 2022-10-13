@@ -1,5 +1,5 @@
 # Load GDX of all scenarios and basic pre-processing 
-get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=F, field = "l", postprocesssuffix=NULL, skip_restrict_regions=F){
+get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=T, field = "l", postprocesssuffix=NULL, skip_restrict_regions=F){
   if(!exists(variable_name) | (variable_name %in% c("t", "n", "p", "I")) | force_reload){
     if(exists("allfilesdata", envir = .GlobalEnv)){rm(allfilesdata, envir = .GlobalEnv)}
     variable_name_save=as.character(gsub("_", " ", variable_name_save))
@@ -7,7 +7,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
       for (file in filelist){
         if(file.exists(file.path(current_pathdir, paste0(file,".gdx")))){
           mygdx <- gdx(file.path(current_pathdir, paste0(file,".gdx")))
-          if(!is.null(postprocesssuffix)) mygdx <- gdx(file.path(current_pathdir, paste0(paste0(file, "_", postprocesssuffix),".gdx")))
+          if(!is.null(postprocesssuffix)) mygdx <- gdx(file.path(current_pathdir, postprocesssuffix, paste0(paste0(file, "_", postprocesssuffix),".gdx")))
           if(is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$parameters) | is.element(variable_name, all_items(mygdx)$sets) | is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$equations))
           {
             tempdata <- data.table(mygdx[variable_name, field = field])
@@ -22,6 +22,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
     }
     if(exists("allfilesdata")){
       allfilesdata$file <- mapvalues(allfilesdata$file , from=filelist, to=scenlist, warn_missing = FALSE)
+      allfilesdata$file <- factor(allfilesdata$file, levels = scenlist) # to snsure ordering in the order of scenarios in scenlist
       if(str_detect(variable_name, "eq")) {
         colnames(allfilesdata) <- gsub("V1", "t", colnames(allfilesdata)) 
         colnames(allfilesdata) <- gsub("V2", "n", colnames(allfilesdata))
@@ -50,7 +51,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
       # also save as data.table
       allfilesdata <- as.data.table(allfilesdata)
       #in case restrict_regions exists keep only these regions
-      if(exists("restrict_regions") & !skip_restrict_regions) allfilesdata <- subset(allfilesdata, n %in% restrict_regions)
+      if(exists("restrict_regions") & !skip_restrict_regions & !unique(allfilesdata$n)[1]=="World") allfilesdata <- subset(allfilesdata, n %in% restrict_regions)
       #in case separate file to more meaningful columns
       if(exists("file_separate")){
         allfilesdata <- filetosep(allfilesdata, type = file_separate[1], sep = file_separate[2], names = file_separate[-c(1,2)])

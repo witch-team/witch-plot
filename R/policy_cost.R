@@ -1,7 +1,7 @@
 # Compute Policy Costs and Carbon Prices
 
 
-Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", regions="World", show_numbers=TRUE, scenplot=scenlist, measure="GDP", suffix=""){
+Policy_Cost <- function(discount_rate=5, tmin=4, tmax=20, bauscen="ssp2_bau", regions="World", show_numbers=TRUE, scenplot=scenlist, measure="GDP"){
   if(!(bauscen %in% scenlist)){stop("For policy costs define an existing BAU scenario")}
   get_witch_simple("Q")
   #Q$value <- Q$value * usd_deflator    #Apply deflator
@@ -31,131 +31,57 @@ Policy_Cost <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", re
   p <- ggplot(subset(Policy_Cost, n %in% regions & file!=bauscen)) + geom_bar(position=position_dodge(), stat="identity",aes(file, PC, fill=file), show.legend = TRUE) +ylab(paste("% of", measure, "(NPV)")) + xlab("") + theme(legend.position="bottom",legend.direction="horizontal") + guides(fill=guide_legend(title=NULL, nrow = 1))
   if(length(fullpathdir) > 1){p <- p + facet_grid(. ~ pathdir)}
   if(regions[1] != "World"){p <- p + facet_grid(. ~ n)}
-  if(show_numbers){p <- p + geom_text(data=subset(Policy_Cost, n %in% regions & file!=bauscen), aes(x=file, y=PC+0.1, label=paste0(round(PC, 1),"%")), size=2)}
+  if(show_numbers){p <- p + geom_text(data=subset(Policy_Cost, n %in% regions & file!=bauscen), aes(x=file, y=PC+0.1, label=paste0(round(PC, 1),"%")), size=3)}
   p <- p  + theme(axis.ticks = element_blank(), axis.text.x = element_blank())
-  saveplot(paste0("Policy Cost (", measure, ")", suffix), plotdata=subset(Policy_Cost, n %in% regions & file!=bauscen))
+  saveplot(paste0("Policy Cost (", measure, ")"), plotdata=subset(Policy_Cost, n %in% regions & file!=bauscen))
 }
 
 
 
 
-
-
-Policy_Cost_Decomposition <- function(discount_rate=5, tmin=3, tmax=20, bauscen="ssp2_bau", coopbauscen=F, regions="World", show_numbers=TRUE, scenplot=scenlist, measure="GDP", suffix=""){
-get_witch_simple("dam_rep")
-dam_rep <- dcast(dam_rep, formula = t + n + file + pathdir ~ V3)
-get_witch_simple("Q")
-if(measure=="GDP"){Q <- subset(Q, iq=="y")}
-if(measure=="Consumption"){Q <- subset(Q, iq=="cc")}
-Q$iq <- NULL
-Q <- subset(Q, t %in% seq(1,30))
-#add emission reduction and PES costs to get full gross GDP
-#get_witch_simple("COST_FUEL")
-get_witch_simple("COST_PES"); COST_FUEL <- COST_PES; setnames(COST_FUEL, "f", "fuel") #deprecated!!
-get_witch_simple("COST_EMI")
-get_witch_simple("SRM_COST"); setnames(SRM_COST, "value", "SRM_COST")
-COST_EMI$e <- NULL;
-COST_EMI <- COST_EMI[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; setnames(COST_EMI, "value", "COST_EMI")
-COST_FUEL$fuel <- NULL;
-COST_FUEL <- COST_FUEL[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; setnames(COST_FUEL, "value", "COST_FUEL")
-Q <- merge(Q, COST_EMI, by = c("t", "n", "file", "pathdir"))
-Q <- merge(Q, COST_FUEL, by = c("t", "n", "file", "pathdir"))
-Q <- merge(Q, SRM_COST, by = c("t", "n", "file", "pathdir"), all = T)
-Q$COST <- Q$COST_EMI + Q$COST_FUEL + Q$SRM_COST
-Q$COST_EMI <- NULL; Q$COST_FUEL <- NULL 
-#finished adding COSTs
-
-bau <- subset(Q, file==bauscen); bau$SRM_COST <- NULL; setnames(bau, "value", "bau"); setnames(bau, "COST", "COSTbau"); bau$file <- NULL
-Q <- merge(Q, bau, by=c("n", "t", "pathdir"), all = TRUE)
-#routine to add BAU COOP for cooperative runs
-if(coopbauscen!=FALSE){
-coopbaugdxfile <- gdx(coopbauscen)
-coopbau_Q <- data.table(coopbaugdxfile["Q"])
-if(measure=="GDP"){coopbau_Q <- subset(coopbau_Q, iq=="y")}
-if(measure=="Consumption"){coopbau_Q <- subset(coopbau_Q, iq=="cc")}
-setnames(coopbau_Q, "value", "coopbau"); coopbau_Q$iq <- NULL
-coopbau_COST_EMI <- data.table(coopbaugdxfile["COST_EMI"])
-coopbau_COST_FUEL <- data.table(coopbaugdxfile["COST_FUEL"])
-coopbau_COST_EMI$e <- NULL;
-coopbau_COST_EMI <- coopbau_COST_EMI[, lapply(.SD, sum), by=c("t", "n")];  setnames(coopbau_COST_EMI, "value", "COST_EMI")
-coopbau_COST_FUEL$fuel <- NULL;
-coopbau_COST_FUEL <- coopbau_COST_FUEL[, lapply(.SD, sum), by=c("t", "n")]; setnames(coopbau_COST_FUEL, "value", "COST_FUEL")
-coopbau_Q <- merge(coopbau_Q, coopbau_COST_EMI, by = c("t", "n"))
-coopbau_Q <- merge(coopbau_Q, coopbau_COST_FUEL, by = c("t", "n"))
-coopbau_Q$COSTcoopbau <- coopbau_Q$COST_EMI + coopbau_Q$COST_FUEL
-coopbau_Q$COST_EMI <- NULL; coopbau_Q$COST_FUEL <- NULL 
-coopbau_Q$t <- as.numeric(coopbau_Q$t);
-Q <- merge(Q, coopbau_Q, by=c("n", "t"), all = TRUE)
-Q[str_detect(file, "coop")]$bau <- Q[str_detect(file, "coop")]$coopbau
-Q[str_detect(file, "coop")]$COSTbau <- Q[str_detect(file, "coop")]$COSTcoopbau
-}
-#end routine to get coop bau
-
-
-setnames(Q, "value", "Consumption (net)")   #MEANING : Q.l value
-DAM_DECOMP <- merge(dam_rep, Q, by = c("t", "n", "file", "pathdir"))
-DAM_DECOMP[is.na(DAM_DECOMP)] <- 0
-#compute decomposed impacts
-#### THIS ONE: WITHOUT COSt!!!
-#DAM_DECOMP$"Consumption (gross)" <- DAM_DECOMP$"Consumption (net)" * (1 + DAM_DECOMP$standard_gross + DAM_DECOMP$gradient_damage + DAM_DECOMP$geoeng)
-#DAM_DECOMP$"Mitigation costs" <- DAM_DECOMP$"bau" - DAM_DECOMP$"Consumption (gross)"
-#DAM_DECOMP$"Standard Climate impacts" <- (DAM_DECOMP$"Consumption (gross)" - DAM_DECOMP$"Consumption (net)") * DAM_DECOMP$standard_gross / (DAM_DECOMP$standard_gross + DAM_DECOMP$gradient_damage + DAM_DECOMP$geoeng)
-#DAM_DECOMP$"Gradient Climate impacts" <- (DAM_DECOMP$"Consumption (gross)" - DAM_DECOMP$"Consumption (net)") * DAM_DECOMP$gradient_damage / (DAM_DECOMP$standard_gross + DAM_DECOMP$gradient_damage + DAM_DECOMP$geoeng)
-#DAM_DECOMP$"Geoengineering impacts" <- (DAM_DECOMP$"Consumption (gross)" - DAM_DECOMP$"Consumption (net)") * DAM_DECOMP$geoeng / (DAM_DECOMP$standard_gross + DAM_DECOMP$gradient_damage + DAM_DECOMP$geoeng)
-#DAM_DECOMP <- subset(DAM_DECOMP, file %in% scenplot)
-
-DAM_DECOMP$"Consumption (gross)" <- (DAM_DECOMP$"Consumption (net)" + DAM_DECOMP$COST) * (1 + DAM_DECOMP$standard_gross + DAM_DECOMP$gradient_damage + DAM_DECOMP$geoeng) - DAM_DECOMP$COST
-DAM_DECOMP$"Residual costs" <- (DAM_DECOMP$"bau") - (DAM_DECOMP$"Consumption (gross)") - DAM_DECOMP$SRM_COST
-#DAM_DECOMP$"Mitigation costs" <- DAM_DECOMP$"Mitigation costs" - (DAM_DECOMP$COST - DAM_DECOMP$COSTbau)
-DAM_DECOMP$"Standard Climate impacts" <- (DAM_DECOMP$"Consumption (gross)" - DAM_DECOMP$"Consumption (net)") * DAM_DECOMP$standard_gross / (DAM_DECOMP$standard_gross + DAM_DECOMP$gradient_damage + DAM_DECOMP$geoeng)
-DAM_DECOMP$"Gradient Climate impacts" <- (DAM_DECOMP$"Consumption (gross)" - DAM_DECOMP$"Consumption (net)") * DAM_DECOMP$gradient_damage / (DAM_DECOMP$standard_gross + DAM_DECOMP$gradient_damage + DAM_DECOMP$geoeng)
-DAM_DECOMP$"SRM impacts" <- (DAM_DECOMP$"Consumption (gross)" - DAM_DECOMP$"Consumption (net)") * DAM_DECOMP$geoeng / (DAM_DECOMP$standard_gross + DAM_DECOMP$gradient_damage + DAM_DECOMP$geoeng)
-DAM_DECOMP$"SRM costs" <- DAM_DECOMP$SRM_COST
-
-DAM_DECOMP <- subset(DAM_DECOMP, file %in% scenplot)
-#add world values
-DAM_DECOMP$n <- as.factor(DAM_DECOMP$n)
-DAM_DECOMP$t <- as.factor(DAM_DECOMP$t)
-DAM_DECOMP$pathdir <- as.factor(DAM_DECOMP$pathdir)
-DAM_DECOMP$file <- as.factor(DAM_DECOMP$file)
-DAM_DECOMP <- as.data.table(DAM_DECOMP)
-DAM_DECOMP_WORLD <- DAM_DECOMP; DAM_DECOMP_WORLD$n <- NULL
-DAM_DECOMP_WORLD <- DAM_DECOMP_WORLD[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir")]
-DAM_DECOMP_WORLD$n <- "World"
-DAM_DECOMP <- rbind(DAM_DECOMP, DAM_DECOMP_WORLD)
-assign("DAM_DECOMP", DAM_DECOMP, envir = .GlobalEnv)
-
-#now aggregate to NPV discounted values (PC)
-DAM_DECOMP_NPV <- DAM_DECOMP
-DAM_DECOMP_NPV$t <- as.numeric(DAM_DECOMP_NPV$t)
-DAM_DECOMP_NPV$"Residual costs" <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"Residual costs"
-DAM_DECOMP_NPV$"Standard Climate impacts" <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"Standard Climate impacts"
-DAM_DECOMP_NPV$"Gradient Climate impacts" <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"Gradient Climate impacts" 
-DAM_DECOMP_NPV$"SRM impacts" <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"SRM impacts"
-DAM_DECOMP_NPV$"SRM costs" <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"SRM costs"
-DAM_DECOMP_NPV$"bau"  <- (1+discount_rate/100)^(-(5*(DAM_DECOMP_NPV$t-3))) * DAM_DECOMP_NPV$"bau" 
-
-DAM_DECOMP_NPV <- subset(DAM_DECOMP_NPV, t<=tmax&t>=tmin)
-DAM_DECOMP_NPV$t <- NULL
-DAM_DECOMP_NPV <- as.data.table(DAM_DECOMP_NPV)[, lapply(.SD, sum), by=c("n", "file", "pathdir"), .SDcols = c("Residual costs", "Standard Climate impacts" , "Gradient Climate impacts", "SRM impacts", "SRM costs", "bau")]
-DAM_DECOMP_NPV$"Residual costs" = 100*DAM_DECOMP_NPV$"Residual costs"/DAM_DECOMP_NPV$bau
-DAM_DECOMP_NPV$"Standard Climate impacts" = 100*DAM_DECOMP_NPV$"Standard Climate impacts"/DAM_DECOMP_NPV$bau
-DAM_DECOMP_NPV$"SRM impacts" = 100*DAM_DECOMP_NPV$"SRM impacts"/DAM_DECOMP_NPV$bau
-DAM_DECOMP_NPV$"SRM costs" = 100*DAM_DECOMP_NPV$"SRM costs"/DAM_DECOMP_NPV$bau
-DAM_DECOMP_NPV$"bau" <- NULL
-DAM_DECOMP_NPV <- melt(DAM_DECOMP_NPV, id.vars = c("n", "file", "pathdir"))
-#add totals for labels
-DAM_DECOMP_NPV <- plyr::ddply(DAM_DECOMP_NPV, .(file, n), transform, total = cumsum(value))
-assign("DAM_DECOMP_NPV", DAM_DECOMP_NPV, envir = .GlobalEnv)
-#Plot
-#dodged just to see negative values
-print(ggplot(subset(DAM_DECOMP_NPV, n %in% regions & file!=bauscen)) + geom_bar(position=position_dodge(), stat="identity",aes(file, value, fill=variable), show.legend = TRUE) +ylab(paste("% of", measure, "(NPV)")) + xlab("") + theme(legend.position="bottom",legend.direction="horizontal") + guides(fill=guide_legend(title=NULL, nrow = 1)))
-p <- ggplot(subset(DAM_DECOMP_NPV, n %in% regions & file!=bauscen)) + geom_bar(position=position_stack(), stat="identity",aes(file, value, fill=variable), show.legend = TRUE) +ylab(paste("% of", measure, "(NPV)")) + xlab("") + theme(legend.position="bottom",legend.direction="horizontal") + guides(fill=guide_legend(title=NULL, nrow = 1))
-if(length(fullpathdir) > 1){p <- p + facet_grid(. ~ pathdir)}
-if(regions[1] != "World"){p <- p + facet_grid(. ~ n)}
-if(show_numbers){p <- p + geom_text(data=subset(DAM_DECOMP_NPV, n %in% regions & file!=bauscen & variable==tail(unique(DAM_DECOMP_NPV$variable), n=1)), aes(x=file, y=total+0.1, label=paste0(round(total, 1),"%")))}
-#p <- p  + theme(axis.ticks = element_blank(), axis.text.x = element_blank())
-saveplot(paste0(measure, " loss decomposition", suffix), plotdata=DAM_DECOMP_NPV)
+Policy_Cost_Decomposition <- function(discount_rate=5, tmin=4, tmax=20, bauscen="ssp2_bau", regions="World", show_numbers=TRUE, scenplot=scenlist, measure="GDP"){
+  get_witch_simple("Q")
+  if(measure=="GDP"){Q <- subset(Q, iq=="y")}
+  if(measure=="Consumption"){Q <- subset(Q, iq=="cc")}
+  Q$iq <- NULL
+  Q <- subset(Q, t %in% seq(1,30))
+  #add emission reduction and PES costs to get full gross GDP
+  #get_witch_simple("COST_FUEL")
+  get_witch_simple("COST_FUEL")
+  get_witch_simple("COST_EMI")
+  get_witch_simple("COST_Y")
+  CARBON_TRADE <- COST_EMI %>% filter(e=="nip") %>% select(-e) %>% dplyr::rename(CARBON_TRADE=value)
+  COST_EMI <- COST_EMI %>% filter(e!="nip") #all other emission costs
+  COST_EMI$e <- NULL;
+  COST_EMI <- COST_EMI[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; setnames(COST_EMI, "value", "COST_EMI")
+  COST_FUEL$fuel <- NULL;
+  COST_FUEL <- COST_FUEL[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; setnames(COST_FUEL, "value", "COST_FUEL")
+  COST_Y$ccy <- NULL;
+  COST_Y <- COST_Y[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; setnames(COST_Y, "value", "COST_Y")
+  Q <- merge(Q, COST_EMI, by = c("t", "n", "file", "pathdir"))
+  Q <- merge(Q, COST_FUEL, by = c("t", "n", "file", "pathdir"))
+  Q <- merge(Q, COST_Y, by = c("t", "n", "file", "pathdir"), all = T)
+  Q <- merge(Q, CARBON_TRADE, by = c("t", "n", "file", "pathdir"), all = T) %>% mutate(CARBON_TRADE=ifelse(is.na(CARBON_TRADE), 0, CARBON_TRADE))
+  Q$ces_sum = Q$value + Q$COST_EMI + Q$COST_FUEL + Q$COST_Y + Q$CARBON_TRADE
+  #COSTS from now on as changes (with negative signs)
+  Q$COST_EMI <- -Q$COST_EMI; Q$COST_FUEL <- -Q$COST_FUEL; Q$COST_Y <- -Q$COST_Y; Q$CARBON_TRADE <- -Q$CARBON_TRADE;
+  POLCOSTDECOMP <- Q %>% pivot_longer(cols = !c("t", file_group_columns, "pathdir", "n"), names_to = "variable") %>%
+    full_join(Q %>% filter(file==bauscen) %>% pivot_longer(cols = !c("t", file_group_columns, "pathdir", "n"), names_to = "variable") %>% select(-file) %>% dplyr::rename(value_bau=value)) %>% 
+    full_join(Q %>% filter(file==bauscen) %>% pivot_longer(cols = !c("t", file_group_columns, "pathdir", "n"), names_to = "variable") %>% select(-file) %>% filter(variable=="value") %>% dplyr::rename(gdp_bau=value) %>% select(-variable)) %>%
+    filter(file!=bauscen) %>% mutate(variable=gsub("value", "GDP", variable))
+  POLCOSTDECOMP <- POLCOSTDECOMP %>% filter(file %in% scenplot)
+  #Line plot
+  p <- ggplot(POLCOSTDECOMP %>% filter(n %in% regions & t>= tmin & t <= tmax)) + geom_line(aes(ttoyear(t), 100*(value-value_bau)/gdp_bau, color=file), show.legend = TRUE) +ylab(paste("Change in % of", measure)) + xlab("") + theme(legend.position="bottom",legend.direction="horizontal") + guides(fill=guide_legend(title=NULL, nrow = 1)) + facet_grid(variable ~ n)
+  if(length(fullpathdir) > 1){p <- p + facet_grid(variable ~ pathdir)}
+  #now aggregate to NPV discounted values (PC)
+  DAM_DECOMP_NPV <- POLCOSTDECOMP %>% mutate(diff=(value-value_bau), diff_disc=diff*(1+discount_rate/100)^(-(ttoyear(t)-ttoyear(tmin))), gdp_disc=gdp_bau*(1+discount_rate/100)^(-(ttoyear(t)-ttoyear(tmin)))) %>% filter(t >= tmin & t <= tmax) %>% group_by_at(c(file_group_columns, "pathdir", "n", "variable")) %>% summarize(NPV=sum(diff_disc)/sum(gdp_disc))
+  #keep only relevant data and good naming
+  DAM_DECOMP_NPV <- DAM_DECOMP_NPV %>% filter(variable!="COST_Y") %>% mutate(variable=gsub("ces_sum|COST_EMI", "Other Costs", variable)) %>% group_by_at(c("n", "file", "pathdir", "variable")) %>% summarize(NPV=sum(NPV)) %>% mutate(variable=gsub("COST_FUEL", "Fossil Fuel Net Costs", variable))
+  #Bar chart
+  p_bar <- ggplot(subset(DAM_DECOMP_NPV, n %in% regions & file!=bauscen & variable!="GDP")) + geom_bar(position=position_stack(), stat="identity",aes(file, NPV, fill=variable), show.legend = TRUE) +ylab(paste("% of", measure, "(NPV)")) + xlab("") + theme(legend.position="bottom",legend.direction="horizontal") + guides(fill=guide_legend(title=NULL, nrow = 1))  + facet_grid(. ~ n) + theme(axis.text.x=element_text(angle=90,hjust=1)) + scale_y_continuous(labels = scales::percent) + geom_point(data = subset(DAM_DECOMP_NPV, n %in% regions & file!=bauscen & variable=="GDP"), aes(file, NPV), color="black", shape=16)
+  if(length(fullpathdir) > 1){p_bar <- p_bar + facet_grid(. ~ pathdir)}
+  if(show_numbers){p_bar <- p_bar + geom_text(data = subset(DAM_DECOMP_NPV, n %in% regions & file!=bauscen & variable=="GDP"), aes(file, NPV*1.1, label=paste0(round(NPV*100, 1),"%")), size=3)}
+  saveplot(paste0(measure, " loss decomposition"), plotdata=DAM_DECOMP_NPV)
 }
 
 

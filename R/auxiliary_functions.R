@@ -55,6 +55,14 @@ saveplot <- function(plotname, width=7, height=5, text_size=10, plotdata=NULL, s
 }
 
 
+#function to compare all scenario to one
+add_change_from_reference <- function(data, refscen="ssp2_bau"){
+  data <- data %>% left_join(data %>% filter(file==refscen) %>% dplyr::rename(value_ref=value) %>% select(-file_group_columns))
+  data <- data %>% mutate(value_difference = value - value_ref, value_percent_change=value/value_ref-1)
+  return(data)
+}
+
+
 filetosep <- function(df, type = "separate", names = "file_new", sep = "_"){
   #type: separate or just last; name = name of the new column(s)
   # for historical or cvalidation, instead turn to NA

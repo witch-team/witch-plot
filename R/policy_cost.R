@@ -39,32 +39,45 @@ Policy_Cost <- function(discount_rate=5, tmin=4, tmax=20, bauscen="ssp2_bau", re
 
 
 
-Policy_Cost_Decomposition <- function(discount_rate=5, tmin=4, tmax=20, bauscen="ssp2_bau", regions="World", show_numbers=TRUE, scenplot=scenlist, measure="GDP"){
+Policy_Cost_Decomposition <- function(discount_rate=5, tmin=4, tmax=20, bauscen="ssp2_bau", regions="World", show_numbers=TRUE, scenplot=scenlist, measure="GDP", reprocess_trade_from_emicap=FALSE){
   get_witch_simple("Q")
   if(measure=="GDP"){Q <- subset(Q, iq=="y")}
   if(measure=="Consumption"){Q <- subset(Q, iq=="cc")}
   Q$iq <- NULL
   Q <- subset(Q, t %in% seq(1,30))
   #add emission reduction and PES costs to get full gross GDP
-  #get_witch_simple("COST_FUEL")
-  get_witch_simple("COST_FUEL")
-  get_witch_simple("COST_EMI")
-  get_witch_simple("COST_Y")
+  get_witch_simple("COST_FUEL") # oil, gas, coal, but also all biomass, rhc (small) and uranium
+  get_witch_simple("COST_EMI") # other GHG abatement, CCS costs (big!), peat abatement (big!), nip (if trade!)
+  get_witch_simple("COST_Y") # trbiosub and rhc (big)
   CARBON_TRADE <- COST_EMI %>% filter(e=="nip") %>% select(-e) %>% dplyr::rename(CARBON_TRADE=value)
+  
+  #for now replace by postprocessed trade
+  if(reprocess_trade_from_emicap){
+  get_witch_simple("emi_cap")
+  get_witch_simple("carbonprice")
+  CARBON_TRADE <- add_change_from_reference(carbonprice %>% full_join(emi_cap %>% dplyr::rename(emi_cap=value)) %>% mutate(value=emi_cap*value) %>% select(-emi_cap), refscen = "Accelerated NZ")
+  CARBON_TRADE <- CARBON_TRADE %>% filter(str_detect(file, "Trade")) %>% select(-value_percent_change, -value_ref, -value) %>% dplyr::rename(CARBON_TRADE=value_difference) %>% mutate(CARBON_TRADE=-CARBON_TRADE)
+  }
+  
   COST_EMI <- COST_EMI %>% filter(e!="nip") #all other emission costs
   COST_EMI$e <- NULL;
   COST_EMI <- COST_EMI[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; setnames(COST_EMI, "value", "COST_EMI")
+  COST_FUEL_OTHER <- COST_FUEL %>% filter(!(fuel %in% c("oil", "gas", "oil")))
+  COST_FUEL <- COST_FUEL %>% filter((fuel %in% c("oil", "gas", "oil")))
   COST_FUEL$fuel <- NULL;
   COST_FUEL <- COST_FUEL[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; setnames(COST_FUEL, "value", "COST_FUEL")
+  COST_FUEL_OTHER$fuel <- NULL;
+  COST_FUEL_OTHER <- COST_FUEL_OTHER[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; setnames(COST_FUEL_OTHER, "value", "COST_FUEL_OTHER")
   COST_Y$ccy <- NULL;
   COST_Y <- COST_Y[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; setnames(COST_Y, "value", "COST_Y")
   Q <- merge(Q, COST_EMI, by = c("t", "n", "file", "pathdir"))
   Q <- merge(Q, COST_FUEL, by = c("t", "n", "file", "pathdir"))
+  Q <- merge(Q, COST_FUEL_OTHER, by = c("t", "n", "file", "pathdir"))
   Q <- merge(Q, COST_Y, by = c("t", "n", "file", "pathdir"), all = T)
   Q <- merge(Q, CARBON_TRADE, by = c("t", "n", "file", "pathdir"), all = T) %>% mutate(CARBON_TRADE=ifelse(is.na(CARBON_TRADE), 0, CARBON_TRADE))
-  Q$ces_sum = Q$value + Q$COST_EMI + Q$COST_FUEL + Q$COST_Y + Q$CARBON_TRADE
+  Q$ces_sum = Q$value + Q$COST_EMI + Q$COST_FUEL + Q$COST_FUEL_OTHER + Q$COST_Y + Q$CARBON_TRADE
   #COSTS from now on as changes (with negative signs)
-  Q$COST_EMI <- -Q$COST_EMI; Q$COST_FUEL <- -Q$COST_FUEL; Q$COST_Y <- -Q$COST_Y; Q$CARBON_TRADE <- -Q$CARBON_TRADE;
+  Q$COST_EMI <- -Q$COST_EMI; Q$COST_FUEL <- -Q$COST_FUEL; Q$COST_FUEL_OTHER <- -Q$COST_FUEL_OTHER; Q$COST_Y <- -Q$COST_Y; Q$CARBON_TRADE <- -Q$CARBON_TRADE;
   POLCOSTDECOMP <- Q %>% pivot_longer(cols = !c("t", file_group_columns, "pathdir", "n"), names_to = "variable") %>%
     full_join(Q %>% filter(file==bauscen) %>% pivot_longer(cols = !c("t", file_group_columns, "pathdir", "n"), names_to = "variable") %>% select(-file) %>% dplyr::rename(value_bau=value)) %>% 
     full_join(Q %>% filter(file==bauscen) %>% pivot_longer(cols = !c("t", file_group_columns, "pathdir", "n"), names_to = "variable") %>% select(-file) %>% filter(variable=="value") %>% dplyr::rename(gdp_bau=value) %>% select(-variable)) %>%
@@ -76,7 +89,13 @@ Policy_Cost_Decomposition <- function(discount_rate=5, tmin=4, tmax=20, bauscen=
   #now aggregate to NPV discounted values (PC)
   DAM_DECOMP_NPV <- POLCOSTDECOMP %>% mutate(diff=(value-value_bau), diff_disc=diff*(1+discount_rate/100)^(-(ttoyear(t)-ttoyear(tmin))), gdp_disc=gdp_bau*(1+discount_rate/100)^(-(ttoyear(t)-ttoyear(tmin)))) %>% filter(t >= tmin & t <= tmax) %>% group_by_at(c(file_group_columns, "pathdir", "n", "variable")) %>% summarize(NPV=sum(diff_disc)/sum(gdp_disc))
   #keep only relevant data and good naming
-  DAM_DECOMP_NPV <- DAM_DECOMP_NPV %>% filter(variable!="COST_Y") %>% mutate(variable=gsub("ces_sum|COST_EMI", "Other Costs", variable)) %>% group_by_at(c("n", "file", "pathdir", "variable")) %>% summarize(NPV=sum(NPV)) %>% mutate(variable=gsub("COST_FUEL", "Fossil Fuel Net Costs", variable))
+  
+  #for now assign COST_EMI, COST_Y, and COST_FUEL_OTHER to Others Cost like CES sum
+  DAM_DECOMP_NPV <- DAM_DECOMP_NPV %>% mutate(variable=gsub("ces_sum|COST_EMI|COST_FUEL_OTHER|COST_Y", "Mitigation Costs", variable)) %>% group_by_at(c("n", "file", "pathdir", "variable")) %>% summarize(NPV=sum(NPV)) %>% mutate(variable=gsub("COST_FUEL", "Fossil Fuel Net Costs", variable))# %>% filter(variable!="CARBON_TRADE") 
+  
+  
+  #DAM_DECOMP_NPV <- DAM_DECOMP_NPV %>% mutate(variable=ifelse(file=="Accelerated NZ w/ Trade", gsub("COST_EMI", "Carbon Trade", variable), variable))
+  assign("DAM_DECOMP_NPV", DAM_DECOMP_NPV, envir = .GlobalEnv) 
   #Bar chart
   p_bar <- ggplot(subset(DAM_DECOMP_NPV, n %in% regions & file!=bauscen & variable!="GDP")) + geom_bar(position=position_stack(), stat="identity",aes(file, NPV, fill=variable), show.legend = TRUE) +ylab(paste("% of", measure, "(NPV)")) + xlab("") + theme(legend.position="bottom",legend.direction="horizontal") + guides(fill=guide_legend(title=NULL, nrow = 1))  + facet_grid(. ~ n) + theme(axis.text.x=element_text(angle=90,hjust=1)) + scale_y_continuous(labels = scales::percent) + geom_point(data = subset(DAM_DECOMP_NPV, n %in% regions & file!=bauscen & variable=="GDP"), aes(file, NPV), color="black", shape=16)
   if(length(fullpathdir) > 1){p_bar <- p_bar + facet_grid(. ~ pathdir)}

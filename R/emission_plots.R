@@ -50,7 +50,7 @@ Q_EMI_LU$sector="Land Use"#LU
 Q_EMI_SECTORS = rbind(Q_EMI_FFI, Q_EMI_LU)
 Q_EMI_SECTORS <- Q_EMI_SECTORS %>% filter(ttoyear(t) >= 2000 & ttoyear(t) <= 2100)
 #Stacked Regions Plot
-ggplot(subset(Q_EMI_SECTORS, file %in% scenplot),aes(ttoyear(t),value, fill=n)) + geom_area(stat="identity") + facet_grid(sector ~ file, scales = "free") + ylab("GtCO2") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") + scale_fill_manual(values = region_palette)
+ggplot(subset(Q_EMI_SECTORS, file %in% scenplot),aes(ttoyear(t),value, fill=n)) + geom_area(stat="identity") + facet_grid(sector ~ file, scales = "free") + ylab("GtCO2") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + scale_fill_manual(values = region_palette[regions]) + scale_x_continuous(breaks = seq(2000,2100,25))  + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 saveplot("Sectoral CO2 Emissions Regions", plotdata=subset(Q_EMI_SECTORS, file %in% scenplot), add_title=F)
 ggplot(subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="Fossil Fuels and Industrial" & file %in% scenplot)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("GtCO2") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom")
 saveplot("Sectoral CO2 Emissions FFI", plotdata=subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="Fossil Fuels and Industrial" & file %in% scenplot))
@@ -59,8 +59,12 @@ saveplot("Sectoral CO2 Emissions LU", plotdata=subset(Q_EMI_SECTORS, t<=10 & n %
 }
 
 
+
+#all_to_reference option is not yet working, alwaysiterative scenario stringency improvement!
+
+
 #Emission reduction by source
-Mitigation_Sources <- function(regions=witch_regions, scenario_stringency_order){
+Mitigation_Sources <- function(regions=witch_regions, scenario_stringency_order, all_to_reference=FALSE, t_plot=c(2,4,6,8,10)){
   get_witch_simple("Q_EMI")
   Q_EMI <- as.data.frame(Q_EMI); Q_EMI_orig <- Q_EMI
   Q_EMI <- subset(Q_EMI, select=-pathdir)
@@ -92,38 +96,24 @@ Mitigation_Sources <- function(regions=witch_regions, scenario_stringency_order)
   #to set minimal negative vales to zero
   MITIGATION_SOURCES$value <- pmax(MITIGATION_SOURCES$value, 0)
   #Stacked Regions Plot
-  MITIGATION_SOURCES <- subset(MITIGATION_SOURCES, t%%2==0)
-  ggplot(subset(MITIGATION_SOURCES, ttoyear(t)<=yearmax & n %in% regions),aes(ttoyear(t),value, fill=interaction(file, source), group=interaction(file, source))) + geom_bar(stat="identity", position = "stack") + ylab("MtCO2") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom") + facet_wrap( ~ n, scales = "free") #+ scale_fill_manual(values=c("#0000FF", "#000066", "#FFFF00", "#666600","#00FF00", "#006600", "#FF0000", "#660000"))
+  MITIGATION_SOURCES <- subset(MITIGATION_SOURCES, t %in% t_plot)
+  ggplot(subset(MITIGATION_SOURCES, ttoyear(t)<=yearmax & n %in% regions),aes(ttoyear(t),value, fill=source)) + geom_bar(stat="identity", position = "stack") + ylab("MtCO2") + xlab("") + theme(legend.position="bottom") + facet_grid(file ~ n, scales = "free") + scale_fill_manual(values=c("CO2FFI"="#FF0000", "CO2LU"="#006600", "NON_CO2"="#666666", "CCS"="#FFFF00"), name="Mitigation source")
   saveplot("Emission reduction by source", plotdata=subset(MITIGATION_SOURCES, ttoyear(t)<=yearmax & n %in% regions))
   assign("Emissions", ALL_EMI, envir = .GlobalEnv)  
   assign("MITIGATION_SOURCES", MITIGATION_SOURCES, envir = .GlobalEnv)
 }
 
-Global_Emissions_Stacked <- function(regions=witch_regions, scenario, plotname="CO2 Emissions Carbon Budget"){
-  #add GLOBAL carbon budget for some regions and RoW based on one scenario
-  #for now only CO2 with hist!
-  get_witch_simple("Q_EMI"); ALL_EMI <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2ffi") %>% select(-e) %>% filter(file==scenario)
-  ALL_REST_WOLD <- ALL_EMI %>% filter(!(n %in% regions)) %>% select(-n) %>% group_by(t, file, pathdir) %>% summarize(value=sum(value)) %>% mutate(n="Rest_of_World") %>% as.data.frame()
-  #ALL_REST_WOLD <- subset(ALL_EMI, !(n %in% regions))[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir")]
-  #ALL_REST_WOLD$n <- "Rest_of_World"
-  ALL_EMI <- rbind(subset(ALL_EMI, (n %in% regions)), ALL_REST_WOLD)
-  regions <- c(regions, "Rest_of_World")
-  setnames(ALL_EMI, "value", "GHG")
-  ggplot(subset(ALL_EMI, n %in% regions & ttoyear(t)<=yearmax & ttoyear(t) >= 1990),aes(ttoyear(t),GHG,fill=n)) + geom_area(stat="identity") + xlab("year") +ylab("GtCO2") + scale_fill_manual(values = region_palette) + scale_x_continuous(breaks=seq(1990,yearmax,10))
-  saveplot(plotname, plotdata=subset(ALL_EMI, n %in% regions & ttoyear(t)<=yearmax & file==scenario))
-}
-
 
 
 #LMDI decomposition
-Mitigation_Decomposition <- function(regions=witch_regions, scenario_stringency_order, t_plot=c(2,4,6,8,10), plotname="Mitigation Decomposition"){
+Mitigation_Decomposition <- function(regions=witch_regions, scenario_stringency_order, all_to_reference=FALSE, t_plot=c(2,4,6,8,10), plotname="Mitigation Decomposition"){
   if("ida" %in% rownames(installed.packages()) == FALSE) {install.packages("ida", repos = c(getOption("repos"), "http://userpage.fu-berlin.de/~kweinert/R"), dependencies = c("Depends", "Suggests"))}
   library("ida")
   get_witch_simple("l")
   get_witch_simple("Q")
   get_witch_simple("tpes")
   #Sectoral_Emissions(regions=regions, scenplot = scenario_stringency_order)
-  Mitigation_Sources(regions=regions, scenario_stringency_order = scenario_stringency_order)
+  Mitigation_Sources(regions=regions, scenario_stringency_order = scenario_stringency_order, all_to_reference = all_to_reference, t_plot = t_plot)
   l <- subset(l, file %in% scenario_stringency_order & n %in% regions & t %in% t_plot) %>% mutate(Population=value) %>% select(-value)
   Q <- subset(Q, file %in% scenario_stringency_order & n %in% regions & t %in% t_plot) %>% filter(iq=="y") %>% select(-iq)
   tpes <- subset(tpes, file %in% scenario_stringency_order & n %in% regions & t %in% t_plot)
@@ -144,9 +134,8 @@ Mitigation_Decomposition <- function(regions=witch_regions, scenario_stringency_
     lmdi_apply <- function(x){
     return(ida(x, effect = "variable", from = bau, to = mitscen, method = "lmdi1")$result[,2])
   }
-  
   for(s in seq(2,length(scenario_stringency_order))){
-    bau = scenario_stringency_order[s-1]
+    if(all_to_reference) bau <- scenario_stringency_order[1] else bau = scenario_stringency_order[s-1]
     mitscen = scenario_stringency_order[s]
     .lmdi <- plyr::ddply(kaya_rearranged_wide, c("pathdir", "n", "t"), .fun=lmdi_apply)
     colnames(.lmdi) <- c("pathdir", "n", "t", "POP", "GDP", "EN_EFF", "EN_MIX")
@@ -158,15 +147,35 @@ Mitigation_Decomposition <- function(regions=witch_regions, scenario_stringency_
   
   #combine with other sectors from WITCH
   MIT_DECOMP <- rbind(MITIGATION_SOURCES, full_lmdi)
-  MIT_DECOMP <- subset(MIT_DECOMP, source!="POP" & source!="CO2FFI")
+  MIT_DECOMP <- subset(MIT_DECOMP, source!="POP" & source!="CO2FFI" & t %in% t_plot)
   #to set minimal negative vales to zero
-  MIT_DECOMP$value <- pmax(MIT_DECOMP$value, 0)
+  #MIT_DECOMP$value <- pmax(MIT_DECOMP$value, 0)
+  ###NOT WORKING FOR NET NEGATIVE EMISSIONS; TO BE CHECKED
   #order scenarios and sources
   MIT_DECOMP <- MIT_DECOMP[order(match(MIT_DECOMP$file,scenario_stringency_order)),]
   emi_sources= c("GDP", "EN_EFF", "EN_MIX", "CCS", "CO2LU", "NON-CO2")
   MIT_DECOMP <- MIT_DECOMP[order(match(MIT_DECOMP$file,scenario_stringency_order),match(MIT_DECOMP$source,emi_sources)) ,]
-  ggplot(subset(MIT_DECOMP, ttoyear(t)<=yearmax & n %in% regions),aes(ttoyear(t),value, fill=source, alpha=file, group=interaction(file, source))) + geom_bar(stat="identity", position = "stack") + ylab("MtCO2") + xlab("") + labs(fill="Mitigation measure") + theme(legend.position="bottom") + facet_wrap( ~ n, scales = "free") + scale_fill_manual(values=c("#FFFF00", "#666600" ,"#00FF00", "#006600", "#FF0000", "#660000"), name="Mitigation measure") + scale_alpha_manual(values = setNames(c(0.2, 1), scenario_stringency_order[2:3]), name="Scenario") + xlim(2025,NA)
+  assign("MIT_DECOMP", MIT_DECOMP, envir = .GlobalEnv)
+  ggplot(subset(MIT_DECOMP, t %in% t_plot & n %in% regions),aes(ttoyear(t),value, fill=source)) + geom_bar(stat="identity", position = "stack") + ylab("MtCO2") + xlab("") + labs(fill="Mitigation measure") + theme(legend.position="bottom") + facet_grid(n ~ file, scales = "free") + scale_fill_manual(values=c("GDP"="#660000", "EN_EFF"="#000066", "EN_MIX"="#00FF00", "CO2LU"="#006600", "NON_CO2"="#666666", "CCS"="#FFFF00"), name="Mitigation measure") + guides(fill=guide_legend(nrow = 1))
   saveplot("Mitigation Decomposition", plotdata=subset(MIT_DECOMP, ttoyear(t)<=yearmax & n %in% regions))
+}
+
+
+
+
+
+Global_Emissions_Stacked <- function(regions=witch_regions, scenario, plotname="CO2 Emissions Carbon Budget"){
+  #add GLOBAL carbon budget for some regions and RoW based on one scenario
+  #for now only CO2 with hist!
+  get_witch_simple("Q_EMI"); ALL_EMI <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2ffi") %>% select(-e) %>% filter(file==scenario)
+  ALL_REST_WOLD <- ALL_EMI %>% filter(!(n %in% regions)) %>% select(-n) %>% group_by(t, file, pathdir) %>% summarize(value=sum(value)) %>% mutate(n="Rest_of_World") %>% as.data.frame()
+  #ALL_REST_WOLD <- subset(ALL_EMI, !(n %in% regions))[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir")]
+  #ALL_REST_WOLD$n <- "Rest_of_World"
+  ALL_EMI <- rbind(subset(ALL_EMI, (n %in% regions)), ALL_REST_WOLD)
+  regions <- c(regions, "Rest_of_World")
+  setnames(ALL_EMI, "value", "GHG")
+  ggplot(subset(ALL_EMI, n %in% regions & ttoyear(t)<=yearmax & ttoyear(t) >= 1990),aes(ttoyear(t),GHG,fill=n)) + geom_area(stat="identity") + xlab("year") +ylab("GtCO2") + scale_fill_manual(values = region_palette) + scale_x_continuous(breaks=seq(1990,yearmax,10))
+  saveplot(plotname, plotdata=subset(ALL_EMI, n %in% regions & ttoyear(t)<=yearmax & file==scenario))
 }
 
 

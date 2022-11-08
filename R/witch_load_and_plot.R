@@ -50,6 +50,8 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
       if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot, check_calibration=check_calibration, verbose=F)}
       # also save as data.table
       allfilesdata <- as.data.table(allfilesdata)
+      #in case nice_region_names exist map region names for those with a nice name
+      if(exists("nice_region_names") & !unique(allfilesdata$n)[1]=="World") allfilesdata$n <- mapvalues(allfilesdata$n , from=names(nice_region_names), to=nice_region_names, warn_missing = FALSE)
       #in case restrict_regions exists keep only these regions
       if(exists("restrict_regions") & !skip_restrict_regions & !unique(allfilesdata$n)[1]=="World") allfilesdata <- subset(allfilesdata, n %in% restrict_regions)
       #in case separate file to more meaningful columns

@@ -156,19 +156,20 @@ Energy_Trade <- function(fuelplot=c("oil", "coal", "gas"), scenplot=scenlist, ad
 
 Investment_Plot <- function(regions=witch_regions, scenplot=scenlist){
   if(regions[1]=="World") regions <- witch_regions
-  get_witch_simple("I_EN"); I_EN_inv <- I_EN
-  I_RD_inv = get_witch_simple("I_RD", results = "return")
+  get_witch_simple("I_EN", check_calibration = T); I_EN_inv <- I_EN
+  I_RD_inv = get_witch_simple("I_RD", results = "return", check_calibration = T)
   I_EN_sum <- I_EN %>% group_by_at(c("pathdir", file_group_columns, "n", "t")) %>% summarize(value=sum(value))
   I_RD_inv$rd  <- mapvalues(I_RD_inv$rd , from=c("en","neladvbio","battery", "fuelcell"), to=c("Energy Efficiency", "Advanced Biofuels", "Batteries", "Hydrogen"))
   I_RD_inv <- I_RD_inv %>% rename(category="rd") %>% mutate(sector="Energy RnD")
-  get_witch_simple("I_EN_GRID")
-  I_EN_Renewables <- I_EN %>% group_by_at(c("pathdir", file_group_columns, "n", "t")) %>% filter(jinv %in% c("elpv", "elcsp", "elwindon", "elwindoff", "elhydro")) %>% summarize(value=sum(value)) %>% mutate(category="Renewables")
-  I_EN_FossilFuels <- I_EN %>% group_by_at(c("pathdir", file_group_columns, "n", "t")) %>% filter(jinv %in% c("elpc", "eloil", "elgastr", "elpb")) %>% summarize(value=sum(value)) %>% mutate(category="Fossil Fuels")
-  I_EN_Nuclear <- I_EN %>% group_by_at(c("pathdir", file_group_columns, "n", "t")) %>% filter(jinv %in% c("elnuclear")) %>% summarize(value=sum(value)) %>% mutate(category="Nuclear")
+  I_EN_Renewables <- I_EN %>% group_by_at(c("pathdir", file_group_columns, "n", "t")) %>% filter(jinv %in% c("elpv", "elcsp", "elwindon", "elwindoff", "elhydro", "windsolar")) %>% summarize(value=sum(value)) %>% mutate(category="Renewables")
+  I_EN_FossilFuels <- I_EN %>% group_by_at(c("pathdir", file_group_columns, "n", "t")) %>% filter(jinv %in% c("elpc", "eloil", "elgastr", "elpb", "oilgas")) %>% summarize(value=sum(value)) %>% mutate(category="Fossil Fuels")
+  I_EN_Nuclear <- I_EN %>% group_by_at(c("pathdir", file_group_columns, "n", "t")) %>% filter(jinv %in% c("elnuclear", "nuclear")) %>% summarize(value=sum(value)) %>% mutate(category="Nuclear")
   I_EN_CCS <- I_EN %>% group_by_at(c("pathdir", file_group_columns, "n", "t")) %>% filter(jinv %in% c("elcigcc", "elgasccs", "elbigcc", "nelcoalccs")) %>% summarize(value=sum(value)) %>% mutate(category="Fossils with CCS")
-  I_EN_GRID$jinv <- "grid"; I_EN <- rbind(I_EN, I_EN_GRID)
-  I_EN_TDS <- I_EN %>% group_by_at(c("pathdir", file_group_columns, "n", "t")) %>% filter(jinv %in% c("elstorage", "grid")) %>% summarize(value=sum(value)) %>% mutate(category="Grid&Storage")
-  I_EN_categorized <- rbind(I_EN_Renewables, I_EN_CCS, I_EN_FossilFuels, I_EN_Nuclear, I_EN_TDS)
+  j_stor <- unique(get_witch_simple("j_stor", results = "return")$j)
+  I_EN_Storage <- I_EN %>% group_by_at(c("pathdir", file_group_columns, "n", "t")) %>% filter(jinv %in% j_stor | jinv=="str_storage") %>% summarize(value=sum(value)) %>% mutate(category="Storage")
+  get_witch_simple("I_EN_GRID", check_calibration = T)
+  I_EN_GRID$category <- "Grid"
+  I_EN_categorized <- rbind(I_EN_Renewables, I_EN_CCS, I_EN_FossilFuels, I_EN_Nuclear, I_EN_GRID, I_EN_Storage)
   I_EN_categorized$sector <- "Power supply"
   I_TRANSPORT_trad <- I_EN %>% group_by_at(c("pathdir", file_group_columns, "n", "t")) %>% filter(jinv %in% c("trad_cars", "hybrid", "trad_stfr", "hbd_stfr")) %>% summarize(value=sum(value)) %>% mutate(category="ICE/Hybrid")
   I_TRANSPORT_lowcarbon <- I_EN %>% group_by_at(c("pathdir", file_group_columns, "n", "t")) %>% filter(jinv %in% c("edv", "edv_stfr", "plg_hybrid", "plg_hbd_stfr")) %>% summarize(value=sum(value)) %>% mutate(category="Electric Vehicles")
@@ -176,10 +177,11 @@ Investment_Plot <- function(regions=witch_regions, scenplot=scenlist){
   get_witch_simple("I"); I_inv <- I %>% rename(category=g) %>% mutate(sector="Final Good") %>% filter(category=="fg")
   get_witch_simple("I_OUT"); I_OUT_inv <- I_OUT %>% rename(category=f) %>% filter(category=="oil") %>% mutate(category="Oil Extraction") %>% mutate(sector="Fuel supply")
   Investment_Energy <- rbind(as.data.frame(I_EN_categorized), I_RD_inv, I_OUT_inv, I_inv)
-  Investment_Energy <- subset(Investment_Energy, t>=4 & t<=10)
-  Investment_Energy_global <- Investment_Energy %>% group_by_at(c("category", "sector", "pathdir", file_group_columns, "t")) %>% filter(n %in% regions) %>% summarize(value=sum(value)*5)
-  ggplot(subset(Investment_Energy_global, (file %in% scenplot) & category !="fg"),aes(file,value / (2050-2020) * 1e3, fill=category)) + geom_bar(stat="identity", position = "stack") + ylab("Billion USD annually, (2020-2050)") + xlab("") + guides(fill=guide_legend(title=NULL)) + theme(legend.position="bottom") + facet_wrap( ~ sector, scales = "free")  + scale_x_discrete(limits=scenplot) + scale_fill_brewer(palette="Spectral")
-  #+ scale_fill_manual(values=c("#0000FF", "#000066", "#FFFF00", "#666600","#00FF00", "#006600", "#FF0000", "#660000"))
+  Investment_Energy_historical <- Investment_Energy %>% filter(file=="historical_iea") %>% filter(ttoyear(t)==2020) %>% mutate(file="IEA (2020)", value_annualized=value * 1e3)
+  Investment_Energy <- Investment_Energy %>% filter(t>=4 & t<=10 & (file %in% scenplot)) %>% group_by_at(c("category", "sector", "pathdir", file_group_columns, "n")) %>% mutate(value_annualized=value/(10-4) * 1e3)
+  Investment_Energy_global <- rbind(Investment_Energy, Investment_Energy_historical) %>% group_by_at(c("category", "sector", "pathdir", file_group_columns, "t")) %>% filter(n %in% regions) %>% summarize(value=sum(value), value_annualized=sum(value_annualized))
+  Investment_Energy_global <- Investment_Energy_global %>% filter(category!="fg")
+  ggplot(Investment_Energy_global, aes(file,value_annualized, fill=category)) + geom_bar(stat="identity", position = "stack") + ylab("Billion USD annually, (2020-2050)") + xlab("") + guides(fill=guide_legend(title=NULL)) + theme(legend.position="bottom") + facet_wrap( ~ sector, scales = "free")  + scale_x_discrete(limits=c("IEA (2020)", scenplot)) + scale_fill_brewer(palette="Spectral")  + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))  
   assign("Investment_Energy_global",Investment_Energy_global,envir = .GlobalEnv)
   saveplot("Investment Plot", plotdata=Investment_Energy_global)
 }

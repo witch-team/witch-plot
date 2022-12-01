@@ -33,7 +33,7 @@ Policy_Cost <- function(discount_rate=5, tmin=4, tmax=20, bauscen="ssp2_bau", re
   if(regions[1] != "World"){p <- p + facet_grid(. ~ n)}
   if(show_numbers){p <- p + geom_text(data=subset(Policy_Cost, n %in% regions & file!=bauscen), aes(x=file, y=PC+0.1, label=paste0(round(PC, 1),"%")), size=3)}
   p <- p  + theme(axis.ticks = element_blank(), axis.text.x = element_blank())
-  saveplot(paste0("Policy Cost (", measure, ")"), plotdata=subset(Policy_Cost, n %in% regions & file!=bauscen))
+  saveplot(paste0("Policy Cost (", measure, ")"))
 }
 
 
@@ -55,8 +55,8 @@ Policy_Cost_Decomposition <- function(discount_rate=5, tmin=4, tmax=20, bauscen=
   if(reprocess_trade_from_emicap){
   get_witch_simple("emi_cap")
   get_witch_simple("carbonprice")
-  CARBON_TRADE <- add_change_from_reference(carbonprice %>% full_join(emi_cap %>% dplyr::rename(emi_cap=value)) %>% mutate(value=emi_cap*value) %>% select(-emi_cap), refscen = "Accelerated NZ")
-  CARBON_TRADE <- CARBON_TRADE %>% filter(str_detect(file, "Trade")) %>% select(-value_percent_change, -value_ref, -value) %>% dplyr::rename(CARBON_TRADE=value_difference) %>% mutate(CARBON_TRADE=-CARBON_TRADE)
+  CARBON_TRADE <- add_change_from_reference(carbonprice %>% full_join(emi_cap %>% dplyr::rename(emi_cap=value)) %>% mutate(value=emi_cap*value) %>% select(-emi_cap), refscen = "Accelerated net zero")
+  CARBON_TRADE <- CARBON_TRADE %>% filter(str_detect(file, "[t|T]rade")) %>% select(-value_percent_change, -value_ref, -value) %>% dplyr::rename(CARBON_TRADE=value_difference) %>% mutate(CARBON_TRADE=-CARBON_TRADE)
   }
   
   COST_EMI <- COST_EMI %>% filter(e!="nip") #all other emission costs
@@ -100,7 +100,7 @@ Policy_Cost_Decomposition <- function(discount_rate=5, tmin=4, tmax=20, bauscen=
   p_bar <- ggplot(subset(DAM_DECOMP_NPV, n %in% regions & file!=bauscen & variable!="GDP")) + geom_bar(position=position_stack(), stat="identity",aes(file, NPV, fill=variable), show.legend = TRUE) +ylab(paste("% of", measure, "(NPV)")) + xlab("") + theme(legend.position="bottom",legend.direction="horizontal") + guides(fill=guide_legend(title=NULL, nrow = 1))  + facet_grid(. ~ n) + theme(axis.text.x=element_text(angle=90,hjust=1)) + scale_y_continuous(labels = scales::percent) + geom_point(data = subset(DAM_DECOMP_NPV, n %in% regions & file!=bauscen & variable=="GDP"), aes(file, NPV), color="black", shape=16)
   if(length(fullpathdir) > 1){p_bar <- p_bar + facet_grid(. ~ pathdir)}
   if(show_numbers){p_bar <- p_bar + geom_text(data = subset(DAM_DECOMP_NPV, n %in% regions & file!=bauscen & variable=="GDP"), aes(file, NPV*1.1, label=paste0(round(NPV*100, 1),"%")), size=3)}
-  saveplot(paste0(measure, " loss decomposition"), plotdata=DAM_DECOMP_NPV)
+  saveplot(paste0(measure, " loss decomposition"))
 }
 
 
@@ -136,5 +136,5 @@ Social_Cost_of_Carbon <- function(regions=witch_regions, scenplot=scenlist){
   p <- ggplot(subset(SCC, n %in% regions & ttoyear(t) <= yearmax & ttoyear(t)>=2015 & file %in% scenplot),aes(ttoyear(t),SCC,colour=file)) + geom_line(stat="identity", size=1.2) + xlab("year") +ylab("$/tCO2")
   if(length(regions)>1){p <- p + facet_grid(. ~ n, scales="free")}
   if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
-  saveplot("Social Cost of Carbon", plotdata=subset(SCC, n %in% regions & ttoyear(t) <= yearmax))
+  saveplot("Social Cost of Carbon")
 }

@@ -42,13 +42,13 @@ Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(yearmin
     p <- p + facet_grid(n ~ file, scales="free")
     if(PES_y=="share"){p <- p + ylab("%")}else{p <- p + ylab("EJ")}
     legend_position_old = legend_position; assign("legend_position", "bottom", envir = .GlobalEnv)
-    saveplot(plot_name,plotdata=subset(TPES, ttoyear(t) %in% years & file %in% scenplot))
+    saveplot(plot_name)
     assign("legend_position", legend_position_old, envir = .GlobalEnv) 
   }
   if(plot_total_tpes){
   get_witch_simple("tpes"); tpes_global <- tpes %>% mutate(value=value*0.0036)
   ggplot(subset(tpes_global, ttoyear(t)<=yearmax & n %in% regions & file %in% scenplot)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("EJ") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom")
-  saveplot("Primary Energy Regional", plotdata=subset(tpes, ttoyear(t)<=yearmax & n %in% regions & file %in% scenplot))
+  saveplot("Primary Energy Regional")
   }
 }
 
@@ -116,7 +116,7 @@ Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(ye
     p <- p + facet_grid(n ~ file, scales="free")
     if(Electricity_y=="share"){p <- p + ylab("%")}else{p <- p + ylab("EJ")}
     legend_position_old = legend_position; assign("legend_position", "bottom", envir = .GlobalEnv)
-    saveplot(plot_name, plotdata=subset(ELEC, ttoyear(t) %in% years  & file %in% scenplot))
+    saveplot(plot_name)
     assign("legend_position", legend_position_old, envir = .GlobalEnv) 
   }
 }
@@ -178,13 +178,13 @@ Investment_Plot <- function(regions=witch_regions, scenplot=scenlist){
   get_witch_simple("I"); I_inv <- I %>% rename(category=g) %>% mutate(sector="Final Good") %>% filter(category=="fg")
   get_witch_simple("I_OUT", check_calibration = T); I_OUT_inv <- I_OUT %>% rename(category=f) %>% filter(category=="oil") %>% mutate(category="Oil Extraction") %>% mutate(sector="Fuel supply")
   Investment_Energy <- rbind(as.data.frame(I_EN_categorized), I_RD_inv, I_OUT_inv, I_inv)
-  Investment_Energy_historical <- Investment_Energy %>% filter(file=="historical_iea") %>% filter(ttoyear(t)==2020) %>% mutate(file="IEA (2020)", value_annualized=value * 1e3)
+  Investment_Energy_historical <- Investment_Energy %>% filter(file=="historical_iea") %>% filter(ttoyear(t)==2015) %>% mutate(file="IEA (2015)", value_annualized=value * 1e3)
   Investment_Energy <- Investment_Energy %>% filter(t>=4 & t<=10 & (file %in% scenplot)) %>% group_by_at(c("category", "sector", "pathdir", file_group_columns, "n")) %>% mutate(value_annualized=value/(10-4+1) * 1e3)
   Investment_Energy_global <- rbind(Investment_Energy, Investment_Energy_historical) %>% group_by_at(c("category", "sector", "pathdir", file_group_columns, "t")) %>% filter(n %in% regions) %>% summarize(value=sum(value), value_annualized=sum(value_annualized))
   Investment_Energy_global <- Investment_Energy_global %>% filter(category!="fg")
-  ggplot(Investment_Energy_global, aes(file,value_annualized, fill=category)) + geom_bar(stat="identity", position = "stack") + ylab("Billion USD annually, (2020-2050)") + xlab("") + guides(fill=guide_legend(title=NULL)) + theme(legend.position="bottom") + facet_wrap( ~ sector, scales = "free")  + scale_x_discrete(limits=c("IEA (2020)", scenplot)) + scale_fill_brewer(palette="Spectral")  + geom_vline(aes(xintercept = 1.5), linetype="dashed") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))  
+  ggplot(Investment_Energy_global, aes(file,value_annualized, fill=category)) + geom_bar(stat="identity", position = "stack") + ylab("Billion USD annually, (2020-2050)") + xlab("") + guides(fill=guide_legend(title=NULL)) + theme(legend.position="bottom") + facet_wrap( ~ sector, scales = "free")  + scale_x_discrete(limits=c("IEA (2015)", scenplot)) + scale_fill_brewer(palette="Spectral")  + geom_vline(aes(xintercept = 1.5), linetype="dashed") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))  
   assign("Investment_Energy_global",Investment_Energy_global,envir = .GlobalEnv)
-  saveplot("Investment Plot", plotdata=Investment_Energy_global)
+  saveplot("Investment Plot")
 }
 
 

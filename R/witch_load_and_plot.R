@@ -175,7 +175,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
       if(length(fullpathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}
       if(length(fullpathdir)==1){p <- p + guides(linetype="none")}
-      if(plot){saveplot(variable_name_save, plotdata=subset(allfilesdata))}
+      if(plot){saveplot(variable_name_save)}
     } 
     if (aggregation == "global_mean")
     {
@@ -188,7 +188,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
       if(length(fullpathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}   
       if(length(fullpathdir)==1){p <- p + guides(linetype="none")}
-      if(plot){saveplot(variable_name_save, plotdata=subset(allfilesdata))}
+      if(plot){saveplot(variable_name_save)}
     } 
     if (aggregation == "regional") 
     {
@@ -199,7 +199,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       if(ssp_grid){p <- p + facet_grid(. ~ ssp)}
       if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
       if(length(fullpathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}   
-      if(plot){saveplot(variable_name_save, plotdata=subset(allfilesdata, n %in% regions))}
+      if(plot){saveplot(variable_name_save)}
     }
     if (aggregation == "all") 
     {
@@ -238,7 +238,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       }
       if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ file)}
       legend_position_old = legend_position; assign("legend_position", "bottom", envir = .GlobalEnv);  
-	  if(plot){saveplot(variable_name_save, plotdata=subset(allfilesdata))}; assign("legend_position", legend_position_old, envir = .GlobalEnv) 
+	  if(plot){saveplot(variable_name_save)}; assign("legend_position", legend_position_old, envir = .GlobalEnv) 
     } 
     #save the variable under the WITCH name in the global environment
     if(additional_set_id!="na") variable_name <- paste0(variable_name, "_", additional_set_id)

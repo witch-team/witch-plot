@@ -51,11 +51,11 @@ Q_EMI_SECTORS = rbind(Q_EMI_FFI, Q_EMI_LU)
 Q_EMI_SECTORS <- Q_EMI_SECTORS %>% filter(ttoyear(t) >= 2000 & ttoyear(t) <= 2100)
 #Stacked Regions Plot
 ggplot(subset(Q_EMI_SECTORS, file %in% scenplot),aes(ttoyear(t),value, fill=n)) + geom_area(stat="identity") + facet_grid(sector ~ file, scales = "free") + ylab("GtCO2") + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom") + scale_fill_manual(values = region_palette[regions]) + scale_x_continuous(breaks = seq(2000,2100,25))  + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-saveplot("Sectoral CO2 Emissions Regions", plotdata=subset(Q_EMI_SECTORS, file %in% scenplot), add_title=F)
+saveplot("Sectoral CO2 Emissions Regions", add_title=F)
 ggplot(subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="Fossil Fuels and Industrial" & file %in% scenplot)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("GtCO2") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom")
-saveplot("Sectoral CO2 Emissions FFI", plotdata=subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="Fossil Fuels and Industrial" & file %in% scenplot))
+saveplot("Sectoral CO2 Emissions FFI")
 ggplot(subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="Land Use" & file %in% scenplot)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("GtCO2") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom")
-saveplot("Sectoral CO2 Emissions LU", plotdata=subset(Q_EMI_SECTORS, t<=10 & n %in% regions & sector=="Land Use" & file %in% scenplot))
+saveplot("Sectoral CO2 Emissions LU")
 }
 
 
@@ -98,7 +98,7 @@ Mitigation_Sources <- function(regions=witch_regions, scenario_stringency_order,
   #Stacked Regions Plot
   MITIGATION_SOURCES <- subset(MITIGATION_SOURCES, t %in% t_plot)
   ggplot(subset(MITIGATION_SOURCES, ttoyear(t)<=yearmax & n %in% regions),aes(ttoyear(t),value, fill=source)) + geom_bar(stat="identity", position = "stack") + ylab("MtCO2") + xlab("") + theme(legend.position="bottom") + facet_grid(file ~ n, scales = "free") + scale_fill_manual(values=c("CO2FFI"="#FF0000", "CO2LU"="#006600", "NON_CO2"="#666666", "CCS"="#FFFF00"), name="Mitigation source")
-  saveplot("Emission reduction by source", plotdata=subset(MITIGATION_SOURCES, ttoyear(t)<=yearmax & n %in% regions))
+  saveplot("Emission reduction by source")
   assign("Emissions", ALL_EMI, envir = .GlobalEnv)  
   assign("MITIGATION_SOURCES", MITIGATION_SOURCES, envir = .GlobalEnv)
 }
@@ -157,7 +157,7 @@ Mitigation_Decomposition <- function(regions=witch_regions, scenario_stringency_
   MIT_DECOMP <- MIT_DECOMP[order(match(MIT_DECOMP$file,scenario_stringency_order),match(MIT_DECOMP$source,emi_sources)) ,]
   assign("MIT_DECOMP", MIT_DECOMP, envir = .GlobalEnv)
   ggplot(subset(MIT_DECOMP, t %in% t_plot & n %in% regions),aes(ttoyear(t),value, fill=source)) + geom_bar(stat="identity", position = "stack") + ylab("MtCO2") + xlab("") + labs(fill="Mitigation measure") + theme(legend.position="bottom") + facet_grid(n ~ file, scales = "free") + scale_fill_manual(values=c("GDP"="#660000", "EN_EFF"="#000066", "EN_MIX"="#00FF00", "CO2LU"="#006600", "NON_CO2"="#666666", "CCS"="#FFFF00"), name="Mitigation measure") + guides(fill=guide_legend(nrow = 1))
-  saveplot("Mitigation Decomposition", plotdata=subset(MIT_DECOMP, ttoyear(t)<=yearmax & n %in% regions))
+  saveplot("Mitigation Decomposition")
 }
 
 
@@ -175,7 +175,7 @@ Global_Emissions_Stacked <- function(regions=witch_regions, scenario, plotname="
   regions <- c(regions, "Rest_of_World")
   setnames(ALL_EMI, "value", "GHG")
   ggplot(subset(ALL_EMI, n %in% regions & ttoyear(t)<=yearmax & ttoyear(t) >= 1990),aes(ttoyear(t),GHG,fill=n)) + geom_area(stat="identity") + xlab("year") +ylab("GtCO2") + scale_fill_manual(values = region_palette) + scale_x_continuous(breaks=seq(1990,yearmax,10))
-  saveplot(plotname, plotdata=subset(ALL_EMI, n %in% regions & ttoyear(t)<=yearmax & file==scenario))
+  saveplot(plotname)
 }
 
 

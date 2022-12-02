@@ -141,9 +141,9 @@ Energy_Trade <- function(fuelplot=c("oil", "coal", "gas"), scenplot=scenlist, ad
   NET_EXPORT <- melt(NET_EXPORT, id.vars = c("t", "n", file_group_columns, "fuel"))
   NET_EXPORT <-NET_EXPORT %>% filter(ttoyear(t) <= 2100 & (t %in% seq(1,20) | t %in% seq(-3,0)))
   ggplot(subset(NET_EXPORT, file %in% scenplot & variable %in% c("Net_Export_Volume")),aes(ttoyear(t),value, fill=fuel)) + geom_area(stat="identity") + facet_grid(n ~ file, scales = "free") + ylab("Fossil Fuel Net Exports [EJ]") + xlab("") + theme(legend.position="right") + scale_fill_manual(values = c("oil"="red", "coal"="black", "gas"="brown")) + scale_x_continuous(breaks = seq(2000, 2100, 50))
-  saveplot(paste("Energy Trade Volume"), plotdata = NET_EXPORT)
+  saveplot(paste("Energy Trade Volume"))
   ggplot(subset(NET_EXPORT, file %in% scenplot & variable %in% c("Net_Export_Value")),aes(ttoyear(t),value, fill=fuel)) + geom_area(stat="identity") + facet_grid(n ~ file, scales = "free") + ylab("Fossil Fuel Net Exports [Billion USD]") + xlab("") + theme(legend.position="right") + scale_fill_manual(values = c("oil"="red", "coal"="black", "gas"="brown")) + scale_x_continuous(breaks = seq(2000, 2100, 50))
-  saveplot(paste("Energy Trade Value"), plotdata = NET_EXPORT)
+  saveplot(paste("Energy Trade Value"))
 }
 
 

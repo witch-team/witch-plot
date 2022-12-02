@@ -32,13 +32,12 @@ yeartot <- function(year){t=((as.numeric(as.character(year)) - year0) / tstep) +
 
 
 convert_pdftopng <- F #converts all created pdfs to png for better quality (needs pdftopng.exe in your PATH. Download from http://www.xpdfreader.com/download.html)
-saveplot <- function(plotname, width=7, height=5, text_size=10, suffix="", transparent=FALSE, add_title=TRUE, forpaper=F){
+saveplot <- function(plotname, width=7, height=5, text_size=10, suffix="", transparent=FALSE, add_title=TRUE, forpaper=F, plotdata=NA){
   if(!deploy_online) if(!dir.exists(graphdir)){dir.create(graphdir)} #create directory for graphs
   if(figure_format!="png"){transparent = FALSE}
   if(figure_format=="pdf"){plot_device=cairo_pdf}else{plot_device=figure_format}
   if(figure_format=="eps"){plot_device=cairo_ps}
   #device=cairo_pdf makes PDFs work with greek symbols etc.
-  if("t" %in% colnames(plotdata)){plotdata$t <- ttoyear(plotdata$t)}
   if(!exists("legend_position")){legend_position = "bottom"}
   if(legend_position=="bottom"){legend_direction="horizontal"}else{legend_direction="vertical"}
   if(transparent){transparent_background <- theme(legend.background = element_blank(), panel.background = element_blank(), plot.background = element_rect(fill = "transparent",colour = NA))}else{transparent_background = NULL}
@@ -46,7 +45,10 @@ saveplot <- function(plotname, width=7, height=5, text_size=10, suffix="", trans
   if(!deploy_online){
   ggsave(filename=file.path(graphdir,paste0(as.character(gsub("[ |_|-]", "_", plotname)),suffix,".",figure_format)), plot = ggplot2::last_plot() + if(add_title){labs(title=plotname)}else{labs(title="")} + theme(text = element_text(size=text_size), legend.position=legend_position, legend.direction = legend_direction, legend.key = element_rect(colour = NA), legend.title=element_blank()), width=width, height=height, bg = "transparent", device = plot_device)
   if(figure_format=="pdf" & convert_pdftopng) shell(str_glue('pdftopng.exe {file.path(graphdir, paste0(as.character(gsub(" ", "_", plotname)),".", figure_format))} - > {file.path(graphdir, paste0(as.character(gsub(" ", "_", plotname)),".", "png"))}'))
-  if(write_plotdata_csv){plotdata <- ggplot_build(ggplot2::last_plot())$plot$data; write.xlsx(plotdata, file = file.path(graphdir,paste0(as.character(gsub("[ |_|-]", "_", plotname, suffix)),".xlsx")))}
+  if(write_plotdata_csv){
+    if(!is.na(plotdata)) plotdata <- ggplot_build(ggplot2::last_plot())$plot$data
+    if("t" %in% colnames(plotdata)){plotdata$t <- ttoyear(plotdata$t)}
+    if(length(plotdata)>0) write.xlsx(plotdata, file = file.path(graphdir,paste0(as.character(gsub("[ |_|-]", "_", plotname, suffix)),".xlsx")))}
   if(forpaper){
   if(!dir.exists(file.path(graphdir, "forpaper"))){dir.create(file.path(graphdir, "forpaper"))}
   file.copy(file.path(graphdir,paste0(as.character(gsub("[ |_|-]", "_", plotname)),suffix,".",figure_format)), file.path(graphdir, "forpaper", paste0(as.character(gsub("[ |_|-]", "_", plotname)),suffix,".",figure_format)), overwrite = T)

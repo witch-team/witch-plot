@@ -26,8 +26,9 @@ shinyUI(fluidPage(pageWithSidebar(
     uiOutput("choose_additional_set2"),
     uiOutput("select_scenarios"),
     uiOutput("select_regions"),
-    div(style="display:inline-block",checkboxInput("add_historical", "Add historical values", value = T)),
-    div(style="display:inline-block",checkboxInput("ylim_zero", "Set y-axis limit to zero", value = F)),
+    div(style="display:inline-block",checkboxInput("add_historical", "Add historical", value = T)),
+    div(style="display:inline-block",checkboxInput("ylim_zero", "ymin=0", value = F)),
+    div(style="display:inline-block",radioButtons("field", "", choiceNames = c("l","up","lo"), choiceValues = c("l","up","lo"), inline = TRUE)),
     div(style="display:inline-block",actionButton("button_saveplotdata", "Save Plot"))
 ),
     

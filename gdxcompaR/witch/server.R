@@ -46,7 +46,7 @@ shinyServer(function(input, output, session) {
       print("Current plot saved in subdirectory 'graphs'")
       saveplot(variable, width = 14, height = 7)
     })
-    
+
     #Additional selector for specific Panels
     
     
@@ -55,11 +55,12 @@ shinyServer(function(input, output, session) {
     output$gdxompaRplot <- renderPlot({
       assign("historical", input$add_historical, envir = .GlobalEnv)
       ylim_zero <- input$ylim_zero
+      field_show <- input$field
       #plotly_dynamic <- input$plotly_dynamic
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
       #get data
-      afd <- get_witch_simple(variable, check_calibration=T, results = "return")
+      afd <- get_witch_simple(variable, check_calibration=T, results = "return", field = field_show)
       if(verbose) print(str_glue("Variable {variable} loaded."))
       #get the name of the additional set
       additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))
@@ -199,11 +200,12 @@ shinyServer(function(input, output, session) {
     output$gdxompaRplotly <- renderPlotly({
       assign("historical", input$add_historical, envir = .GlobalEnv)
       ylim_zero <- input$ylim_zero
+      field_show <- input$field
       plotly_dynamic <- input$plotly_dynamic
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
       #get data
-      afd <- get_witch_simple(variable, check_calibration=TRUE, results = "return")
+      afd <- get_witch_simple(variable, check_calibration=TRUE, results = "return", field = field_show)
       if(verbose) print(str_glue("Variable {variable} loaded."))
       #get the name of the additional set
       additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))

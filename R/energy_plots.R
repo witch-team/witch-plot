@@ -190,3 +190,25 @@ Investment_Plot <- function(regions=witch_regions, scenplot=scenlist){
 
 
 
+Power_capacity <- function(regions="World", years=seq(yearmin, yearmax), plot_name="Power Capacity", scenplot=scenlist){
+  if(length(fullpathdir)!=1){print("Electricity mix only for one directory at a time!")}else{
+    ssp_grid_old=ssp_grid; assign("ssp_grid", FALSE, envir = .GlobalEnv) 
+    get_witch_simple("K_EN")
+    K_EN <- K_EN %>% filter(jreal %in% c("eloil", "elpb", "elpc", "elgastr", "elbigcc", "elcigcc", "elgasccs", "elpc_ccs", "elpv", "elcsp", "elnuclear", "elwindon", "elwindoff", "elhydro"))
+    K_EN$category <- mapvalues(K_EN$jreal, from = c("elpc", "elpc_ccs", "elgastr", "elgasccs", "eloil", "elnuclear", "elpb", "elbigcc", "elhydro", "elwindon", "elwindoff", "elpv", "elcsp"), to = c("Coal w/o CCS", "Coal w/ CCS", "Gas w/o CCS", "Gas w/ CCS", "Oil", "Nuclear", "Biomass w/o CCS", "Biomass w/ CCS", "Hydro", "Wind Onshore", "Wind Offshore", "Solar PV", "Solar CSP"))
+    ELEC <- K_EN
+    ELEC$jreal <- NULL
+    if(regions[1]=="World"){
+      ELEC$n <- NULL; ELEC <- ELEC[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir", "category")]; ELEC$n <- "World"
+    }else{
+      ELEC <- subset(ELEC, n %in% regions)
+    }
+    p <- ggplot(data=subset(ELEC, ttoyear(t) %in% years  & file %in% scenplot))
+    p <- p + xlab("") + guides(color=guide_legend(title=NULL, nrow = 3)) + theme(legend.position="bottom")
+    p <- p + geom_line(aes(ttoyear(t),value*1e3, color=category), stat="identity") + scale_color_manual(values=c("Solar PV"="yellow","Solar CSP"="gold2", "Hydro"="blue", "Nuclear"="cyan", "Wind Onshore"="orange", "Wind Offshore"="coral2", "Coal w/ CCS"="dimgrey", "Coal w/o CCS"="black", "Gas w/ CCS"="brown2", "Gas w/o CCS"="brown", "Oil"="darkorchid4", "Biomass w/ CCS"="green",  "Biomass w/o CCS"="darkgreen")) + ylab("GW")
+    p <- p + facet_grid(n ~ file, scales="free")
+    saveplot(plot_name)
+  }
+}
+
+

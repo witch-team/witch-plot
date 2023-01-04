@@ -22,6 +22,8 @@ source('R/witch_functions.R')
 map_var_hist <- fread("varname_model, set_model, element_model, var_witch, set_witch, element_witch, conv
 Y, , , SOCECON, *, gdp-ppp, 1
 E, , , Q_EMI, e, co2, 0.2727273
+EIND, , , Q_EMI, e, co2ffi, 0.2727273
+ELAND, , , Q_EMI, e, co2lu, 0.2727273
 pop, , , l, , , 1e-3
 K, , , K, g, fg, 1
 I, , , I, g, fg, 1

@@ -12,12 +12,13 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
         variable$value <- variable$value * map_var_hist[varname_model==varname]$conv
       }
       #rename varname to WITCH one
+      varname_original <- varname
       varname <- map_var_hist[varname_model==varname]$var_witch
     }
   }
 
   valid_suffix <- "_valid"
-  if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"}
+  #if(varname=="Q_EMI"){valid_suffix <- "_valid_primap"}
   if(varname=="Q"){valid_suffix <- c("_valid_wdi", "_valid_weo")}
   #if(varname=="SOCECON"){valid_suffix <- "_valid_wdi_sum"}
   if(varname=="Q_IN"){valid_suffix <- "_valid_notcompatible"}
@@ -144,7 +145,9 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     #assign("varname", merged_variable, envir = .GlobalEnv)
     #print(merged_variable)
     #remove additional columns if using mapping
-    if(exists("map_var_hist")) if((varname %in% map_var_hist$var_witch)) if(map_var_hist[var_witch==varname]$set_witch!="") merged_variable <- merged_variable %>% filter(get(map_var_hist[var_witch==varname]$set_witch)==map_var_hist[var_witch==varname]$element_witch) %>% select(-one_of(map_var_hist[var_witch==varname]$set_witch)) 
+    if(exists("varname_original")){
+      if(map_var_hist[varname_model==varname_original]$set_witch!="") merged_variable <- merged_variable %>% filter(get(map_var_hist[varname_model==varname_original]$set_witch)==map_var_hist[varname_model==varname_original]$element_witch) %>% select(-one_of(map_var_hist[varname_model==varname_original]$set_witch)) 
+    } 
     return(merged_variable)
     }
   else

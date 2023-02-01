@@ -39,7 +39,7 @@ Policy_Cost <- function(discount_rate=5, tmin=4, tmax=20, bauscen="ssp2_bau", re
 
 
 
-Policy_Cost_Decomposition <- function(discount_rate=5, tmin=4, tmax=20, bauscen="ssp2_bau", regions="World", show_numbers=TRUE, scenplot=scenlist, measure="GDP", reprocess_trade_from_emicap=FALSE){
+Policy_Cost_Decomposition <- function(discount_rate=5, tmin=4, tmax=20, bauscen="ssp2_bau", regions="World", show_numbers=TRUE, scenplot=scenlist, measure="GDP", add_nonco2_emitrade=F){
   get_witch_simple("Q")
   if(measure=="GDP"){Q <- subset(Q, iq=="y")}
   if(measure=="Consumption"){Q <- subset(Q, iq=="cc")}
@@ -49,9 +49,10 @@ Policy_Cost_Decomposition <- function(discount_rate=5, tmin=4, tmax=20, bauscen=
   get_witch_simple("COST_FUEL") # oil, gas, coal, but also all biomass, rhc (small) and uranium
   get_witch_simple("COST_EMI") # other GHG abatement, CCS costs (big!), peat abatement (big!), nip (if trade!)
   get_witch_simple("COST_Y") # trbiosub and rhc (big)
-  CARBON_TRADE <- COST_EMI %>% filter(e=="nip") %>% select(-e) %>% dplyr::rename(CARBON_TRADE=value)
+  CARBON_TRADE <- COST_EMI %>% filter(e=="co2") %>% select(-e) %>% dplyr::rename(CARBON_TRADE=value) #"nip" is only for internal of a coalition market!!!
   
   #for now replace by postprocessed trade
+  reprocess_trade_from_emicap <- F
   if(reprocess_trade_from_emicap){
   get_witch_simple("emi_cap")
   get_witch_simple("carbonprice")
@@ -59,7 +60,42 @@ Policy_Cost_Decomposition <- function(discount_rate=5, tmin=4, tmax=20, bauscen=
   CARBON_TRADE <- CARBON_TRADE %>% filter(str_detect(file, "[t|T]rade")) %>% select(-value_percent_change, -value_ref, -value) %>% dplyr::rename(CARBON_TRADE=value_difference) %>% mutate(CARBON_TRADE=-CARBON_TRADE)
   }
   
-  COST_EMI <- COST_EMI %>% filter(e!="nip") #all other emission costs
+  #postprocess non-CO2 trade
+  if(add_nonco2_emitrade){
+    get_witch_simple("Q_EMI")
+    nonco2emitrade <- Q_EMI %>% filter(e %in% c("ch4", "n2o", "f-gases")) %>% filter(t %in% seq(1,30)) %>% group_by(file,pathdir,n,t) %>% summarize(nonco2=sum(value)) %>% left_join(get_witch_simple("carbonprice", results = "return") %>% rename(cprice=value))
+    nonco2emitrade <- left_join(nonco2emitrade, Q_EMI %>% filter(e %in% c("ch4", "n2o", "f-gases", "co2")) %>% filter(t %in% seq(1,30)) %>% group_by(file,pathdir,n,t) %>% summarize(ghg=sum(value)))
+    get_witch_simple("BAU_Q_EMI")
+    nonco2emitrade <- nonco2emitrade %>% left_join(BAU_Q_EMI %>% filter(e %in% c("ch4", "n2o", "f-gases")) %>% filter(t %in% seq(1,30)) %>% group_by(file,pathdir,n,t) %>% summarize(nonco2_bau=sum(value)))
+    nonco2emitrade <- nonco2emitrade %>% left_join(BAU_Q_EMI %>% filter(e %in% c("ch4", "n2o", "f-gases", "co2")) %>% filter(t %in% seq(1,30)) %>% group_by(file,pathdir,n,t) %>% summarize(ghg_bau=sum(value)))
+    #add do2 emicap
+    nonco2emitrade <- nonco2emitrade %>% left_join(get_witch_simple("emi_cap", results = "return") %>% filter(value!=500) %>% rename(co2cap=value))
+    #add population
+    get_witch_simple("l")
+    nonco2emitrade <- nonco2emitrade %>% left_join(l %>% filter(t %in% seq(1,30)) %>% rename(pop=value))
+    #compute emipac only for non-CO2
+    if(T){
+      nonco2emitrade <- nonco2emitrade %>% group_by(n,file,pathdir) %>% mutate(nonco2_bau0=nonco2_bau[t==5]) %>% ungroup() %>% group_by(pathdir,file,t) %>% mutate(emicap_nonco2=ifelse(t>=5 & t<=20, sum(nonco2)* ( exp(-0.3*(t-5)) * (nonco2_bau0/sum(nonco2_bau0)) + (1-exp(-0.3*(t-5))) * (pop/sum(pop)) ),0)) %>% mutate(emicap_nonco2=ifelse(t>20, sum(nonco2)* ((pop/sum(pop))),emicap_nonco2)) #%>% mutate(totemicap=sum(emicap_nonco2), totemiactual=sum(nonco2))    
+      nonco2emitrade <- nonco2emitrade %>% ungroup() %>% mutate(net_revenues_nonco2=-(nonco2-emicap_nonco2)*cprice) %>% mutate(net_revenues_nonco2=ifelse(is.na(net_revenues_nonco2), 0, net_revenues_nonco2)) 
+      
+      #in case only use trade scenario in name (now jut NOT in "w/o Trade")
+      nonco2emitrade <- nonco2emitrade %>% filter(!str_detect(file, "[t|T]rade")) #REMOVE BEFORE COMMITTING!!
+      
+      CARBON_TRADE <- CARBON_TRADE %>% left_join(nonco2emitrade %>%  select(t,n,file,net_revenues_nonco2)) %>% mutate(CARBON_TRADE=CARBON_TRADE+net_revenues_nonco2) %>% select(-net_revenues_nonco2)
+    }
+
+    #compute emipac only for  all ghg
+    if(F){
+    nonco2emitrade <- nonco2emitrade %>% group_by(n,file,pathdir) %>% mutate(ghg_bau0=ghg_bau[t==5]) %>% ungroup() %>% group_by(pathdir,file,t) %>% mutate(emicap_ghg=ifelse(t>=5 & t<=20, sum(ghg)* ( exp(-0.3*(t-5)) * (ghg_bau0/sum(ghg_bau0)) + (1-exp(-0.3*(t-5))) * (pop/sum(pop)) ),0)) %>% mutate(emicap_ghg=ifelse(t>20, sum(ghg)* ((pop/sum(pop))),emicap_ghg)) #%>% mutate(totemicap=sum(emicap_nonco2), totemiactual=sum(nonco2))
+    nonco2emitrade <- nonco2emitrade %>% ungroup() %>% mutate(net_revenues_ghg=-(ghg-emicap_ghg)*cprice) %>% mutate(net_revenues_ghg=ifelse(is.na(net_revenues_ghg), 0, net_revenues_ghg)) 
+    #in case only use trade scenario in name
+    #nonco2emitrade <- nonco2emitrade %>% filter(str_detect(file, "[t|T]rade"))
+    CARBON_TRADE <- CARBON_TRADE %>% left_join(nonco2emitrade %>%  select(t,n,file,net_revenues_ghg)) %>% mutate(CARBON_TRADE=net_revenues_ghg) %>% select(-net_revenues_ghg)
+    }
+  }
+  
+  
+  COST_EMI <- COST_EMI %>% filter(e!="co2") #all other emission costs
   COST_EMI$e <- NULL;
   COST_EMI <- COST_EMI[, lapply(.SD, sum), by=c("t", "n", "file", "pathdir")]; setnames(COST_EMI, "value", "COST_EMI")
   COST_FUEL_OTHER <- COST_FUEL %>% filter(!(fuel %in% c("oil", "gas", "oil")))

@@ -46,7 +46,7 @@ saveplot <- function(plotname, width=7, height=5, text_size=10, suffix="", trans
   ggsave(filename=file.path(graphdir,paste0(as.character(gsub("[ |_|-]", "_", plotname)),suffix,".",figure_format)), plot = ggplot2::last_plot() + if(add_title){labs(title=plotname)}else{labs(title="")} + theme(text = element_text(size=text_size), legend.position=legend_position, legend.direction = legend_direction, legend.key = element_rect(colour = NA), legend.title=element_blank()), width=width, height=height, bg = "transparent", device = plot_device)
   if(figure_format=="pdf" & convert_pdftopng) shell(str_glue('pdftopng.exe {file.path(graphdir, paste0(as.character(gsub(" ", "_", plotname)),".", figure_format))} - > {file.path(graphdir, paste0(as.character(gsub(" ", "_", plotname)),".", "png"))}'))
   if(write_plotdata_csv){
-    if(is.na(plotdata)) plotdata <- ggplot_build(ggplot2::last_plot())$plot$data
+    if(!is.data.frame(plotdata)) plotdata <- ggplot_build(ggplot2::last_plot())$plot$data
     if("t" %in% colnames(plotdata)){plotdata$t <- ttoyear(plotdata$t)}
     if(length(plotdata)>0) write.xlsx(plotdata, file = file.path(graphdir,paste0(as.character(gsub("[ |_|-]", "_", plotname, suffix)),".xlsx")))}
   if(forpaper){

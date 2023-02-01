@@ -79,12 +79,12 @@ if(exclude_files[1]!="") filelist = filelist[!str_detect(filelist, paste(exclude
 if(length(filelist)==0){stop("No GDX files found.")}
 if(!exists("scenlist")){scenlist <- gsub(paste(removepattern, collapse="|"), "", filelist); scenlist <- gsub("results_", "", scenlist)}
 if(!exists("scenplot_global_order")){scenplot_global_order = seq(1:length(scenlist))}
-print("GDX Files:")
-print(filelist)
-print(paste("Scenarios used:", length(scenlist)))
+#print("GDX Files:")
+#print(filelist)
+#print(paste("Scenarios used:", length(scenlist)))
 filelist <- filelist[scenplot_global_order]
 scenlist <- scenlist[scenplot_global_order]
-print(scenlist)
+print(data.frame(file=filelist, scen=scenlist))
 
 #file to separate check
 if(exists("file_separate")) file_group_columns <- c("file", unname(file_separate[3:length(file_separate)])) else file_group_columns <- "file"

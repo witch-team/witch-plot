@@ -154,7 +154,7 @@ Energy_Trade <- function(fuelplot=c("oil", "coal", "gas"), scenplot=scenlist, ad
 
 
 
-Investment_Plot <- function(regions=witch_regions, scenplot=scenlist){
+Investment_Plot <- function(regions=witch_regions, scenplot=scenlist, match_hist_inv = F){
   if(regions[1]=="World") regions <- witch_regions
   get_witch_simple("I_EN", check_calibration = T); I_EN_inv <- I_EN
   I_RD_inv = get_witch_simple("I_RD", results = "return", check_calibration = T)
@@ -178,11 +178,20 @@ Investment_Plot <- function(regions=witch_regions, scenplot=scenlist){
   get_witch_simple("I"); I_inv <- I %>% rename(category=g) %>% mutate(sector="Final Good") %>% filter(category=="fg")
   get_witch_simple("I_OUT", check_calibration = T); I_OUT_inv <- I_OUT %>% rename(category=f) %>% filter(category=="oil") %>% mutate(category="Oil Extraction") %>% mutate(sector="Fuel supply")
   Investment_Energy <- rbind(as.data.frame(I_EN_categorized), I_RD_inv, I_OUT_inv, I_inv)
-  Investment_Energy_historical <- Investment_Energy %>% filter(file=="historical_iea") %>% filter(ttoyear(t)==2015) %>% mutate(file="IEA (2015)", value_annualized=value * 1e3)
+  Investment_Energy_historical <- Investment_Energy %>% filter(file=="historical_iea") %>% filter(ttoyear(t)==2020) %>% mutate(file="IEA (2020)", value_annualized=value * 1e3)
+  
+  #align 2020 value to IEA to account for missing parts of reporting (as we only count modules etc.)
+  #take 2020 and compute scaling factor by technology and region, up to -20% and +50%
+  if(match_hist_inv){
+    Investment_Energy <- Investment_Energy %>% left_join(Investment_Energy_historical %>% select(n,category,sector,value_annualized)) %>% group_by(n,category,sector) %>% mutate(value_annualized=ifelse(!is.na(value_annualized) & ((category!="Fossil Fuels" & sector=="Power supply") & sector!="Fuel supply" & sector!="Energy RnD"), value_annualized*1e-3 / mean(value[t==4]), 1))
+    Investment_Energy <- Investment_Energy %>% mutate(value=value*min(max(0.8,value_annualized), 1.5)) %>% select(-value_annualized)
+   }
+  
   Investment_Energy <- Investment_Energy %>% filter(t>=4 & t<=10 & (file %in% scenplot)) %>% group_by_at(c("category", "sector", "pathdir", file_group_columns, "n")) %>% mutate(value_annualized=value/(10-4+1) * 1e3)
   Investment_Energy_global <- rbind(Investment_Energy, Investment_Energy_historical) %>% group_by_at(c("category", "sector", "pathdir", file_group_columns, "t")) %>% filter(n %in% regions) %>% summarize(value=sum(value), value_annualized=sum(value_annualized))
+  assign("Investment_Energy_regional",rbind(Investment_Energy, Investment_Energy_historical),envir = .GlobalEnv)
   Investment_Energy_global <- Investment_Energy_global %>% filter(category!="fg")
-  ggplot(Investment_Energy_global, aes(file,value_annualized, fill=category)) + geom_bar(stat="identity", position = "stack") + ylab("Billion USD annually, (2020-2050)") + xlab("") + guides(fill=guide_legend(title=NULL)) + theme(legend.position="bottom") + facet_wrap( ~ sector, scales = "free")  + scale_x_discrete(limits=c("IEA (2015)", scenplot)) + scale_fill_brewer(palette="Spectral")  + geom_vline(aes(xintercept = 1.5), linetype="dashed") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))  
+  ggplot(Investment_Energy_global, aes(file,value_annualized, fill=category)) + geom_bar(stat="identity", position = "stack") + ylab("Billion USD annually, (2020-2050)") + xlab("") + guides(fill=guide_legend(title=NULL)) + theme(legend.position="bottom") + facet_wrap( ~ sector, scales = "free")  + scale_x_discrete(limits=c("IEA (2020)", scenplot)) + scale_fill_brewer(palette="Spectral")  + geom_vline(aes(xintercept = 1.5), linetype="dashed") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))  
   assign("Investment_Energy_global",Investment_Energy_global,envir = .GlobalEnv)
   saveplot("Investment Plot")
 }
@@ -199,14 +208,16 @@ Power_capacity <- function(regions="World", years=seq(yearmin, yearmax), plot_na
     ELEC <- K_EN
     ELEC$jreal <- NULL
     if(regions[1]=="World"){
-      ELEC$n <- NULL; ELEC <- ELEC[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir", "category")]; ELEC$n <- "World"
+      ELEC <- ELEC %>% group_by_at(c("t", file_group_columns, "pathdir", "category")) %>% summarize(value=sum(value)) %>% mutate(n="World")
     }else{
       ELEC <- subset(ELEC, n %in% regions)
+      ELEC <- ELEC %>% group_by_at(c("t", file_group_columns, "pathdir", "category")) %>% summarize(value=sum(value))  %>% mutate(n="World")
     }
     p <- ggplot(data=subset(ELEC, ttoyear(t) %in% years  & file %in% scenplot))
     p <- p + xlab("") + guides(color=guide_legend(title=NULL, nrow = 3)) + theme(legend.position="bottom")
-    p <- p + geom_line(aes(ttoyear(t),value*1e3, color=category), stat="identity") + scale_color_manual(values=c("Solar PV"="yellow","Solar CSP"="gold2", "Hydro"="blue", "Nuclear"="cyan", "Wind Onshore"="orange", "Wind Offshore"="coral2", "Coal w/ CCS"="dimgrey", "Coal w/o CCS"="black", "Gas w/ CCS"="brown2", "Gas w/o CCS"="brown", "Oil"="darkorchid4", "Biomass w/ CCS"="green",  "Biomass w/o CCS"="darkgreen")) + ylab("GW")
-    p <- p + facet_grid(n ~ file, scales="free")
+    #p <- p + geom_line(aes(ttoyear(t),value*1e3, color=category), stat="identity") + scale_color_manual(values=c("Solar PV"="yellow","Solar CSP"="gold2", "Hydro"="blue", "Nuclear"="cyan", "Wind Onshore"="orange", "Wind Offshore"="coral2", "Coal w/ CCS"="dimgrey", "Coal w/o CCS"="black", "Gas w/ CCS"="brown2", "Gas w/o CCS"="brown", "Oil"="darkorchid4", "Biomass w/ CCS"="green",  "Biomass w/o CCS"="darkgreen")) + ylab("GW")
+    p <- p + geom_area(aes(ttoyear(t),value*1e3, fill=category), stat="identity", position = "stack") + scale_fill_manual(values=c("Solar PV"="yellow","Solar CSP"="gold2", "Hydro"="blue", "Nuclear"="cyan", "Wind Onshore"="orange", "Wind Offshore"="coral2", "Coal w/ CCS"="dimgrey", "Coal w/o CCS"="black", "Gas w/ CCS"="brown2", "Gas w/o CCS"="brown", "Oil"="darkorchid4", "Biomass w/ CCS"="green",  "Biomass w/o CCS"="darkgreen")) + ylab("GW")
+    p <- p + facet_grid(. ~ file, scales="free")
     saveplot(plot_name)
   }
 }

@@ -21,7 +21,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
       }
     }
     if(exists("allfilesdata")){
-      allfilesdata$file <- mapvalues(allfilesdata$file , from=filelist, to=scenlist, warn_missing = FALSE)
+      allfilesdata$file <- mapvalues(allfilesdata$file , from=names(scenlist), to=scenlist, warn_missing = FALSE)
       allfilesdata$file <- factor(allfilesdata$file, levels = scenlist) # to snsure ordering in the order of scenarios in scenlist
       if(str_detect(variable_name, "eq")) {
         colnames(allfilesdata) <- gsub("V1", "t", colnames(allfilesdata)) 

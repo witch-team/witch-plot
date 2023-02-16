@@ -77,14 +77,20 @@ if(restrict_files[1]!="") {
 }
 if(exclude_files[1]!="") filelist = filelist[!str_detect(filelist, paste(exclude_files, collapse = '|'))]
 if(length(filelist)==0){stop("No GDX files found.")}
-if(!exists("scenlist")){scenlist <- gsub(paste(removepattern, collapse="|"), "", filelist); scenlist <- gsub("results_", "", scenlist)}
+if(exists("scenlist")){
+  #check if missing scenarios in scenlist
+  if(length(names(scenlist[!(names(scenlist) %in% filelist)]))>0){print("Missing Scenarios:"); print(cat(names(scenlist[!(names(scenlist) %in% filelist)]), sep=", "))}
+  filelist <- intersect(names(scenlist), filelist)
+  scenlist <- scenlist[filelist]
+  }
+if(!exists("scenlist")){scenlist <- gsub(paste(removepattern, collapse="|"), "", filelist); scenlist <- gsub("results_", "", scenlist); names(scenlist) <- filelist}
 if(!exists("scenplot_global_order")){scenplot_global_order = seq(1:length(scenlist))}
 #print("GDX Files:")
 #print(filelist)
 #print(paste("Scenarios used:", length(scenlist)))
 filelist <- filelist[scenplot_global_order]
 scenlist <- scenlist[scenplot_global_order]
-print(data.frame(file=filelist, scen=scenlist))
+print(data.frame(scenlist=scenlist))
 
 #file to separate check
 if(exists("file_separate")) file_group_columns <- c("file", unname(file_separate[3:length(file_separate)])) else file_group_columns <- "file"
@@ -119,7 +125,7 @@ region_palette <- replace(region_palette, names(region_palette_witch34), region_
 region_palette <- region_palette[witch_regions]
 if(exists("restrict_regions")) region_palette <- region_palette[restrict_regions]
 
-print(paste("Numbers of regions considered:", length(witch_regions)))
+print(paste(length(scenlist), "Scenarios and", length(witch_regions), "regions considered."))
 
 witch_name_short <- function(witch_name){
   witch_name  <- gsub("indonesia", "IDN", witch_name)

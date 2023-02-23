@@ -1,5 +1,25 @@
-#Author: Johannes Emmerling
-#v1: February 09th, 2016
+## Further Options ##
+#restrict_regions <- c("usa") # if exists, only these regions will be loaded everywhere
+#Change some regions to nice names in case (regions not specified will use standard witch name)
+#nice_region_names <- c("ccasia"="Caucasus and Central Asia", "china"="PRC", "india"="India", "indonesia"="Indonesia", "sasia"="South Asia", "seasia"="Southeast Asia")
+deploy_online <- FALSE #if not deployed online save graphs
+figure_format="png"
+historical = TRUE  #add historical data where available
+theme_set(theme_bw())
+show_numbers_2100 = FALSE
+ssp_grid = FALSE
+legend_position="bottom"    # "none", "bottom", or "right"
+write_plotdata_csv = F #if true, saves data of plot as csv file
+varlist_combine_old_new_j <- c("Q_EN", "K_EN", "I_EN", "Q_IN")  #variables for which to combine old and new j technologies
+if(!exists("year0")) {year0 = 2005; tstep = 5;}
+if(!exists("yearmin")) yearmin = 1980
+if(!exists("yearmax")) yearmax = 2100
+## End of further Options ##
+
+
+
+
+
 witch_folder <- normalizePath(witch_folder)
 main_directory <- normalizePath(main_directory)
 
@@ -40,24 +60,6 @@ options(dplyr.summarise.inform = FALSE)
 #In case creating data Excel files creates a problem with old zip!!!
 #Sys.setenv(R_ZIPCMD= "C:/apps/Rtools/bin/zip")   
 
-## Local Options ##
-#restrict_regions <- c("usa") # if exists, only these regions will be loaded everywhere
-deploy_online <- FALSE #if not deployed online save graphs
-figure_format="png"
-historical = TRUE  #add historical data where available
-theme_set(theme_bw())
-show_numbers_2100 = FALSE
-ssp_grid = FALSE
-legend_position="bottom"    # "none", "bottom", or "right"
-write_plotdata_csv = F #if true, saves data of plot as csv file
-varlist_combine_old_new_j <- c("Q_EN", "K_EN", "I_EN", "Q_IN")  #variables for which to combine old and new j technologies
-if(!exists("year0")) {year0 = 2005; tstep = 5;}
-if(!exists("yearmin")) yearmin = 1980
-if(!exists("yearmax")) yearmax = 2100
-## End of Local Options ##
-
-
-
 #load basic functions
 source('R/auxiliary_functions.R')
 source('R/witch_load_and_plot.R')
@@ -84,12 +86,9 @@ if(exists("scenlist")){
   scenlist <- scenlist[filelist]
   }
 if(!exists("scenlist")){scenlist <- gsub(paste(removepattern, collapse="|"), "", filelist); scenlist <- gsub("results_", "", scenlist); names(scenlist) <- filelist}
-if(!exists("scenplot_global_order")){scenplot_global_order = seq(1:length(scenlist))}
 #print("GDX Files:")
 #print(filelist)
 #print(paste("Scenarios used:", length(scenlist)))
-filelist <- filelist[scenplot_global_order]
-scenlist <- scenlist[scenplot_global_order]
 print(data.frame(scenlist=scenlist))
 
 #file to separate check

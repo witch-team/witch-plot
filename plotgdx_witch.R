@@ -3,7 +3,7 @@ witch_folder = "../witch" #Where you're WITCH code is located
 #main directory of your results files
 main_directory <- witch_folder # by default, the witch source folder
 #main_directory <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/EIEE/WITCH_CODING/WITCH_RUNS_2018/submission_cdlinks/2019_04_15"
-subdir = c("") #can be multiple directories
+subdir = c("navigate/elec") #can be multiple directories
 
 
 restrict_files = c("") #to all scenarios matching partly one of its arguments
@@ -15,12 +15,10 @@ yearmax = 2100
 
 #If you want to have significant separations or parts of file names, specify file_separate <- c(type="first|last|separate", sep="_", names="c("file_new"))
 #file_separate <- c("last", "_", c("specification"))
-#Name scenarios (otherwise it takes gdx filename)
-#scenlist <- c("REF", "INDC_2C", "INDC_2C_TRADE", "INDC", "INDC_TRADE", "OPT_2C")
-#Change some regions to nice names in case (regions not specified will use standard witch name)
-#nice_region_names <- c("ccasia"="Caucasus and Central Asia", "china"="PRC", "india"="India", "indonesia"="Indonesia", "sasia"="South Asia", "seasia"="Southeast Asia")
-#Select which scenarios are used,potentially change the order, by default, all scenarios are used
-#scenplot_global_order <- c(5,3,1)
+#Name scenarios (also subsets to the ones given (otherwise it takes gdx filename) as a mapping
+#scenlist <- c("results_ssp2_asia_curpol"="Current policies")
+
+#c(lsf.str()) #show all available functions
 
 #Initialize default options, load all witch and other functionsget
 source('R/witch_functions.R')

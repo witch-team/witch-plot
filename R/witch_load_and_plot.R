@@ -78,8 +78,8 @@ witch_regional_line_plot <- function(data, varname="value", regions="World", sce
   data <- subset(data, file %in% c(scenplot, "historical") & ttoyear(t) <= yearmax & ttoyear(t) >= yearmin)
   if(rm.NA) data <- subset(data, !is.na(get(varname)))
   if(regions[1]=="World"){
-    if(nagg=="sum"){data <- data %>% group_by(pathdir, file, t) %>% summarise_at(., .vars=vars(-n), funs(sum)) %>% mutate(n="World")}else
-    if(nagg=="mean"){data <- data %>% group_by(pathdir, file, t) %>% summarise_at(., .vars=vars(-n), funs(mean)) %>% mutate(n="World")}
+    if(nagg=="sum"){data <- data %>% group_by(pathdir, file, t) %>% summarise_at(., .vars=vars(-n), sum) %>% mutate(n="World")}else
+    if(nagg=="mean"){data <- data %>% group_by(pathdir, file, t) %>% summarise_at(., .vars=vars(-n), mean) %>% mutate(n="World")}
     }else{data <- data %>% filter(n %in% regions)}
   data <- data %>% mutate(plot_value=!!parse_quo(varname, env = .GlobalEnv)*conv_factor)
   p <- ggplot() + xlab("") +ylab(ylab)

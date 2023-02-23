@@ -3,7 +3,7 @@
 
 Policy_Cost <- function(discount_rate=5, tmin=4, tmax=20, bauscen="ssp2_bau", regions="World", show_numbers=TRUE, scenplot=scenlist, measure="GDP"){
   if(!(bauscen %in% scenlist)){stop("For policy costs define an existing BAU scenario")}
-  get_witch_simple("Q")
+  get_witch("Q")
   #Q$value <- Q$value * usd_deflator    #Apply deflator
   Q <- subset(Q, (t %in% seq(1,100)))
   if(measure=="GDP"){GDP <- subset(Q, tolower(iq)=="y")}
@@ -40,38 +40,38 @@ Policy_Cost <- function(discount_rate=5, tmin=4, tmax=20, bauscen="ssp2_bau", re
 
 
 Policy_Cost_Decomposition <- function(discount_rate=5, tmin=4, tmax=20, bauscen="ssp2_bau", regions="World", show_numbers=TRUE, scenplot=scenlist, measure="GDP", add_nonco2_emitrade=F){
-  get_witch_simple("Q")
+  get_witch("Q")
   if(measure=="GDP"){Q <- subset(Q, iq=="y")}
   if(measure=="Consumption"){Q <- subset(Q, iq=="cc")}
   Q$iq <- NULL
   Q <- subset(Q, t %in% seq(1,30))
   #add emission reduction and PES costs to get full gross GDP
-  get_witch_simple("COST_FUEL") # oil, gas, coal, but also all biomass, rhc (small) and uranium
-  get_witch_simple("COST_EMI") # other GHG abatement, CCS costs (big!), peat abatement (big!), nip (if trade!)
-  get_witch_simple("COST_Y") # trbiosub and rhc (big)
+  get_witch("COST_FUEL") # oil, gas, coal, but also all biomass, rhc (small) and uranium
+  get_witch("COST_EMI") # other GHG abatement, CCS costs (big!), peat abatement (big!), nip (if trade!)
+  get_witch("COST_Y") # trbiosub and rhc (big)
   CARBON_TRADE <- COST_EMI %>% filter(e=="co2") %>% select(-e) %>% dplyr::rename(CARBON_TRADE=value) #"nip" is only for internal of a coalition market!!!
   
   #for now replace by postprocessed trade
   reprocess_trade_from_emicap <- F
   if(reprocess_trade_from_emicap){
-  get_witch_simple("emi_cap")
-  get_witch_simple("carbonprice")
+  get_witch("emi_cap")
+  get_witch("carbonprice")
   CARBON_TRADE <- add_change_from_reference(carbonprice %>% full_join(emi_cap %>% dplyr::rename(emi_cap=value)) %>% mutate(value=emi_cap*value) %>% select(-emi_cap), refscen = "Accelerated net zero")
   CARBON_TRADE <- CARBON_TRADE %>% filter(str_detect(file, "[t|T]rade")) %>% select(-value_percent_change, -value_ref, -value) %>% dplyr::rename(CARBON_TRADE=value_difference) %>% mutate(CARBON_TRADE=-CARBON_TRADE)
   }
   
   #postprocess non-CO2 trade
   if(add_nonco2_emitrade){
-    get_witch_simple("Q_EMI")
-    nonco2emitrade <- Q_EMI %>% filter(e %in% c("ch4", "n2o", "f-gases")) %>% filter(t %in% seq(1,30)) %>% group_by(file,pathdir,n,t) %>% summarize(nonco2=sum(value)) %>% left_join(get_witch_simple("carbonprice", results = "return") %>% rename(cprice=value))
+    get_witch("Q_EMI")
+    nonco2emitrade <- Q_EMI %>% filter(e %in% c("ch4", "n2o", "f-gases")) %>% filter(t %in% seq(1,30)) %>% group_by(file,pathdir,n,t) %>% summarize(nonco2=sum(value)) %>% left_join(get_witch("carbonprice", results = "return") %>% rename(cprice=value))
     nonco2emitrade <- left_join(nonco2emitrade, Q_EMI %>% filter(e %in% c("ch4", "n2o", "f-gases", "co2")) %>% filter(t %in% seq(1,30)) %>% group_by(file,pathdir,n,t) %>% summarize(ghg=sum(value)))
-    get_witch_simple("BAU_Q_EMI")
+    get_witch("BAU_Q_EMI")
     nonco2emitrade <- nonco2emitrade %>% left_join(BAU_Q_EMI %>% filter(e %in% c("ch4", "n2o", "f-gases")) %>% filter(t %in% seq(1,30)) %>% group_by(file,pathdir,n,t) %>% summarize(nonco2_bau=sum(value)))
     nonco2emitrade <- nonco2emitrade %>% left_join(BAU_Q_EMI %>% filter(e %in% c("ch4", "n2o", "f-gases", "co2")) %>% filter(t %in% seq(1,30)) %>% group_by(file,pathdir,n,t) %>% summarize(ghg_bau=sum(value)))
     #add do2 emicap
-    nonco2emitrade <- nonco2emitrade %>% left_join(get_witch_simple("emi_cap", results = "return") %>% filter(value!=500) %>% rename(co2cap=value))
+    nonco2emitrade <- nonco2emitrade %>% left_join(get_witch("emi_cap", results = "return") %>% filter(value!=500) %>% rename(co2cap=value))
     #add population
-    get_witch_simple("l")
+    get_witch("l")
     nonco2emitrade <- nonco2emitrade %>% left_join(l %>% filter(t %in% seq(1,30)) %>% rename(pop=value))
     #compute emipac only for non-CO2
     if(T){
@@ -151,7 +151,7 @@ Policy_Cost_Decomposition <- function(discount_rate=5, tmin=4, tmax=20, bauscen=
 
 #Plots of Carbon Prices (TO BE FIXED)
 Carbon_Price <- function(scenplot=scenlist){
-  get_witch_simple("carbonprice")
+  get_witch("carbonprice")
   carbonprice <- subset(carbonprice, file %in% scenplot)
   #carbonprice$value <- carbonprice$value * usd_deflator    #Apply deflator
   p <- ggplot(subset(carbonprice, t==20 & n=="usa")) + geom_bar(position=position_dodge(), stat="identity",aes(file, value*1e3/(44/12), fill=file), show.legend = TRUE) +ylab("$/tCO2") + theme(legend.position="bottom",legend.direction="horizontal")+ guides(fill=guide_legend(title=NULL, nrow = 1))
@@ -161,8 +161,8 @@ Carbon_Price <- function(scenplot=scenlist){
 
 
 Social_Cost_of_Carbon <- function(regions=witch_regions, scenplot=scenlist){
-  get_witch_simple("m_eqq_emi_tree")
-  get_witch_simple("m_eqq_y")
+  get_witch("m_eqq_emi_tree")
+  get_witch("m_eqq_y")
   m_eqq_emi_tree <- subset(m_eqq_emi_tree, e=="co2")
   m_eqq_emi_tree$e <- NULL
   SCC <- m_eqq_emi_tree

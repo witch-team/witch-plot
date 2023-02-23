@@ -64,7 +64,7 @@ shinyServer(function(input, output, session) {
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
       #get data
-      #afd <- get_witch_simple(variable, check_calibration=TRUE, results = "return")
+      #afd <- get_witch(variable, check_calibration=TRUE, results = "return")
       #now instead from preloaded environment
       afd <- get(variable)
       
@@ -196,7 +196,7 @@ shinyServer(function(input, output, session) {
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
       #get data
-      afd <- get_witch_simple(variable, check_calibration=TRUE, results = "return")
+      afd <- get_witch(variable, check_calibration=TRUE, results = "return")
       if(verbose) print(str_glue("Variable {variable} loaded."))
       #get the name of the additional set
       additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))
@@ -413,7 +413,7 @@ shinyServer(function(input, output, session) {
       scenarios <- input$scenarios_selected
       
       t_map = yeartot(yearmax); bau_scen = scenarios[1]
-      get_witch_simple("Q")
+      get_witch("Q")
       impact_map_data <- Q %>% filter(iq=="y" & t==t_map) %>% group_by(n, pathdir) %>% mutate(value = -((value/sum(value[file==bau_scen]))-1)*100) %>% filter(is.finite(value))
       scen <- scenarios[2]
         witchmap(impact_map_data, file_report=scen, t_report=t_map, mapcolor="Reds", map_name="Impact Map", map_legend = str_glue("GDP loss [%] in {scen}."))

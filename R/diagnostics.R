@@ -1,11 +1,11 @@
 #little diagnostics dash board based on ggplot
 
 diagnostics_plots <- function(scenplot=scenlist){
-  get_witch_simple("allerr", scenplot = scenplot)
-  get_witch_simple("allinfoiter", scenplot = scenplot)
-  get_witch_simple("all_optimal", scenplot = scenplot); all_optimal$optimal <- 1;
-  get_witch_simple("all_feasible", scenplot = scenplot); all_feasible$feasible <- 1;
-  get_witch_simple("price_iter", scenplot = scenplot)
+  get_witch("allerr", scenplot = scenplot)
+  get_witch("allinfoiter", scenplot = scenplot)
+  get_witch("all_optimal", scenplot = scenplot); all_optimal$optimal <- 1;
+  get_witch("all_feasible", scenplot = scenplot); all_feasible$feasible <- 1;
+  get_witch("price_iter", scenplot = scenplot)
   
   iterations <- allinfoiter %>% filter(iterrep=="itertime") %>% group_by(pathdir, file, run, siter) %>% mutate(time=value) %>% select(-value, -iterrep)
   iterations <- merge(iterations, all_optimal, by = c("pathdir", file_group_columns, "run", "siter"), all = T)

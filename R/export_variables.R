@@ -3,7 +3,7 @@
 #function to store a set of variables in long format, or optional wide with regions as columns
 write_witch_data_csv <- function(vars, years = "all", wide_region=FALSE){		
   for(.var in vars){
-    data <- get_witch_simple(.var)
+    data <- get_witch(.var)
     data$pathdir <- NULL		
     data$t <- ttoyear(data$t); setnames(data, "t", "year")
     data$variable <- .var

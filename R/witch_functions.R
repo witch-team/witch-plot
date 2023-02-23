@@ -5,7 +5,7 @@
 deploy_online <- FALSE #if not deployed online save graphs
 figure_format="png"
 historical = TRUE  #add historical data where available
-theme_set(theme_bw())
+ggplot2::theme_set(ggplot2::theme_bw()) #set default theme
 show_numbers_2100 = FALSE
 ssp_grid = FALSE
 legend_position="bottom"    # "none", "bottom", or "right"
@@ -101,7 +101,7 @@ all_var_descriptions <- rbind(data.frame(name=mygdx$variables$name, description=
 
 #Palettes for WITCH regions and regional aggregation
 if(!exists("region_id")){
-get_witch_simple("conf")
+get_witch("conf")
 if(!(exists("conf"))) stop("No conf set found. Please specify region_i = x manually!")
 if(length(unique(subset(conf, V1=="regions")$V2))>1) print("Be careful: not all results files were run with the same regional aggregation!")
 region_id <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) & V1=="regions")$V2

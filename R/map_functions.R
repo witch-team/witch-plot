@@ -28,7 +28,7 @@ witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scal
   #unique(Nations[is.na(ISO3),region]) # List of non-match
   
   #now get WITCH regions
-  get_witch_simple("conf", scenplot = file_report)
+  get_witch("conf", scenplot = file_report)
   region_id_map <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) & V1=="regions")$V2
   mod.countries.filename = file.path(witch_folder, paste0("data_", region_id_map, "/regions.inc"))
   # Read mod_countries
@@ -187,7 +187,7 @@ CalcDists <- function(longlats) {
 
 #New maps for RICE+
 map_new <- function(data, yearmap=2100, title="", scenplot=scenlist) {
-  if(!is.data.frame(data)) {varname <- data; data <- get_witch_simple(data, results = "return")}else{varname <- deparse(substitute(data))}
+  if(!is.data.frame(data)) {varname <- data; data <- get_witch(data, results = "return")}else{varname <- deparse(substitute(data))}
   sf::sf_use_s2(FALSE) #to avoid errors
   world <- ne_countries(scale = "medium", returnclass = "sf")
   #add geometry

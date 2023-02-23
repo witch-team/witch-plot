@@ -26,7 +26,7 @@ The script will automatically search all results_*.gdx files in the specified fo
 
 ## Main Functions
 
-### get_witch_simple("varname")
+### get_witch("varname")
 
 Loads the variable "varname" from all results GDX files and stores them in a data.frame names "varname".
 

@@ -62,7 +62,7 @@ shinyServer(function(input, output, session) {
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
       #get data
-      afd <- get_witch_simple(variable, check_calibration=TRUE, results = "return")
+      afd <- get_witch(variable, check_calibration=TRUE, results = "return")
       if(verbose) print(str_glue("Variable {variable} loaded."))
       #get the name of the additional set
       additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))
@@ -174,7 +174,7 @@ shinyServer(function(input, output, session) {
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
       #get data
-      afd <- get_witch_simple(variable, check_calibration=TRUE, results = "return")
+      afd <- get_witch(variable, check_calibration=TRUE, results = "return")
       if(verbose) print(str_glue("Variable {variable} loaded."))
       #get the name of the additional set
       additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))
@@ -272,7 +272,7 @@ shinyServer(function(input, output, session) {
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
       #get data
-      afd <- get_witch_simple(variable, check_calibration=TRUE, results = "return")
+      afd <- get_witch(variable, check_calibration=TRUE, results = "return")
       if(verbose) print(str_glue("Variable {variable} loaded."))
       #get the name of the additional set
       additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))
@@ -391,12 +391,12 @@ shinyServer(function(input, output, session) {
       yearmax = input$yearmax
       scenarios <- input$scenarios_selected
       
-      get_witch_simple("elapsed"); if(!exists("elapsed")) elapsed <- data.frame(file=scenlist, value=0)
-      get_witch_simple("Y")
-      get_witch_simple("TATM")
-      get_witch_simple("MIU")
-      get_witch_simple("l")
-      #get_witch_simple("DAMFRAC")
+      get_witch("elapsed"); if(!exists("elapsed")) elapsed <- data.frame(file=scenlist, value=0)
+      get_witch("Y")
+      get_witch("TATM")
+      get_witch("MIU")
+      get_witch("l")
+      #get_witch("DAMFRAC")
       #compute Gini index
       gini <- Y %>% left_join(l %>% rename(pop=value), by = c("t", "n", "file", "pathdir")) %>% group_by(t,file,pathdir) %>% summarize(value=reldist::gini(value/pop, weights = pop))
       #style

@@ -4,18 +4,18 @@ SCC_plot <- function(scenplot=scenlist, regions = "World", normalization_region 
   gdp_measure <- "y" #"cc" #for consumption or "y" for GDP
   emi_sum <- "ghg" #or "co2" for only CO2 or ghg for all gases
   #Impacts and Damages computation
-  get_witch_simple("OMEGA", check_calibration = T)
-  get_witch_simple("Q", check_calibration = T)
+  get_witch("OMEGA", check_calibration = T)
+  get_witch("Q", check_calibration = T)
   Q <- Q %>% filter(iq == gdp_measure) %>% select(-iq)
-  get_witch_simple("l", check_calibration = T)
-  get_witch_simple("Q_EMI", check_calibration = T)
-  get_witch_simple("ghg") # to get GHGs for non-co2 sets
+  get_witch("l", check_calibration = T)
+  get_witch("Q_EMI", check_calibration = T)
+  get_witch("ghg") # to get GHGs for non-co2 sets
   if(emi_sum=="ghg") ghg_used <- unique(ghg$e) else if(emi_sum=="co2") ghg_used = c("co2")
   Q_EMI <- Q_EMI %>% filter(e %in% ghg_used) %>% group_by(pathdir, file, n, t) %>% summarize(emiall = sum(value))
   #get also BAU values
-  get_witch_simple("BAU_Q", check_calibration = T)
+  get_witch("BAU_Q", check_calibration = T)
   BAU_Q <- BAU_Q %>% filter(iq == gdp_measure) %>% select(-iq)
-  get_witch_simple("BAU_Q_EMI", check_calibration = T)
+  get_witch("BAU_Q_EMI", check_calibration = T)
   BAU_Q_EMI <- BAU_Q_EMI %>% filter(e %in% ghg_used) %>% group_by(pathdir, file, n, t) %>% summarize(emiall = sum(value))
   impact <- Q %>% rename(gdp=value)
   impact <- merge(impact, BAU_Q, by = c("pathdir", "file", "n", "t")); setnames(impact, "value", "gdp_bau")
@@ -23,22 +23,22 @@ SCC_plot <- function(scenplot=scenlist, regions = "World", normalization_region 
   impact <- merge(impact, BAU_Q_EMI, by = c("pathdir", "file", "n", "t")); setnames(impact, "emiall", "emi_bau")
   impact <- merge(impact, l, by = c("pathdir", "file", "n", "t")); setnames(impact, "value", "pop")
   
-  get_witch_simple("TEMP", check_calibration = T)
+  get_witch("TEMP", check_calibration = T)
   impact <- merge(impact, TEMP %>% filter(m=="atm") %>% select(-m), by = c("pathdir", "file", "n", "t")); setnames(impact, "value", "temp")
   #add external climate modules in case
-  get_witch_simple("MAGICCTEMP", check_calibration = T)
+  get_witch("MAGICCTEMP", check_calibration = T)
   if(exists("MAGICCTEMP")) {impact <- merge(impact, MAGICCTEMP %>% filter(m=="atm") %>% select(-m), by = c("pathdir", "file", "n", "t"), all.x = T); setnames(impact, "value", "temp_magicc6")}
   
   
   scenplot_nopulse <- setdiff(scenplot, str_subset(scenlist, "emission_pulse"))
   #PLOTS:
   #COs Emissions
-  emi_plot <- witch_regional_line_plot(impact, varname = "emi", regions = regions, scenplot = scenplot_nopulse, ylab = "GHG Emissions [GtCO2eq]", conv_factor=44/12)
+  emi_plot <- plot_witch(impact, varname = "emi", regions = regions, scenplot = scenplot_nopulse, ylab = "GHG Emissions [GtCO2eq]", conv_factor=44/12)
   #Plot of relative GDP loss
-  gdp_loss_plot <- witch_regional_line_plot(impact, varname = "-(gdp/gdp_bau-1)", regions = regions, scenplot = scenplot_nopulse, ylab = "% GDP loss", conv_factor=100, rm.NA = F)
+  gdp_loss_plot <- plot_witch(impact, varname = "-(gdp/gdp_bau-1)", regions = regions, scenplot = scenplot_nopulse, ylab = "% GDP loss", conv_factor=100, rm.NA = F)
 
   #Temperature
-  #temp_plot <- witch_regional_line_plot(impact, varname = "temp", scenplot = scenplot_nopulse, regions = "World", ylab = "Temperature increase [deg C]", conv_factor=1, nagg="mean")
+  #temp_plot <- plot_witch(impact, varname = "temp", scenplot = scenplot_nopulse, regions = "World", ylab = "Temperature increase [deg C]", conv_factor=1, nagg="mean")
   temp_plot <- ggplot() + geom_line(data = impact %>% filter(file %in% scenplot_nopulse & ttoyear(t) <= yearmax & ttoyear(t) >= yearmin) %>% group_by(pathdir, file, t) %>% summarise_at(., .vars=vars(str_subset(names(impact), "temp")), funs(mean)), aes(ttoyear(t),temp,colour=file), stat="identity", size=1.5, linetype = "solid") + xlab("") + ylab("Temperature [deg C]")
   if(exists("MAGICCTEMP")){temp_plot <- temp_plot + geom_line(data = impact %>% filter(file %in% scenplot_nopulse & ttoyear(t) <= yearmax & ttoyear(t) >= yearmin & !is.na(temp_magicc6)) %>% group_by(pathdir, file, t) %>% summarise_at(., .vars=vars(str_subset(names(impact), "temp_magicc6")), funs(mean)), aes(ttoyear(t),temp_magicc6,colour=file), stat="identity", size=1.5, linetype = "dashed") + ylab("Temp., MAGICC dashed")}
   
@@ -50,8 +50,8 @@ SCC_plot <- function(scenplot=scenlist, regions = "World", normalization_region 
   tmax = 30
 
   #SCC from marginals
-  get_witch_simple("m_eqq_emi_tree")
-  get_witch_simple("m_eqq_y")
+  get_witch("m_eqq_emi_tree")
+  get_witch("m_eqq_y")
   scc <- m_eqq_emi_tree %>% filter(e=="co2") %>% rename(m_emi=value)
   scc <- merge(scc, m_eqq_y, by = c("pathdir", "file", "n", "t")); setnames(scc, "value", "m_eqq_y")
   #SCC from T$/GtC to $/tCO2 
@@ -70,13 +70,13 @@ SCC_plot <- function(scenplot=scenlist, regions = "World", normalization_region 
   if(verbose) print(scc_value_marginals_t0)
   SCC_bar_chart <- ggplot(scc_value_marginals_t0) + geom_bar(aes(file, SCC, fill=file), position = "dodge", stat="identity") + ylab("SCC [$/tCO2eq]") + xlab("") + geom_text(aes(file, SCC*0.9, label=paste0(round(SCC,1), "$"))) + guides(fill=FALSE)
   
-  SCC_over_time_plot <- witch_regional_line_plot(scc_value_marginals, varname = "SCC", regions = "World", scenplot = scenplot_nopulse, ylab = "SCC [$/tCO2eq]", conv_factor=1, rm.NA = F, ylim0 = T)
+  SCC_over_time_plot <- plot_witch(scc_value_marginals, varname = "SCC", regions = "World", scenplot = scenplot_nopulse, ylab = "SCC [$/tCO2eq]", conv_factor=1, rm.NA = F, ylim0 = T)
   
   
   #compute SCC based on emission pulse method
   SCC_bar_chart_pulse <- NULL
   if(any(str_detect(scenplot, "_emission_pulse"))){
-    get_witch_simple("scc_regional")
+    get_witch("scc_regional")
     scc_regional$file = gsub("_emission_pulse" , "", scc_regional$file)
     #scc_regional$pathdir <- "Emission_pulse"
     if(normalization_region=="World"){

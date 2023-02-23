@@ -1,5 +1,5 @@
 # Load GDX of all scenarios and basic pre-processing 
-get_witch_simple <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=T, field = "l", postprocesssuffix=NULL, skip_restrict_regions=F){
+get_witch <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=T, field = "l", postprocesssuffix=NULL, skip_restrict_regions=F){
   if(!exists(variable_name) | (variable_name %in% c("t", "n", "p", "I")) | force_reload){
     if(exists("allfilesdata", envir = .GlobalEnv)){rm(allfilesdata, envir = .GlobalEnv)}
     variable_name_save=as.character(gsub("_", " ", variable_name_save))
@@ -73,7 +73,7 @@ get_witch_simple <- function(variable_name, variable_name_save=variable_name, sc
 
 
 #Regional or global line plots of already loaded data
-witch_regional_line_plot <- function(data, varname="value", regions="World", scenplot=scenlist, ylab=varname, ylim0=FALSE, conv_factor=1, nagg="sum", rm.NA = T){
+plot_witch <- function(data, varname="value", regions="World", scenplot=scenlist, ylab=varname, ylim0=FALSE, conv_factor=1, nagg="sum", rm.NA = T){
   line_size = 1.5;
   data <- subset(data, file %in% c(scenplot, "historical") & ttoyear(t) <= yearmax & ttoyear(t) >= yearmin)
   if(rm.NA) data <- subset(data, !is.na(get(varname)))
@@ -85,9 +85,9 @@ witch_regional_line_plot <- function(data, varname="value", regions="World", sce
   p <- ggplot() + xlab("") +ylab(ylab)
   if(ylim0) p <- p + ylim(0, NA)
   if(regions[1]=="World" | length(regions)==1){
-    p <- p + geom_line(data = data %>% filter(file!="historical"), aes(ttoyear(t),plot_value,colour=file), stat="identity", size=line_size) + geom_line(data = data %>% filter(file=="historical"), aes(ttoyear(t),plot_value,colour=file), stat="identity", size=0.5)
+    p <- p + geom_line(data = data %>% filter(file!="historical"), aes(ttoyear(t),plot_value,colour=file), stat="identity", linewidth=line_size) + geom_line(data = data %>% filter(file=="historical"), aes(ttoyear(t),plot_value,colour=file), stat="identity", size=0.5)
   }else{
-    p <- p + geom_line(data = data %>% filter(file!="historical"), aes(ttoyear(t),plot_value,colour=n, linetype=file), stat="identity", size=line_size) + scale_colour_manual(values = region_palette) + geom_line(data = data %>% filter(file=="historical"), aes(ttoyear(t),plot_value,colour=n, linetype=file), stat="identity", size=0.5)
+    p <- p + geom_line(data = data %>% filter(file!="historical"), aes(ttoyear(t),plot_value,colour=n, linetype=file), stat="identity", linewidth=line_size) + scale_colour_manual(values = region_palette) + geom_line(data = data %>% filter(file=="historical"), aes(ttoyear(t),plot_value,colour=n, linetype=file), stat="identity", size=0.5)
   }
   if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
   return(p)
@@ -98,7 +98,7 @@ witch_regional_line_plot <- function(data, varname="value", regions="World", sce
 
 
 #get all the WITCH variables
-get_witch_variable <- function(variable_name, variable_name_save=variable_name, additional_set="na", additional_set_id="na", convert=1, unit="", aggregation="regional", plot=TRUE, bar="", bar_x="time", bar_y="value", bar_setvalues="", bar_colors="", regions=witch_regions, scenplot=scenlist){
+get_plot_witch <- function(variable_name, variable_name_save=variable_name, additional_set="na", additional_set_id="na", convert=1, unit="", aggregation="regional", plot=TRUE, bar="", bar_x="time", bar_y="value", bar_setvalues="", bar_colors="", regions=witch_regions, scenplot=scenlist){
   #aggregation=none: no graph is created no aggregation performed, just loads the element
   #some default values, maybe not even needed to customize
   #removepattern="results_"
@@ -112,7 +112,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
   variable_name_save=as.character(gsub("_", " ", variable_name_save))
   
   #CALL MAIN READING FUNCTION
-  allfilesdata <- get_witch_simple(variable_name, results = "return")
+  allfilesdata <- get_witch(variable_name, results = "return")
   
   if(exists("allfilesdata")){
   
@@ -182,7 +182,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       allfilesdata$n <- NULL      
   allfilesdata <- allfilesdata %>% group_by_at(c("pathdir", file_group_columns, "t")) %>% summarize(value=mean(value), .groups = "drop")
       if(ssp_grid){allfilesdata <- ssptriple(allfilesdata); line_colour = "rcp"; line_type="spa"}
-      p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, colour=get(line_colour), linetype=get(line_type))) + geom_line(stat="identity", size=line_size) + xlab("year") +ylab(unit_conversion$unit) + labs(linetype=line_type, colour=line_colour)
+      p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, colour=get(line_colour), linetype=get(line_type))) + geom_line(stat="identity", linewidth=line_size) + xlab("year") +ylab(unit_conversion$unit) + labs(linetype=line_type, colour=line_colour)
       if(show_numbers_2100){p <- p + geom_text(data=subset(allfilesdata, t==20), aes(x=2100, y=value, label=round(value, 2)))}
       if(ssp_grid){p <- p + facet_grid(. ~ ssp)}
       if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
@@ -195,7 +195,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
       if(ssp_grid){allfilesdata$ssp <- str_extract(allfilesdata$file, "ssp[1-5]")}
       # print(str(allfilesdata))
       # assign("test", allfilesdata)
-      p <- ggplot(subset(allfilesdata, n %in% regions),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", size=line_size) + xlab("year") +ylab(unit_conversion$unit) + scale_colour_manual(values = region_palette)
+      p <- ggplot(subset(allfilesdata, n %in% regions),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", linewidth=line_size) + xlab("year") +ylab(unit_conversion$unit) + scale_colour_manual(values = region_palette)
       if(ssp_grid){p <- p + facet_grid(. ~ ssp)}
       if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
       if(length(fullpathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}   
@@ -252,7 +252,7 @@ get_witch_variable <- function(variable_name, variable_name_save=variable_name, 
 
 getvar_witchhist <- function(varname, unit_conversion=1, hist_varname=varname, additional_sets=NA, ylab=varname){
   #additional _sets: e.g., c("iq"="y", "e="co2")
-  tempvar <- get_witch_simple(varname, results = "return")
+  tempvar <- get_witch(varname, results = "return")
   n_model <- unique(tempvar$n)
   if(!is.na(additional_sets)){
     for(s in 1:length(additional_sets)) tempvar[[names(additional_sets[s])]] <- additional_sets[s]
@@ -269,7 +269,7 @@ getvar_witchhist <- function(varname, unit_conversion=1, hist_varname=varname, a
 create_witch_online <- function(list_of_variables=c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "I_RD", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l"), deploy = F) {
   #preload all variables (execult eht followig lines separately before deploying)
   aux_vars <- c("ghg", "csi", "allerr", "allinfoiter", "all_optimal", "all_feasible", "price_iter")
-  lapply(c(aux_vars, list_of_variables), get_witch_simple)
+  lapply(c(aux_vars, list_of_variables), get_witch)
   if(file.exists("gdxcompaR//witch-online//allvariables.Rdata")) file.remove("gdxcompaR//witch-online//allvariables.Rdata")
   assign("deploy_online", TRUE, envir = .GlobalEnv)
   save.image(file="gdxcompaR//witch-online//allvariables.Rdata")

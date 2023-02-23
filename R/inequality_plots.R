@@ -7,7 +7,7 @@ plot_inequality <- function(variable = variable, plot_type = "quantiles", q_shar
   # q_shares: dataframe with column quantile_set and share (in increasing order!)
   # q_plot, q_fit: chose which quantiles use to plot and which to fit the distribution (optional), by default all are used and plotted
   res <- lapply(c('reldist', 'ineq', 'gglorenz', 'GB2', 'GB2group', 'VGAM'), require_package)
-  if(is.character(variable))ineq_data <- get_witch_simple(variable, results = "return") else{ineq_data <- variable; variable <- deparse(substitute(variable))}
+  if(is.character(variable))ineq_data <- get_witch(variable, results = "return") else{ineq_data <- variable; variable <- deparse(substitute(variable))}
   ineq_data <- ineq_data %>% filter(file %in% scenplot & ttoyear(t) %in% years & n %in% regions)
   if(quantile_set %in% names(ineq_data)){
   setnames(ineq_data, quantile_set, "dist")
@@ -32,7 +32,7 @@ plot_inequality <- function(variable = variable, plot_type = "quantiles", q_shar
     p <- ggplot(ineq_data %>% filter(ttoyear(t) %in% years_lorenz) %>% mutate(year=ttoyear(t))) + stat_lorenz(aes(value, color=file)) + geom_abline(color = "grey") + xlab("") + ylab("") + facet_grid(n  ~ year)
   }
   else if(plot_type=="distribution"){
-    if(is.numeric(per_capita_var[1])) ineq_data$per_capita <- per_capita_var else ineq_data <- ineq_data %>% full_join(get_witch_simple(per_capita_var, results = "return") %>% filter(t %in% unique(ineq_data$t)) %>% rename(per_capita=value)) %>% filter(!is.na(dist))
+    if(is.numeric(per_capita_var[1])) ineq_data$per_capita <- per_capita_var else ineq_data <- ineq_data %>% full_join(get_witch(per_capita_var, results = "return") %>% filter(t %in% unique(ineq_data$t)) %>% rename(per_capita=value)) %>% filter(!is.na(dist))
     #Create complete dataframe
     ineq_data$dist <- as.character(ineq_data$dist); q_shares$dist <- as.character(q_shares$dist)
     ineq_data_plot <- ineq_data %>% full_join(ineq_data_indices) %>% full_join(q_shares) %>% mutate(value_cst_dist=value/share * per_capita) %>% filter(ttoyear(t) %in% years_lorenz)
@@ -94,8 +94,8 @@ plot_winners_losers_time <- function(scen0, scen1, showvar = "people", yeardist=
   if(showvar=="people") {conv = 100; ylabel <- "Population share [%]"}
   if(showvar=="money") {conv = 1e-3; ylabel <- "Total gain or loss [T$]"}
   
-  get_witch_simple("CPC_DIST")
-  get_witch_simple("pop") 
+  get_witch("CPC_DIST")
+  get_witch("pop") 
   
   #population weights, no weighting on relative gains: who is better of?
   inequality_plot_data <- left_join( 
@@ -168,9 +168,9 @@ plot_winners_losers_time <- function(scen0, scen1, showvar = "people", yeardist=
 
 #computes (model and historical) Gini and deciles at the global level based on Y_DIST and Y (=assumes GDP at PPP in the model! (historical is always using PPP))
 compute_global_inequality <- function(Y_DIST="Y_DIST", Y="Y", l="l", scenplot=scenlist){
-  Y_DIST <- get_witch_simple(Y_DIST, results = "return", force_reload = T, scenplot = scenplot)
-  l <- get_witch_simple(l, results = "return", force_reload = T, scenplot = scenplot)
-  Y <- get_witch_simple(Y, results = "return", force_reload = T, scenplot = scenplot)
+  Y_DIST <- get_witch(Y_DIST, results = "return", force_reload = T, scenplot = scenplot)
+  l <- get_witch(l, results = "return", force_reload = T, scenplot = scenplot)
+  Y <- get_witch(Y, results = "return", force_reload = T, scenplot = scenplot)
   inequality_dataset_model <- Y_DIST %>% full_join(Y %>% dplyr::rename(Y=value)) %>% full_join(l %>% dplyr::rename(pop=value)) %>% mutate(year=ttoyear(t), gdppcppp=Y*1e6/pop, value=value/Y)
   
   #now get historical data on ed57 aggregation

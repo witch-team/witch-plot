@@ -32,5 +32,5 @@ I, , , I, g, fg, 1
 #gdxcompaR(Standard gdxcompaR based on typical variables, otherwise edit in gdxcompaR/server.R)
 runApp(appDir = "gdxcompaR/rice")
 
-get_witch_variable("E")
-get_witch_simple("Y")
+get_plot_witch("E")
+get_witch("Y")

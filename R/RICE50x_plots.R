@@ -3,10 +3,10 @@
 
 plot_macc_fit <- function(yearcheck = 2040){
 #check MACC curves
-get_witch_simple("ax_co2")
-get_witch_simple("bx_co2")
-get_witch_simple("emi_bau_co2")
-get_witch_simple("mx")
+get_witch("ax_co2")
+get_witch("bx_co2")
+get_witch("emi_bau_co2")
+get_witch("mx")
 
 check_macc <- ax_co2 %>% select(t,n,value) %>% rename(ax_co2=value) %>% full_join(bx_co2 %>% select(t,n,value) %>% rename(bx_co2=value))  %>% full_join(emi_bau_co2 %>% select(t,n,value) %>% rename(emi_bau_co2=value))  %>% full_join(mx %>% select(t,n,value) %>% rename(mx=value)) 
 

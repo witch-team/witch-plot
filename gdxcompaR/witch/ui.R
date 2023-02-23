@@ -48,7 +48,7 @@ shinyUI(fluidPage(pageWithSidebar(
                 tabPanel("Diagnostics", id = "Diagnostics", h2("Diagnostics of model runs"),plotOutput("Diagnostics", width = "100%", height = "80vh")),
                 tabPanel("Energy Mix", id = "Energy Mix", 
                          div(style="display:inline-block",selectInput("mix_y_value_selected", "Plot value or share:", c("value", "share") , size=1, selectize = F, multiple = F, selected = "value")), 
-                         div(style="display:inline-block",selectInput("mix_plot_type_selected", "Plot Type:", c("area", "line", "bar") , size=1, selectize = F, multiple = F, selected = "line")),
+                         div(style="display:inline-block",selectInput("mix_plot_type_selected", "Plot Type:", c("area", "line", "bar") , size=1, selectize = F, multiple = F, selected = "area")),
                          h2("Energy Mix"),plotOutput("energymixplot", width = "100%", height = "80vh")),
                 tabPanel("Electricity Mix", id = "Electricity Mix", 
                          div(style="display:inline-block",selectInput("mix_y_value_selected", "Plot value or share:", c("value", "share") , size=1, selectize = F, multiple = F, selected = "value")), 

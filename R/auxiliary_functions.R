@@ -108,6 +108,48 @@ readkey <- function()
 }
 
 
+#this function produced a plottable map df, accepts one of the regional default mappings of witchtools or a mapped df from iso3 to your mapping
+make_map_df <- function(region_mapping="witch17") {
+  maps <- ggplot2::map_data("world")
+  maps$ISO <- countrycode::countrycode(maps$region, origin = 'country.name', destination =  'iso3c')
+  maps <- dplyr::as_tibble(maps)
+  if (is.character(region_mapping) ) {  
+    if (! region_mapping %in% names(witchtools::region_mappings)) stop("Pass a regional aggregation present in witchtools or directly a dataframe with the mapping iso3 to region_mapping")
+    reg <- left_join(maps %>% rename(iso3=ISO),witchtools::region_mappings[[region_mapping]] %>% rename(n = !!sym(region_mapping)))
+  }
+  else if ( length(dplyr::intersect(class(region_mapping),c("data.frame","data.table","tibble"))) > 0) 
+  {
+    reg <- left_join(maps %>% rename(iso3=ISO),region_mapping %>% rename(n = !!sym(arules::setdiff(names(region_mapping),c("iso3")))) )
+  }
+  else stop("Please choose a valid input (string character or dataframe)")
+  return(reg)}
+
+#make global transformations: options sum,mean, median, weighted mean (w_mean)
+make_global_tr <- function(data,cols=c("t","n","file"),weights="w",nagg="sum") { 
+  group_cols <- arules::setdiff(cols,"n")
+  nms <- arules::setdiff(names(data),cols)
+  if(nagg=="sum"){data <- data %>% group_by_at(group_cols) %>% summarise_at(., nms, sum) %>% mutate(n="World")}  
+  if(nagg=="mean"){data <- data %>% group_by_at(group_cols) %>% summarise_at(., nms, mean) %>% mutate(n="World")}
+  if(nagg=="median"){data <- data %>% group_by_at(group_cols) %>% summarise_at(., nms, median) %>% mutate(n="World")}
+  if(nagg=="w_mean"){
+    nms <- arules::setdiff(names(data),c(cols,weights))
+    data <- data %>% group_by_at(group_cols) %>% summarise_at(., nms, ~weighted.mean(.,w) ) %>% mutate(n="World")}
+  return(data) }
+
+# make cumulative of variables
+make_cumulative <- function(data,cols=c("t","n","file"),yearstart=2020,yearend=2100,dr=0) { 
+  group_cols <- arules::setdiff(cols,"t")
+  nms <- arules::setdiff(names(data),cols)
+  
+  data <- data %>% 
+    filter(ttoyear(t)>=yearstart & ttoyear(t)<=yearend) %>%
+    group_by_at(group_cols) %>% 
+    complete(t=full_seq(t,0.2)) %>% 
+    mutate_at(., nms, zoo::na.approx ) %>%
+    summarise_at(nms, ~sum(./((1+dr)^(ttoyear(t)-yearstart)) ) ) %>%
+    mutate(t=paste0(yearstart,"to",yearend))
+  return(data) }
+
 
 
 convert_stochastic_gdx <- function(allfilesdata){

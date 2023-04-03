@@ -63,7 +63,7 @@ get_witch <- function(variable_name, variable_name_save=variable_name, scenplot=
       if(("t" %in% names(allfilesdata)) & (!any(str_detect(allfilesdata$t, "_")))) allfilesdata$t <- as.numeric(allfilesdata$t)
       if(results=="assign") assign(variable_name,allfilesdata,envir = .GlobalEnv)
       if(results=="return") return(allfilesdata)
-    }else{print(str_glue("Element {variable_name} not found in any GDX file."))}
+    }else{print(str_glue("Element {variable_name} was not found in any GDX file."))}
   }else{
     if(results=="return") return(get(variable_name))
   }

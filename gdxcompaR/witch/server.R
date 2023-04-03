@@ -152,7 +152,8 @@ shinyServer(function(input, output, session) {
       }
       #same for EU
       if(nrow(afd)>0){
-        afd_global <- afd %>% filter(n %in% as.vector(unique(get_witch("eu", results = "return") %>% select(n)))$n)
+        get_witch("eu"); if(!exists("eu")) eu_regions <- c("europe") else eu_regions <- unique(eu$n)
+        afd_global <- afd %>% filter(n %in% eu_regions)
         afd_global$n <- NULL
         if(variable %in% default_meta_param()$parameter){
           if(default_meta_param()[parameter==variable & type=="nagg"]$value=="sum"){

@@ -153,7 +153,8 @@ make_cumulative <- function(data,cols=c("t","n","file"),yearstart=2020,yearend=2
 
 
 convert_stochastic_gdx <- function(allfilesdata){
-  for(.file in unique(allfilesdata$file)){
+  if(nrow(allfilesdata) > 0){
+    for(.file in unique(allfilesdata$file)){
     tempstochdata <- subset(allfilesdata, file==.file)
     if('10_1' %in% tempstochdata$t){
       tempstochdata_before_resolution <- subset(tempstochdata, !grepl("_", t))
@@ -168,6 +169,7 @@ convert_stochastic_gdx <- function(allfilesdata){
     if(.file==unique(allfilesdata$file)[1]){allfilesdata_stoch_converted=tempstochdata}else{allfilesdata_stoch_converted <-rbind(allfilesdata_stoch_converted,tempstochdata)}
   }
   return(allfilesdata_stoch_converted)  
+  }else{return(allfilesdata)}
 }
 
 

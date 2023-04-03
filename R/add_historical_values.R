@@ -1,8 +1,7 @@
 
 add_historical_values <- function(variable, varname=deparse(substitute(variable)), scenplot=scenlist, check_calibration=FALSE, overlap_years="model", verbose=T){
-  
+  if(length(list.files(path=file.path(witch_folder, paste0("data_", reg_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE))>0){
   #have to decide what to do with years with both model and historical data: overlap_years = #historical"  or "model" 
-
   #for different models or variable names, use mapping
   if(exists("map_var_hist")){
     if(varname %in% map_var_hist$varname_model){
@@ -137,9 +136,6 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
       }
     }
 
-
-    
- 
     merged_variable <- rbind(variable, .hist)
     merged_variable$t <- as.numeric(merged_variable$t)
     #assign("varname", merged_variable, envir = .GlobalEnv)
@@ -154,4 +150,9 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     {
     return(as.data.table(variable))
     }
+  }
+  else
+  {
+    return(as.data.table(variable))
+  }
 }

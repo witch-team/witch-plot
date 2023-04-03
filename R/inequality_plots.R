@@ -174,9 +174,9 @@ compute_global_inequality <- function(Y_DIST="Y_DIST", Y="Y", l="l", scenplot=sc
   inequality_dataset_model <- Y_DIST %>% full_join(Y %>% dplyr::rename(Y=value)) %>% full_join(l %>% dplyr::rename(pop=value)) %>% mutate(year=ttoyear(t), gdppcppp=Y*1e6/pop, value=value/Y)
   
   #now get historical data on ed57 aggregation
-  data_hist_quantiles <- gdx(file.path(witch_folder, paste0("data_", region_id), "data_historical_values_inequality_converted.gdx"))
+  data_hist_quantiles <- gdx(file.path(witch_folder, paste0("data_", reg_id), "data_historical_values_inequality_converted.gdx"))
   data_hist_quantiles <- data_hist_quantiles["quantiles"] %>% mutate(year=as.numeric(year))
-  data_historical <- gdx(file.path(witch_folder, paste0("data_", region_id), "data_historical_values.gdx"))
+  data_historical <- gdx(file.path(witch_folder, paste0("data_", reg_id), "data_historical_values.gdx"))
   gdp_historical <- data_historical["ykali_valid_wdi"] %>% dplyr::rename(Y=value) %>% full_join(data_historical["l_valid_wdi"] %>% dplyr::rename(pop=value)) %>% full_join(data_historical["mer2ppp_valid_wdi"] %>% dplyr::rename(mer2ppp=value))
   #Extrapolate fix PPP2MER rates
   gdp_historical <- gdp_historical %>% group_by(n) %>% tidyr::fill(mer2ppp, mer2ppp, .direction = "updown")

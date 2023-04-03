@@ -4,7 +4,7 @@ witch_folder = "../RICE50x" #Where you're RICE/DICE/RICE50x code is located
 main_directory <- witch_folder # by default, the witch source folder
 subdir = c("") #can be multiple directories
 
-region_id = "ed57" #for historical data folder
+reg_id = "ed57" #for historical data folder
 year0 = 2015
 tstep = 5
 

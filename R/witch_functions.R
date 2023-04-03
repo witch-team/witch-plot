@@ -70,13 +70,14 @@ if(restrict_files[1]!="") {
   if(all(paste0("results_", restrict_files) %in% filelist)){
     filelist <- paste0("results_", restrict_files)
   }else{
-    for(i in 1:length(restrict_files)){
+    for(i in length(restrict_files)){
       .filelist_res = filelist[apply(outer(filelist, restrict_files[i], str_detect), 1, all)]
       if(i==1) .filelist_res_all <- .filelist_res else .filelist_res_all <- c(.filelist_res_all, .filelist_res)
     }
     filelist <- unique(.filelist_res_all)
     }
 }
+filelist = filelist[!str_detect(filelist, "db_")] #always exclude db_ files
 if(exclude_files[1]!="") filelist = filelist[!str_detect(filelist, paste(exclude_files, collapse = '|'))]
 if(length(filelist)==0){stop("No GDX files found.")}
 if(exists("scenlist")){
@@ -100,11 +101,11 @@ mygdx <- gdx(file.path(fullpathdir[1],paste0(filelist[1],".gdx")))
 all_var_descriptions <- rbind(data.frame(name=mygdx$variables$name, description=mygdx$variables$text), data.frame(name=mygdx$parameters$name, description=mygdx$parameters$text))
 
 #Palettes for WITCH regions and regional aggregation
-if(!exists("region_id")){
+if(!exists("reg_id")){
 get_witch("conf")
 if(!(exists("conf"))) stop("No conf set found. Please specify region_i = x manually!")
 if(length(unique(subset(conf, V1=="regions")$V2))>1) print("Be careful: not all results files were run with the same regional aggregation!")
-region_id <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) & V1=="regions")$V2
+reg_id <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) & V1=="regions")$V2
 }
 n <- suppressWarnings(batch_extract("n", files = file.path(fullpathdir,paste0(filelist,".gdx"))))
 if(is.null(n$n)) witch_regions <- "World" else witch_regions <- unique(n$n$V1)
@@ -176,6 +177,6 @@ source('R/policy_cost.R')
 source('R/inequality_plots.R')
 source('R/RICE50x_plots.R')
 
-if(!dir.exists(file.path(witch_folder, paste0("data_", region_id)))) print("No data_* directory for historical data found.")
+if(!dir.exists(file.path(witch_folder, paste0("data_", reg_id)))) print("No data_* directory for historical data found.")
 
 

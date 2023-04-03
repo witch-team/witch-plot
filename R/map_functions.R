@@ -29,8 +29,8 @@ witchmap <- function(variable_report, file_report=scenlist[1], t_report=20, scal
   
   #now get WITCH regions
   get_witch("conf", scenplot = file_report)
-  region_id_map <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) & V1=="regions")$V2
-  mod.countries.filename = file.path(witch_folder, paste0("data_", region_id_map, "/regions.inc"))
+  reg_id_map <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) & V1=="regions")$V2
+  mod.countries.filename = file.path(witch_folder, paste0("data_", reg_id_map, "/regions.inc"))
   # Read mod_countries
   mod.countries = readLines(mod.countries.filename)
   mod.countries = mod.countries[mod.countries!=""]                                  # Remove empty lines
@@ -193,7 +193,7 @@ map_new <- function(data, yearmap=2100, title="", scenplot=scenlist) {
   #add geometry
   world <- suppressWarnings(cbind(world, st_coordinates(st_centroid(world$geometry))))
   #get model iso3 mapping
-  mod.countries = readLines(file.path(witch_folder, paste0("data_", region_id, "/regions.inc")))
+  mod.countries = readLines(file.path(witch_folder, paste0("data_", reg_id, "/regions.inc")))
   mod.countries = mod.countries[mod.countries != ""]                     # Remove empty lines
   mod.countries = mod.countries[!str_detect(mod.countries, "^\\*")]      # Remove * comments
   mod.countries = str_trim(str_split_fixed(mod.countries, "#", 2)[, 1])  # Remove # comments
@@ -220,7 +220,7 @@ plot_map_region_definition <- function(regional_focus="World") {
   #add geometry
   world <- suppressWarnings(cbind(world, st_coordinates(st_centroid(world$geometry))))
   #get model iso3 mapping
-  mod.countries = readLines(file.path(witch_folder, paste0("data_", region_id, "/regions.inc")))
+  mod.countries = readLines(file.path(witch_folder, paste0("data_", reg_id, "/regions.inc")))
   mod.countries = mod.countries[mod.countries != ""]                     # Remove empty lines
   mod.countries = mod.countries[!str_detect(mod.countries, "^\\*")]      # Remove * comments
   mod.countries = str_trim(str_split_fixed(mod.countries, "#", 2)[, 1])  # Remove # comments
@@ -228,9 +228,9 @@ plot_map_region_definition <- function(regional_focus="World") {
   mod.countries = str_split(mod.countries, "\\.")
   mod.countries <- data.table(matrix(unlist(mod.countries), ncol = 2, byrow = T))
   setnames(mod.countries, c("n", "iso_a3"))
-  p_map <- ggplot(data = mod.countries %>% full_join(world) %>% filter(!is.na(n) & !is.na(iso_a3))) + geom_sf(aes(fill = n, geometry = geometry)) +  scale_fill_manual(values = region_palette) + xlab("") + ylab("")  + ggtitle(str_glue("Regional aggregation: {region_id}")) + theme_bw() + theme(strip.background = element_rect(fill = "white"), legend.position="bottom") + guides(fill = guide_legend(nrow = 3)) 
+  p_map <- ggplot(data = mod.countries %>% full_join(world) %>% filter(!is.na(n) & !is.na(iso_a3))) + geom_sf(aes(fill = n, geometry = geometry)) +  scale_fill_manual(values = region_palette) + xlab("") + ylab("")  + ggtitle(str_glue("Regional aggregation: {reg_id}")) + theme_bw() + theme(strip.background = element_rect(fill = "white"), legend.position="bottom") + guides(fill = guide_legend(nrow = 3)) 
   if(regional_focus=="Europe") p_map <- p_map + coord_sf(xlim = c(-10,33), ylim = c(36,73), expand = FALSE)
-  saveplot(str_glue("region_definition_{region_id}"), width = 12, height = 8, add_title = F)
+  saveplot(str_glue("region_definition_{reg_id}"), width = 12, height = 8, add_title = F)
 }
 
 

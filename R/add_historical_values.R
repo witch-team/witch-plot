@@ -30,8 +30,8 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   if(str_detect(varname, "HECTOR")) varname <- gsub("HECTOR", "", varname)
   
   #check which GDX file to use (all files that start with data_historical*.gdx)
-  if(!dir.exists(file.path(witch_folder, paste0("data_", region_id)))) return(as.data.table(variable))
-  gdxhistlist <- list.files(path=file.path(witch_folder, paste0("data_", region_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
+  if(!dir.exists(file.path(witch_folder, paste0("data_", reg_id)))) return(as.data.table(variable))
+  gdxhistlist <- list.files(path=file.path(witch_folder, paste0("data_", reg_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
   
   for(.gdxname in gdxhistlist){
     #print(.gdxname)
@@ -74,7 +74,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     
     #if check_calibration, add validation as data points!
     if(check_calibration){
-      .gdx_validation <- gdx(file.path(witch_folder, paste0("data_", region_id), "data_validation.gdx"))
+      .gdx_validation <- gdx(file.path(witch_folder, paste0("data_", reg_id), "data_validation.gdx"))
       for(.item in intersect(item, .gdx_validation$parameters$name)){.hist_validation_single <- as.data.table(.gdx_validation[.item]); .hist_validation_single$file <- gsub(paste0(tolower(varname), "_"), "", .item); if(.item==item[1]){.hist_validation <- .hist_validation_single}else{.hist_validation <- rbind(.hist_validation,.hist_validation_single)} }
       if(exists(".hist_validation")){
       if(!("n" %in% colnames(.hist_validation))){.hist_validation$n = "World"}

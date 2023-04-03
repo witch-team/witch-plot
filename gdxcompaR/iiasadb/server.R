@@ -45,8 +45,8 @@ shinyServer(function(input, output, session) {
 
     #Get historical data
     #from all data_* folders in the witch directory
-    region_id <- c("r5", "limits10", "cdlinksg20", "witch17", "witch13")
-    gdxhistnames <- list.files(path=file.path(witch_folder, paste0("data_", region_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
+    reg_id <- c("r5", "limits10", "cdlinksg20", "witch17", "witch13")
+    gdxhistnames <- list.files(path=file.path(witch_folder, paste0("data_", reg_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
     gdxhistnames <- gdxhistnames[file.exists(gdxhistnames)]
     iamc_hist_match <- "iamc_name, hist_param_name, setid, setelement, conversion
     Primary Energy, tpes_valid_weo, na, na, 0.0036 

@@ -44,7 +44,7 @@ shinyUI(fluidPage(pageWithSidebar(
                          div(style="display:inline-block",selectInput("inequality_plot_type_selected", "Plot Type:", c("quantiles", "gini", "lorenz_curve", "distribution") , size=1, selectize = F, multiple = F, selected = "Quantiles")),
                          div(style="display:inline-block",selectInput("inequality_value_share", "Plot value or share:", c("value", "share") , size=1, selectize = F, multiple = F, selected = "value")), 
                          h2("Inequality Plots"),plotOutput("inequalityplot", width = "100%", height = "80vh")),
-                tabPanel("TATM Map", id = "tatm_plot", plotOutput("tatmplot", width = "100%", height = "80vh"))  
+                tabPanel("Temperature Map", id = "tatm_plot", plotOutput("tatmplot", width = "100%", height = "80vh"))  
 
     )
   )

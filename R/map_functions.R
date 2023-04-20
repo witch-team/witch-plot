@@ -235,6 +235,28 @@ plot_map_region_definition <- function(regional_focus="World") {
 
 
 
-
+#regional temperature map with spatially gridded temperature downscaling (for RICE50+ and WITCH)
+gridded_temp_map <- function(yearplot=2100, scenplot = scenlist, pathadj = ""){
+tatm_data <- get_witch("TATM", result = "return")
+if(length(tatm_data)==1) tatm_data <- get_witch("TEMP", result = "return") %>% filter(m=="temp" & n=="usa") %>% select(-m, -n)
+tatm <- subset(tatm_data, file %in% scenplot & ttoyear(t)==yearplot)
+df <- read_parquet(file.path(pathadj, "data/coefficients_modmean.parquet"))
+df <- tatm %>% cross_join(df)
+df <- df %>% mutate(TATM = gmt * value)
+ggplot() +
+    geom_tile(data = df, aes(x = lon, y = lat, fill = TATM)) +
+    ggtitle(paste("Downscaled temperature change in", yearplot)) +
+    scale_fill_steps(
+      low = "white",
+      # mid = "white",
+      high = "red",
+      # midpoint = 1, 
+      n.break = 7
+    ) +
+    borders("world", colour = "black", size = .25) +
+    theme_minimal() +
+    facet_wrap(file ~ .) +
+    labs(x="", y="", fill="°C")
+}
 
 

@@ -536,33 +536,8 @@ shinyServer(function(input, output, session) {
   })
 
   output$tatmplot <- renderPlot({
-    yearmin <- input$yearmin
+    yearmax <- input$yearmax
     scenarios <- input$scenarios_selected
-
-    # prova
-    library(ggplot2)
-    library(raster)
-    library(arrow)
-    tatm_data <- get_witch("TATM", result = "return")
-    tatm_yearmin <- ttoyear(min(tatm_data$t))
-    if (yearmin < tatm_yearmin) { # If selected year is smaller than first TATM year
-      NULL
-    } else {
-      tatm <- subset(tatm_data, file %in% scenarios & ttoyear(t) == yearmin)$value
-      df <- read_parquet("coefficients_modmean.parquet")
-      df$TATM <- df$gmt * tatm
-    ggplot() +
-          geom_raster(data = df, aes(x = lon, y = lat, fill = TATM)) +
-          ggtitle(paste("Downscaled TATM in", yearmin)) +
-          scale_fill_steps(
-                low = "white",
-                # mid = "white",
-                high = "red",
-                # midpoint = 1, 
-                n.break = 7
-          ) +
-          borders("world", colour = "black", size = .25) +
-          theme_minimal()
-    }
+    gridded_temp_map(yearplot=yearmax, scenplot = scenarios, pathadj = "../../")
   })
 })

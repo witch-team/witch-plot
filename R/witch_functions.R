@@ -66,18 +66,13 @@ source('R/witch_load_and_plot.R')
 source('R/add_historical_values.R')
 
 filelist = gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
-if(restrict_files[1]!="") {
-  if(all(paste0("results_", restrict_files) %in% filelist)){
-    filelist <- paste0("results_", restrict_files)
-  }else{
-    for(i in length(restrict_files)){
-      .filelist_res = filelist[apply(outer(filelist, restrict_files[i], str_detect), 1, all)]
-      if(i==1) .filelist_res_all <- .filelist_res else .filelist_res_all <- c(.filelist_res_all, .filelist_res)
-    }
-    filelist <- unique(.filelist_res_all)
-    }
+#by default  only files starting "results_" are taken
+restrict_files <- c("results_", restrict_files); restrict_files <- restrict_files[restrict_files != ""]
+for(i in 1:length(restrict_files)){
+  .filelist_res = filelist[apply(outer(filelist, restrict_files[i], str_detect), 1, all)]
+  if(i==1) .filelist_res_all <- .filelist_res else .filelist_res_all <- c(.filelist_res_all, .filelist_res)
 }
-filelist = filelist[!str_detect(filelist, "db_")] #always exclude db_ files
+filelist <- unique(.filelist_res_all)
 if(exclude_files[1]!="") filelist = filelist[!str_detect(filelist, paste(exclude_files, collapse = '|'))]
 if(length(filelist)==0){stop("No GDX files found.")}
 if(exists("scenlist")){
@@ -86,7 +81,7 @@ if(exists("scenlist")){
   filelist <- intersect(names(scenlist), filelist)
   scenlist <- scenlist[filelist]
   }
-if(!exists("scenlist")){scenlist <- gsub(paste(removepattern, collapse="|"), "", filelist); scenlist <- gsub("results_", "", scenlist); names(scenlist) <- filelist}
+if(!exists("scenlist")){scenlist <- gsub(paste(c("results_", removepattern), collapse="|"), "", filelist); names(scenlist) <- filelist}
 #print("GDX Files:")
 #print(filelist)
 #print(paste("Scenarios used:", length(scenlist)))

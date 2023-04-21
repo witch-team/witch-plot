@@ -3,12 +3,12 @@ witch_folder = "../witch" #Where you're WITCH code is located
 #main directory of your results files
 main_directory <- witch_folder # by default, the witch source folder
 #main_directory <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/EIEE/WITCH_CODING/WITCH_RUNS_2018/submission_cdlinks/2019_04_15"
-subdir = c("navigate/elec") #can be multiple directories
+subdir = c("") #can be multiple directories
 
 
 restrict_files = c("") #to all scenarios matching partly one of its arguments
-exclude_files = c("db_")
-removepattern = c("results_", "_calib", "all_data_temp_ela_bau_y")
+exclude_files = c("")
+removepattern = c("")
 
 yearmin = 1980
 yearmax = 2100

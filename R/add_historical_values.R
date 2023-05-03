@@ -8,9 +8,9 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
       if(map_var_hist[varname_model==varname]$set_witch!=""){
         variable <- cbind(tempset=map_var_hist[varname_model==varname]$element_witch, variable)
         setnames(variable, "tempset", map_var_hist[varname_model==varname]$set_witch)
-        variable$value <- variable$value * map_var_hist[varname_model==varname]$conv
       }
       #rename varname to WITCH one
+      variable$value <- variable$value * map_var_hist[varname_model==varname]$conv
       varname_original <- varname
       varname <- map_var_hist[varname_model==varname]$var_witch
     }

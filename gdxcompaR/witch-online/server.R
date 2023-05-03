@@ -34,7 +34,7 @@ shinyServer(function(input, output, session) {
     
     #Scenario selector
     output$select_scenarios <- renderUI({
-      selectInput("scenarios_selected", "Select scenarios", scenlist, size=length(scenlist), selectize = F, multiple = T, selected = scenlist)
+    selectInput("scenarios_selected", "Select scenarios", unname(scenlist), size = length(scenlist), selectize = F, multiple = T, selected = unname(scenlist))
     })  
     
     #Variable selector

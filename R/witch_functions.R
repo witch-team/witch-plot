@@ -57,22 +57,19 @@ library(dplyr, warn.conflicts = FALSE)
 # Suppress summarise info
 options(dplyr.summarise.inform = FALSE)
 
-#In case creating data Excel files creates a problem with old zip!!!
-#Sys.setenv(R_ZIPCMD= "C:/apps/Rtools/bin/zip")   
-
 #load basic functions
 source('R/auxiliary_functions.R')
 source('R/witch_load_and_plot.R')
 source('R/add_historical_values.R')
 
 filelist = gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
-#by default  only files starting "results_" are taken
-restrict_files <- c("results_", restrict_files); restrict_files <- restrict_files[restrict_files != ""]
-for(i in 1:length(restrict_files)){
-  .filelist_res = filelist[apply(outer(filelist, restrict_files[i], str_detect), 1, all)]
-  if(i==1) .filelist_res_all <- .filelist_res else .filelist_res_all <- c(.filelist_res_all, .filelist_res)
+if(restrict_files!=""){
+  for(i in 1:length(restrict_files)){
+    .filelist_res = filelist[apply(outer(filelist, restrict_files[i], str_detect), 1, all)]
+    if(i==1) .filelist_res_all <- .filelist_res else .filelist_res_all <- c(.filelist_res_all, .filelist_res)
+  }
+  filelist <- unique(.filelist_res_all)
 }
-filelist <- unique(.filelist_res_all)
 if(exclude_files[1]!="") filelist = filelist[!str_detect(filelist, paste(exclude_files, collapse = '|'))]
 if(length(filelist)==0){stop("No GDX files found.")}
 if(exists("scenlist")){
@@ -97,7 +94,7 @@ all_var_descriptions <- rbind(data.frame(name=mygdx$variables$name, description=
 
 #Palettes for WITCH regions and regional aggregation
 if(!exists("reg_id")){
-get_witch("conf")
+conf <- get_witch("conf")
 if(!(exists("conf"))) stop("No conf set found. Please specify region_i = x manually!")
 if(length(unique(subset(conf, V1=="regions")$V2))>1) print("Be careful: not all results files were run with the same regional aggregation!")
 reg_id <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) & V1=="regions")$V2

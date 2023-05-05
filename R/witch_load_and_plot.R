@@ -1,8 +1,7 @@
 # Load GDX of all scenarios and basic pre-processing 
-get_witch <- function(variable_name, variable_name_save=variable_name, scenplot=scenlist, check_calibration=FALSE, results="assign", force_reload=T, field = "l", postprocesssuffix=NULL, skip_restrict_regions=F){
+get_witch <- function(variable_name, scenplot=scenlist, check_calibration=FALSE, force_reload=T, field = "l", postprocesssuffix=NULL, skip_restrict_regions=F){
   if(!exists(variable_name) | (variable_name %in% c("t", "n", "p", "I")) | force_reload){
     if(exists("allfilesdata", envir = .GlobalEnv)){rm(allfilesdata, envir = .GlobalEnv)}
-    variable_name_save=as.character(gsub("_", " ", variable_name_save))
     for (current_pathdir in fullpathdir){
       for (file in filelist){
         if(file.exists(file.path(current_pathdir, paste0(file,".gdx")))){
@@ -61,11 +60,10 @@ get_witch <- function(variable_name, variable_name_save=variable_name, scenplot=
       }
       
       if(("t" %in% names(allfilesdata)) & (!any(str_detect(allfilesdata$t, "_")))) allfilesdata$t <- as.numeric(allfilesdata$t)
-      if(results=="assign") assign(variable_name,allfilesdata,envir = .GlobalEnv)
-      if(results=="return") return(allfilesdata)
-    }else{print(str_glue("Element {variable_name} was not found in any GDX file."))}
+      return(allfilesdata)
+    }else{print(str_glue("Element {variable_name} was not found in any GDX file."));return(data.frame())}
   }else{
-    if(results=="return") return(get(variable_name))
+    return(return(data.frame()))
   }
 }
 
@@ -98,21 +96,20 @@ plot_witch <- function(data, varname="value", regions="World", scenplot=scenlist
 
 
 #get all the WITCH variables
-get_plot_witch <- function(variable_name, variable_name_save=variable_name, additional_set="na", additional_set_id="na", convert=1, unit="", aggregation="regional", plot=TRUE, bar="", bar_x="time", bar_y="value", bar_setvalues="", bar_colors="", regions=witch_regions, scenplot=scenlist){
+get_plot_witch <- function(variable_name, additional_set="na", additional_set_id="na", convert=1, unit="", aggregation="regional", plot=TRUE, bar="", bar_x="time", bar_y="value", bar_setvalues="", bar_colors="", regions=witch_regions, scenplot=scenlist){
   #aggregation=none: no graph is created no aggregation performed, just loads the element
   #some default values, maybe not even needed to customize
   #removepattern="results_"
   #ssp_grid = FALSE
   #DEBUG:
-  #variable_name="Q_OUT"; variable_name_save=variable_name; additional_set="f"; additional_set_id="oil"; convert=1; unit=""; aggregation="regional"; cumulative=FALSE; plot=TRUE; bar=""; bar_x="time"; bar_y="value"; bar_setvalues=""; bar_colors=""; regions=witch_regions; scenplot=scenlist; variable_field="l"; current_pathdir = fullpathdir[1]; file <- filelist[1];
+  #variable_name="Q_OUT"; additional_set="f"; additional_set_id="oil"; convert=1; unit=""; aggregation="regional"; cumulative=FALSE; plot=TRUE; bar=""; bar_x="time"; bar_y="value"; bar_setvalues=""; bar_colors=""; regions=witch_regions; scenplot=scenlist; variable_field="l"; current_pathdir = fullpathdir[1]; file <- filelist[1];
   line_size = 1.5;
   show_legend_title = F
   if(additional_set_id=="all"){plot=FALSE}
   line_colour = "file"; line_type="pathdir"; #defaults for colour and linetype aesthetics
-  variable_name_save=as.character(gsub("_", " ", variable_name_save))
   
   #CALL MAIN READING FUNCTION
-  allfilesdata <- get_witch(variable_name, results = "return")
+  allfilesdata <- get_witch(variable_name)
   
   if(exists("allfilesdata")){
   
@@ -175,7 +172,7 @@ get_plot_witch <- function(variable_name, variable_name_save=variable_name, addi
       if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
       if(length(fullpathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}
       if(length(fullpathdir)==1){p <- p + guides(linetype="none")}
-      if(plot){saveplot(variable_name_save)}
+      if(plot){saveplot(variable_name)}
     } 
     if (aggregation == "global_mean")
     {
@@ -188,7 +185,7 @@ get_plot_witch <- function(variable_name, variable_name_save=variable_name, addi
       if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
       if(length(fullpathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}   
       if(length(fullpathdir)==1){p <- p + guides(linetype="none")}
-      if(plot){saveplot(variable_name_save)}
+      if(plot){saveplot(variable_name)}
     } 
     if (aggregation == "regional") 
     {
@@ -199,7 +196,7 @@ get_plot_witch <- function(variable_name, variable_name_save=variable_name, addi
       if(ssp_grid){p <- p + facet_grid(. ~ ssp)}
       if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
       if(length(fullpathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}   
-      if(plot){saveplot(variable_name_save)}
+      if(plot){saveplot(variable_name)}
     }
     if (aggregation == "all") 
     {
@@ -237,8 +234,7 @@ get_plot_witch <- function(variable_name, variable_name_save=variable_name, addi
         }
       }
       if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ file)}
-      legend_position_old = legend_position; assign("legend_position", "bottom", envir = .GlobalEnv);  
-	  if(plot){saveplot(variable_name_save)}; assign("legend_position", legend_position_old, envir = .GlobalEnv) 
+   	  if(plot){saveplot(variable_name)}
     } 
     #save the variable under the WITCH name in the global environment
     if(additional_set_id!="na") variable_name <- paste0(variable_name, "_", additional_set_id)
@@ -252,7 +248,7 @@ get_plot_witch <- function(variable_name, variable_name_save=variable_name, addi
 
 getvar_witchhist <- function(varname, unit_conversion=1, hist_varname=varname, additional_sets=NA, ylab=varname){
   #additional _sets: e.g., c("iq"="y", "e="co2")
-  tempvar <- get_witch(varname, results = "return")
+  tempvar <- get_witch(varname)
   n_model <- unique(tempvar$n)
   if(!is.na(additional_sets)){
     for(s in 1:length(additional_sets)) tempvar[[names(additional_sets[s])]] <- additional_sets[s]

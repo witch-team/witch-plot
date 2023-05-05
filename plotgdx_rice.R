@@ -8,7 +8,7 @@ reg_id = "ed57" #for historical data folder
 year0 = 2015
 tstep = 5
 
-restrict_files = c("") #to all scenarios matching partly one of its arguments
+restrict_files = c("results_") #to all scenarios matching partly at least one of its arguments
 exclude_files = c("")
 removepattern = c("")
 
@@ -33,4 +33,4 @@ I, , , I, g, fg, 1
 runApp(appDir = "gdxcompaR/rice")
 
 get_plot_witch("E")
-get_witch("Y")
+Y <- get_witch("Y")

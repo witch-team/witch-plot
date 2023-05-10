@@ -16,10 +16,6 @@ if(!exists("yearmin")) yearmin = 1980
 if(!exists("yearmax")) yearmax = 2100
 ## End of further Options ##
 
-
-
-
-
 witch_folder <- normalizePath(witch_folder)
 main_directory <- normalizePath(main_directory)
 
@@ -31,31 +27,42 @@ graphdir = if(length(fullpathdir)>1){file.path(main_directory, "graphs") }else{f
 if(any(!dir.exists(fullpathdir))){stop("Please check the main directory and sub directory!")}
 if(!dir.exists(witch_folder)){stop("Please check your witch directory!")}
 
-# gdxtools
-require_gdxtools <- function(){ 
-  if(!is.element("gdxtools", .packages(all.available = TRUE))){
-  require_package("devtools")
-  install_github('lolow/gdxtools')
-}
-if(packageVersion("gdxtools")<numeric_version("0.4.0")){
-  stop("You need to install a newer version of gdxtools (>=0.4.0). Please run remove.packages('gdxtools'), restart R and rerun this script.")
-}
-suppressPackageStartupMessages(library(gdxtools, quietly = TRUE))
-}
-#Install and load packages
-require_package <- function(package){
-  if(!is.element(package, .packages(all.available = TRUE))){
-    try(install.packages(package, repos="http://cran.rstudio.com"), silent = TRUE)
-  }
-  suppressPackageStartupMessages(library(package,character.only=T, quietly = TRUE))  
+# Package dependencies
+if (!"witchtools" %in% rownames(installed.packages())) {
+  if (!requireNamespace("remotes"))
+    install.packages("remotes")
+  remotes::install_github("witch-team/witchtools")
 }
 
-pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap','sf', 'rnaturalearth', 'plotly', 'purrr', 'reldist', 'tidytidbits', 'forcats', 'arrow')
-res <- lapply(pkgs, require_package)
-require_gdxtools()
+#pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap','sf', 'rnaturalearth', 'plotly', 'purrr', 'reldist', 'tidytidbits', 'forcats', 'arrow')
+
+# TOCHECK
+# data.table # Not sure the package is really used. Better to stick to tidyverse.
+
+# TOREMOVE
+# docopt, ggpubr, RColorBrewer, gsubfn never used (apparently)
+
+# REPLACES
+# openxlsx -> readxl (only read xlsx file but much faster and flexible)
+
+# Optionnal (add warning if not present)
+# countrycode, only used once
+# readxl, only used once
+
+# Install minimal amount of dependencies package
+deps <- c("ggplot2", "scales", # plots 
+          "stringr", "dplyr", "tidyr", # data wrangling 
+          "shiny", "shinythemes") # shiny
+res <- lapply(deps, witchtools::require_package, loading = FALSE)
+witchtools::require_gdxtools()
+
+# Load required libraries
 library(dplyr, warn.conflicts = FALSE)
 # Suppress summarise info
 options(dplyr.summarise.inform = FALSE)
+
+library(stringr)
+library(ggplot2)
 
 #load basic functions
 source('R/auxiliary_functions.R')
@@ -93,11 +100,15 @@ mygdx <- gdx(file.path(fullpathdir[1],paste0(filelist[1],".gdx")))
 all_var_descriptions <- rbind(data.frame(name=mygdx$variables$name, description=mygdx$variables$text), data.frame(name=mygdx$parameters$name, description=mygdx$parameters$text))
 
 #Palettes for WITCH regions and regional aggregation
-if(!exists("reg_id")){
-conf <- get_witch("conf")
-if(!(exists("conf"))) stop("No conf set found. Please specify region_i = x manually!")
-if(length(unique(subset(conf, V1=="regions")$V2))>1) print("Be careful: not all results files were run with the same regional aggregation!")
-reg_id <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) & V1=="regions")$V2
+if (!exists("reg_id")) {
+  conf <- get_witch("conf")
+  if(!(exists("conf"))) {
+    stop("No conf set found. Please specify region_i = x manually!")
+  }
+  if (length(unique(subset(conf, V1 == "regions")$V2)) > 1) {
+    warning("Be careful: not all results files were run with the same regional aggregation!")
+  } 
+  reg_id <- subset(conf, file == scenlist[1] & pathdir == basename(fullpathdir[1]) & V1 == "regions")$V2
 }
 n <- suppressWarnings(batch_extract("n", files = file.path(fullpathdir,paste0(filelist,".gdx"))))
 if(is.null(n$n)) witch_regions <- "World" else witch_regions <- unique(n$n$V1)

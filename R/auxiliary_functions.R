@@ -78,8 +78,16 @@ filetosep <- function(df, type = "separate", names = "file_new", sep = "_"){
     if(names[1]=="file_new") name <- paste0("f",seq(numsep))
     df <- df %>% mutate(file_new=file) %>% separate(file_new, names, sep = sep)
   }
-  if (type == "last") {df$fx <- word(df$file,-1,sep = paste0("\\",sep)); setnames(df, "fx", names)}
-  if (type == "first") {df$fx <- word(df$file,1,sep = paste0("\\",sep)); setnames(df, "fx", names)}
+  if (type == "last") {
+    df$fx <- word(df$file,-1,sep = paste0("\\",sep))
+    #setnames(df, "fx", names)
+    names(df)[names(df) == 'fx'] <- names
+  }
+  if (type == "first") {
+    df$fx <- word(df$file,1,sep = paste0("\\",sep))
+    #setnames(df, "fx", names)
+    names(df)[names(df) == 'fx'] <- names
+  }
   if(nrow(df_hist)>0) df <- rbind(df, df_hist)
   return(df)
 }
@@ -296,12 +304,13 @@ default_meta_param <- function(){
   ctax,mean
   carbonprice,mean
   CPRICE,mean
-  FPRICE,mean
-  " -> defmap
-  dm <- fread(defmap)
-  dm[,type:="nagg"]
-  dm = rbind(dm,data.table(parameter=dm$parameter, type="nweight", value="gdp"))
-  setcolorder(dm,c("parameter", "type", "value"))
+  FPRICE,mean" -> defmap
+  dm <- read.csv(text = defmap, header = TRUE)
+  dm$type <- "nagg"
+  dm = rbind(dm, data.frame(parameter = dm$parameter, 
+                            type = "nweight", 
+                            value = "gdp"))
+  dm <- dm[, c("parameter", "type", "value")]
   return(dm)
 }
 

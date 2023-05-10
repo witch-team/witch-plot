@@ -44,8 +44,8 @@ shinyUI(fluidPage(pageWithSidebar(
   # Show the plot
   mainPanel(
   tabsetPanel(type = "tabs", id = "tabs",
-                tabPanel("iiasadb_compaR", id = "iiasadb_compaR", h2(textOutput("varname")),plotOutput("iiasadb_compaRplot", width = "100%", height = "80vh")),
-                tabPanel("iiasadb_compaRly (BETA)", id = "iiasadb_compaRly", plotlyOutput("iiasadb_compaRly", width = "100%", height = "80vh"))
+                tabPanel("iiasadb_compaR", id = "iiasadb_compaR", h2(textOutput("varname")),plotOutput("iiasadb_compaRplot", width = "100%", height = "80vh"))#,
+                #tabPanel("iiasadb_compaRly (BETA)", id = "iiasadb_compaRly", plotlyOutput("iiasadb_compaRly", width = "100%", height = "80vh"))
                 
     )
   )

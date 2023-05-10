@@ -196,7 +196,7 @@ shinyServer(function(input, output, session) {
   })
     
     
-    
+    if (F) {
     # MAIN CODE FOR PLOTLY GENERATION (copied from standard ggplot)  
     output$gdxompaRplotly <- renderPlotly({
       assign("historical", input$add_historical, envir = .GlobalEnv)
@@ -325,6 +325,7 @@ shinyServer(function(input, output, session) {
       suppressWarnings(ggplotly()) #to be done: fix error "argument 1 is not a vector", shoudl be done by plotly package
       
     })
+    }
     
     
     output$inequalityplot <- renderPlot({

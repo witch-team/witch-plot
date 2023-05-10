@@ -65,9 +65,11 @@ get_plot_witch <- function(variable_name, variable_name_save=variable_name, addi
     if (additional_set != "na" & additional_set_id == "sum")   #sum over the set if "sum" is choosen
     {
       if(length(fullpathdir)>=1){allfilesdata <- aggregate(value~n+t+file+pathdir, data=allfilesdata, sum)}
-      else{allfilesdata <- aggregate(value~n+t+file, data=allfilesdata, sum, na.rm=TRUE)}
-      allfilesdata <- as.data.frame(allfilesdata)
-      allfilesdata <- as.data.table(allfilesdata)
+      else {
+        allfilesdata <- aggregate(value~n+t+file, data=allfilesdata, sum, na.rm=TRUE)
+      }
+      #allfilesdata <- as.data.frame(allfilesdata)
+      #allfilesdata <- as.data.table(allfilesdata)
     }    
     allfilesdata[is.na(allfilesdata)] <- 0
     allfilesdata$value = allfilesdata$value * unit_conversion$convert 

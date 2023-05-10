@@ -14,6 +14,7 @@ varlist_combine_old_new_j <- c("Q_EN", "K_EN", "I_EN", "Q_IN")  #variables for w
 if(!exists("year0")) {year0 = 2005; tstep = 5;}
 if(!exists("yearmin")) yearmin = 1980
 if(!exists("yearmax")) yearmax = 2100
+yearlim <- c(yearmin, yearmax)
 ## End of further Options ##
 
 witch_folder <- normalizePath(witch_folder)

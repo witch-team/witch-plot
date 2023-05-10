@@ -98,8 +98,9 @@ shinyServer(function(input, output, session) {
       })
       
       #get input from sliders/buttons
-      yearmin = input$yearmin
-      yearmax = input$yearmax
+      yearmin = input$yearlim[1]
+      yearmax = input$yearlim[2]
+      yearlim <- c(yearmin, yearmax)
       additional_set_selected <- input$additional_set_id_selected
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
@@ -129,7 +130,7 @@ shinyServer(function(input, output, session) {
       }
      
       #time frame
-      afd <- subset(afd, ttoyear(t)>=yearmin & ttoyear(t)<=yearmax)
+      afd <- subset(afd, ttoyear(t) >= yearlim[1] & ttoyear(t) <= yearlim[2])
       #clean data
       afd <- afd %>% filter(!is.na(value))
       
@@ -177,14 +178,18 @@ shinyServer(function(input, output, session) {
       afd$year <- ttoyear(afd$t)
       
       if(regions[1]=="World" | regions[1]=="EU" | length(regions)==1){#if only World is displayed or only one region, show files with colors
-        p <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=file)) + geom_line(stat="identity", linewidth=1.5) + xlab("year") + ylab(unit_conv$unit) + xlim(yearmin,yearmax)
+        p <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=file)) + 
+          geom_line(stat="identity", linewidth=1.5) + 
+          xlab("year") + 
+          ylab(unit_conv$unit) + 
+          xlim(yearlim[1],yearlim[2])
         if(ylim_zero) p <- p + ylim(0, NA)
         p <- p + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", linewidth=1.0, linetype="solid")
         p <- p + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year,value,colour=file), size=4.0, shape=18)
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
       }else{
-        p <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", linewidth=1.5) + xlab("year") + ylab(unit_conv$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
+        p <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", linewidth=1.5) + xlab("year") + ylab(unit_conv$unit) + scale_colour_manual(values = region_palette) + xlim(yearlim[1],yearlim[2])
         p <- p + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year, value, colour=n, group=interaction(n, file)), linetype = "solid", stat="identity", linewidth=1.0)
         p <- p + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year, value, colour=n, shape=file), size=4.0)
         #legends:
@@ -244,8 +249,9 @@ shinyServer(function(input, output, session) {
       })
       
       #get input from sliders/buttons
-      yearmin = input$yearmin
-      yearmax = input$yearmax
+      yearmin = input$yearlim[1]
+      yearmax = input$yearlim[2]
+      yearlim <- c(yearmin, yearmax)
       additional_set_selected <- input$additional_set_id_selected
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
@@ -275,7 +281,7 @@ shinyServer(function(input, output, session) {
       }
       
       #time frame
-      afd <- subset(afd, ttoyear(t)>=yearmin & ttoyear(t)<=yearmax)
+      afd <- subset(afd, ttoyear(t) >= yearlim[1] & ttoyear(t) <= yearlim[2])
       #clean data
       afd <- afd %>% filter(!is.na(value))
       
@@ -306,14 +312,14 @@ shinyServer(function(input, output, session) {
       afd$year <- ttoyear(afd$t)
       
       if(regions[1]=="World" | regions[1]=="EU" | length(regions)==1){#if only World is displayed or only one region, show files with colors
-        p_dyn <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=file)) + geom_line(stat="identity", linewidth=1.5) + xlab("year") + ylab(unit_conv$unit) + xlim(yearmin,yearmax)
+        p_dyn <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=file)) + geom_line(stat="identity", linewidth=1.5) + xlab("year") + ylab(unit_conv$unit) + xlim(yearlim[1],yearlim[2])
         if(ylim_zero) p_dyn <- p_dyn + ylim(0, NA)
         #p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", size=1.0, linetype="solid")
         p_dyn <- p_dyn + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year,value,colour=file), size=4.0, shape=18)
         #legends:
         p_dyn <- p_dyn + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
       }else{
-        p_dyn <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=n, linetype=file)) + geom_line(stat="identity", linewidth=1.5) + xlab("year") + ylab(unit_conv$unit) + scale_colour_manual(values = region_palette) + xlim(yearmin,yearmax)
+        p_dyn <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=n, linetype=file)) + geom_line(stat="identity", linewidth=1.5) + xlab("year") + ylab(unit_conv$unit) + scale_colour_manual(values = region_palette) + xlim(yearlim[1],yearlim[2])
         #p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(ttoyear(t),value,colour=n), linetype = "solid", stat="identity", size=1.0)
         p_dyn <- p_dyn + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year,value, shape=file), size=4.0)
         #legends:
@@ -331,8 +337,8 @@ shinyServer(function(input, output, session) {
     output$inequalityplot <- renderPlot({
       #get input from sliders/buttons
       variable_ineq <- input$variable_selected
-      yearmin = input$yearmin
-      yearmax = input$yearmax
+      yearmin = input$yearlim[1]
+      yearmax = input$yearlim[2]
       additional_set_selected <- input$additional_set_id_selected
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
@@ -345,8 +351,8 @@ shinyServer(function(input, output, session) {
 
     output$Diagnostics <- renderPlot({
       #get input from sliders/buttons
-      yearmin = input$yearmin
-      yearmax = input$yearmax
+      yearmin = input$yearlim[1]
+      yearmax = input$yearlim[2]
       additional_set_selected <- input$additional_set_id_selected
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
@@ -357,8 +363,8 @@ shinyServer(function(input, output, session) {
     
     output$energymixplot <- renderPlot({
       #get input from sliders/buttons
-      yearmin = input$yearmin
-      yearmax = input$yearmax
+      yearmin = input$yearlim[1]
+      yearmax = input$yearlim[2]
       additional_set_selected <- input$additional_set_id_selected
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
@@ -370,8 +376,8 @@ shinyServer(function(input, output, session) {
     
     output$electricitymixplot <- renderPlot({
       #get input from sliders/buttons
-      yearmin = input$yearmin
-      yearmax = input$yearmax
+      yearmin = input$yearlim[1]
+      yearmax = input$yearlim[2]
       additional_set_selected <- input$additional_set_id_selected
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
@@ -383,8 +389,8 @@ shinyServer(function(input, output, session) {
   
     output$investmentplot <- renderPlot({
       #get input from sliders/buttons
-      yearmin = input$yearmin
-      yearmax = input$yearmax
+      yearmin = input$yearlim[1]
+      yearmax = input$yearlim[2]
       additional_set_selected <- input$additional_set_id_selected
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
@@ -394,8 +400,8 @@ shinyServer(function(input, output, session) {
     
     output$policycostplot <- renderPlot({
       #get input from sliders/buttons
-      yearmin = input$yearmin
-      yearmax = input$yearmax
+      yearmin = input$yearlim[1]
+      yearmax = input$yearlim[2]
       additional_set_selected <- input$additional_set_id_selected
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
@@ -405,8 +411,8 @@ shinyServer(function(input, output, session) {
     
     output$intensityplot <- renderPlot({
       #get input from sliders/buttons
-      yearmin = input$yearmin
-      yearmax = input$yearmax
+      yearmin = input$yearlim[1]
+      yearmax = input$yearlim[2]
       additional_set_selected <- input$additional_set_id_selected
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
@@ -416,8 +422,8 @@ shinyServer(function(input, output, session) {
     
     output$impactmap <- renderPlot({
       #get input from sliders/buttons
-      yearmin = input$yearmin
-      yearmax = input$yearmax
+      yearmin = input$yearlim[1]
+      yearmax = input$yearlim[2]
       additional_set_selected <- input$additional_set_id_selected
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
@@ -432,8 +438,8 @@ shinyServer(function(input, output, session) {
     
     output$climate_plot <- renderPlot({
       #get input from sliders/buttons
-      yearmin = input$yearmin
-      yearmax = input$yearmax
+      yearmin = input$yearlim[1]
+      yearmax = input$yearlim[2]
       additional_set_selected <- input$additional_set_id_selected
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected
@@ -443,8 +449,8 @@ shinyServer(function(input, output, session) {
     
     output$SCC_plot <- renderPlot({
       #get input from sliders/buttons
-      yearmin = input$yearmin
-      yearmax = input$yearmax
+      yearmin = input$yearlim[1]
+      yearmax = input$yearlim[2]
       additional_set_selected <- input$additional_set_id_selected
       additional_set_selected2 <- input$additional_set_id_selected2
       regions <- input$regions_selected

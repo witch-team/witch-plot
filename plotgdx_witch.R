@@ -1,14 +1,20 @@
-rm(list = ls())
-witch_folder = "../witch" #Where you're WITCH code is located
-#main directory of your results files
-main_directory <- witch_folder # by default, the witch source folder
-#main_directory <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/EIEE/WITCH_CODING/WITCH_RUNS_2018/submission_cdlinks/2019_04_15"
-subdir = c("") #can be multiple directories
+# Main script to launch WITCH-PLOT for WITCH
+# rm(list = ls()) # Should not be used. Better to restart the session in Session > Restart R
 
+# Folder definitions
 
-restrict_files = c("") #to all scenarios matching partly one of its arguments
-exclude_files = c("")
-removepattern = c("")
+# WITCH code folder to get model information
+witch_folder <- "../witch" 
+
+# Main directory and sub-directories of your results files
+main_directory <- witch_folder
+# subdir can be multiple directories (default is main directory)
+subdir <- c("") 
+
+# Filter results files
+restrict_files <- c("") # To all scenarios matching partly one of its arguments
+exclude_files <- c("")
+removepattern <- c("")
 
 yearmin = 1980
 yearmax = 2100

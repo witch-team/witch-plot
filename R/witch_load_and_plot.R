@@ -150,9 +150,6 @@ get_plot_witch <- function(variable_name, additional_set="na", additional_set_id
     #if(additional_set!="na"){allfilesdata[[additional_set]] <- as.factor(allfilesdata[[additional_set]])}
     #print(str(allfilesdata)); assign("test",allfilesdata,envir = .GlobalEnv)
     
-
-    
-    
     
     #Plot for each variable
     if (aggregation == "global_sum")
@@ -213,7 +210,7 @@ get_plot_witch <- function(variable_name, additional_set="na", additional_set_id
         allfilesdata$n <- NULL
         if(additional_set!="na"){allfilesdata[[additional_set]] <- as.factor(allfilesdata[[additional_set]])}
         if(bar_setvalues[1] != ""){allfilesdata[[additional_set]] <- reorder.factor(allfilesdata[[additional_set]], new.order=bar_setvalues)}   #to keep order from setlist in function call
-        if(bar_y=="share"){if(length(fullpathdir)!=1){allfilesdata <- plyr::ddply(allfilesdata, c("t", file_group_columns, "pathdir"), transform, value=value/(sum(value))*100)}else{allfilesdata <- plyr::ddply(allfilesdata, c("t", "file"), transform, value=value/(sum(value))*100)}}
+        if(bar_y=="share"){if(length(fullpathdir)!=1){allfilesdata <- allfilesdata %>% group_by_at(c("t", file_group_columns, "pathdir")) %>% mutate(value=value/(sum(value))*100)}else{allfilesdata <- allfilesdata %>% group_by_at(c("t", "file")) %>% mutate(value=value/(sum(value))*100)}}
         if(str_detect(bar_x, "time")){
           if(!is.na(destring(bar_x))){allfilesdata <- subset(allfilesdata, t==yeartot(destring(bar_x)))}
           p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, fill=get(additional_set))) + geom_bar(stat="identity") + xlab("year") + facet_grid( ~ file) + guides(fill=guide_legend(title=NULL)) 
@@ -225,7 +222,7 @@ get_plot_witch <- function(variable_name, additional_set="na", additional_set_id
       }
       if(bar=="region"){
         allfilesdata[["n"]] <- reorder.factor(allfilesdata[["n"]], new.order=regions)   #to keep order from setlist in function call
-        if(bar_y=="share"){if(length(fullpathdir)!=1){allfilesdata <- plyr::ddply(allfilesdata, c("t", file_group_columns, "pathdir"), transform, value=value/(sum(value))*100)}else{allfilesdata <- plyr::ddply(allfilesdata, c("t", "file"), transform, value=value/(sum(value))*100)}}
+        if(bar_y=="share"){if(length(fullpathdir)!=1){allfilesdata %>% group_by_at(c("t", file_group_columns, "pathdir")) %>% mutate(value=value/(sum(value))*100)}else{allfilesdata <- allfilesdata %>% group_by_at(c("t", "file")) %>% mutate(value=value/(sum(value))*100)}}
         if(str_detect(bar_x, "time")){
           if(!is.na(destring(bar_x))){allfilesdata <- subset(allfilesdata, t==yeartot(destring(bar_x)))}
           p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, fill=n)) + geom_bar(stat="identity") + xlab("year") + facet_grid( ~ file) + guides(fill=guide_legend(title=NULL)) + scale_fill_manual(values=region_palette)

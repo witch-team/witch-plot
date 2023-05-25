@@ -62,8 +62,8 @@ source('R/auxiliary_functions.R')
 source('R/witch_load_and_plot.R')
 source('R/add_historical_values.R')
 
-filelist = gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
-if(restrict_files!=""){
+filelist <- gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="^results.*.gdx", recursive = FALSE))
+if(restrict_files[1]!=""){
   for(i in 1:length(restrict_files)){
     .filelist_res = filelist[apply(outer(filelist, restrict_files[i], str_detect), 1, all)]
     if(i==1) .filelist_res_all <- .filelist_res else .filelist_res_all <- c(.filelist_res_all, .filelist_res)

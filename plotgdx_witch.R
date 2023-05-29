@@ -29,7 +29,7 @@ runApp(appDir = "gdxcompaR/witch")
 stop("Just load everything")
 
 
-MCOST_INV <- get_witch("MCOST_INV", check_calibration = T, force_reload = T)
+MCOST_INV <- get_witch("MCOST_INV", check_calibration = T)
 ggplot(MCOST_INV %>% filter(jreal %in% c("elpv", "elcsp", "elwindon", "elwindoff") & t<=10 & n=="usa")) + geom_line(aes(ttoyear(t), value*1e3, color=file)) +facet_grid(pathdir ~ jreal, ncol=1) + xlab("") + ylab("Capital cost [$/kW]")
 
 
@@ -40,8 +40,8 @@ saveplot("CEBGE")
 
 #implicit carbon price in cooperative
 #1e3/c2co2
-# get_witch("eqq_emi_co2ffi_c_world", field = "m", force_reload = T)
-# get_witch("eqq_y_c_world", field = "m", force_reload = T)
+# get_witch("eqq_emi_co2ffi_c_world", field = "m")
+# get_witch("eqq_y_c_world", field = "m")
 # setnames(eqq_y_c_world, "value", "marg_cons")
 # eqq_emi_co2ffi_c_world$marg_cons <- eqq_y_c_world$marg_cons
 # eqq_emi_co2ffi_c_world$co2price <- -1e3/(44/12)*eqq_emi_co2ffi_c_world$value/eqq_emi_co2ffi_c_world$marg_cons

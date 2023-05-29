@@ -1,6 +1,6 @@
 # Load GDX of all scenarios and basic pre-processing 
-get_witch <- function(variable_name, scenplot=scenlist, check_calibration=FALSE, force_reload=T, field = "l", postprocesssuffix=NULL, skip_restrict_regions=F){
-  if(!exists(variable_name) | (variable_name %in% c("t", "n", "p", "I")) | force_reload){
+get_witch <- function(variable_name, scenplot=scenlist, check_calibration=FALSE, field = "l", postprocesssuffix=NULL, skip_restrict_regions=F){
+  if(!exists(variable_name) | (variable_name %in% c("t", "n", "p", "I"))){
     if(exists("allfilesdata", envir = .GlobalEnv)){rm(allfilesdata, envir = .GlobalEnv)}
     for (current_pathdir in fullpathdir){
       for (file in filelist){
@@ -67,6 +67,8 @@ get_witch <- function(variable_name, scenplot=scenlist, check_calibration=FALSE,
   }
 }
 
+#use memoise for get_witch function
+get_witch <- memoise(get_witch)
 
 
 

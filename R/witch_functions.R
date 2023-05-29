@@ -50,7 +50,7 @@ require_package <- function(package){
   suppressPackageStartupMessages(library(package,character.only=T, quietly = TRUE))  
 }
 
-pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap','sf', 'rnaturalearth', 'plotly', 'purrr', 'reldist', 'tidytidbits', 'forcats', 'arrow')
+pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap','sf', 'rnaturalearth', 'plotly', 'purrr', 'reldist', 'tidytidbits', 'forcats', 'arrow', 'memoise')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 library(dplyr, warn.conflicts = FALSE)
@@ -103,6 +103,8 @@ n <- suppressWarnings(batch_extract("n", files = file.path(fullpathdir,paste0(fi
 if(is.null(n$n)) witch_regions <- "World" else witch_regions <- unique(n$n$V1)
 if(exists("nice_region_names")) witch_regions <- mapvalues(witch_regions , from=names(nice_region_names), to=nice_region_names, warn_missing = FALSE)
 display_regions <- witch_regions
+
+if(!dir.exists(file.path(witch_folder, paste0("data_", reg_id)))) print("No data_* directory for historical data found.")
 
 region_palette_specific <- setNames(rainbow(length(witch_regions)), witch_regions) #just in case have a fall back colour
 region_palette_witch <- c(usa="darkblue",Usa="darkblue",oldeuro="blue", neweuro="cornflowerblue",kosau="darkgreen",Kosau="darkgreen",cajaz="chartreuse4",Cajaz="chartreuse4",te="gold2",Te="gold2",mena="darkgoldenrod4",Mena="darkgoldenrod4",ssa="goldenrod",Ssa="goldenrod",sasia="darkorange2","South Asia"="darkorange2",china="deeppink3",PRC="deeppink3",easia="orangered",ESEAP="orangered",laca="#fbb714",Laca="#fbb714",india="#fbf003",India="#fbf003",europe="blue",Europe="blue",indonesia="lightsalmon3",Indonesia="lightsalmon3",Rest_of_World="grey48",chinaw="darkorange",chinac="darkorange2",chinae="darkorange4",italy="green",mexico="slateblue2",brazil="tomato4",canada="blueviolet",jpnkor="darkseagreen",oceania="forestgreen",southafrica="indianred3",seasia="orangered",World="black", "Global Pool"="black")
@@ -168,7 +170,3 @@ source('R/climate_plots.R')
 source('R/policy_cost.R')
 source('R/inequality_plots.R')
 source('R/RICE50x_plots.R')
-
-if(!dir.exists(file.path(witch_folder, paste0("data_", reg_id)))) print("No data_* directory for historical data found.")
-
-

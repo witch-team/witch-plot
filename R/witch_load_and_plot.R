@@ -1,7 +1,7 @@
 source('R/get_witch.R')
 
-#use memoise for get_witch function
-get_witch <- memoise(get_witch)
+# Use memoise for get_witch function
+get_witch <- memoise::memoise(get_witch)
 
 
 

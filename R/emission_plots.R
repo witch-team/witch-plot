@@ -60,12 +60,10 @@ saveplot("Sectoral CO2 Emissions LU")
 
 
 
-#all_to_reference option is not yet working, alwaysiterative scenario stringency improvement!
-
-
+#all_to_reference option is not yet working, always iterative scenario stringency improvement!
 #Emission reduction by source
 Mitigation_Sources <- function(regions=witch_regions, scenario_stringency_order, all_to_reference=FALSE, t_plot=c(2,4,6,8,10)){
-  Q_EMi <- get_witch("Q_EMI")
+  Q_EMI <- get_witch("Q_EMI")
   Q_EMI <- as.data.frame(Q_EMI); Q_EMI_orig <- Q_EMI
   Q_EMI <- subset(Q_EMI, select=-pathdir)
   Q_EMI <- reshape(Q_EMI, timevar = "e",idvar = c("t", "n", "file"),direction = "wide")
@@ -111,6 +109,7 @@ Mitigation_Decomposition <- function(regions=witch_regions, scenario_stringency_
   library("ida")
   l <- get_witch("l")
   Q <- get_witch("Q")
+  Q_EMI <- get_witch("Q_EMI")
   tpes <- get_witch("tpes")
   #Sectoral_Emissions(regions=regions, scenplot = scenario_stringency_order)
   Mitigation_Sources(regions=regions, scenario_stringency_order = scenario_stringency_order, all_to_reference = all_to_reference, t_plot = t_plot)

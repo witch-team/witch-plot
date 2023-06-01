@@ -29,7 +29,7 @@ Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(yearmin
       TPES <- subset(TPES, n %in% regions)
     }
     assign("PES_MIX",TPES,envir = .GlobalEnv)
-    if(PES_y=="share"){TPES <- plyr::ddply(TPES, c("t", "file", "n", "pathdir"), transform, value=value/(sum(value))*100)}
+    if(PES_y=="share"){TPES <- TPES %>% group_by_at(c("t", file_group_columns, "n", "pathdir")) %>% mutate(value=value/(sum(value))*100)}
     p <- ggplot(data=subset(TPES, ttoyear(t) %in% years & file %in% scenplot))
     if(plot_type=="area"){
       p <- p + geom_area(aes(ttoyear(t),value, fill=category), stat="identity") + scale_fill_manual(values=c("green", "black", "blue", "chocolate2", "red", "brown", "yellow", "gold1"))
@@ -101,7 +101,8 @@ Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(ye
       ELEC <- subset(ELEC, n %in% regions)
     }
     assign("ELEC_MIX",ELEC,envir = .GlobalEnv)
-    if(Electricity_y=="share"){ELEC <- plyr::ddply(ELEC, c("t", file_group_columns, "n", "pathdir"), transform, value=value/(sum(value))*100)}
+    if(Electricity_y=="share"){ELEC <- 
+      ELEC %>% group_by_at(c("t", file_group_columns, "n", "pathdir")) %>% mutate(value=value/(sum(value))*100)}
     p <- ggplot(data=subset(ELEC, ttoyear(t) %in% years  & file %in% scenplot))
     p <- p + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 2)) + theme(legend.position="bottom")
     if(plot_type=="area"){

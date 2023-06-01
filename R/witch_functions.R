@@ -70,8 +70,8 @@ source('R/auxiliary_functions.R')
 source('R/witch_load_and_plot.R')
 source('R/add_historical_values.R')
 
-filelist = gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
-if(restrict_files!=""){
+filelist <- gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="^results.*.gdx", recursive = FALSE))
+if(restrict_files[1]!=""){
   for(i in 1:length(restrict_files)){
     .filelist_res = filelist[apply(outer(filelist, restrict_files[i], str_detect), 1, all)]
     if(i==1) .filelist_res_all <- .filelist_res else .filelist_res_all <- c(.filelist_res_all, .filelist_res)
@@ -115,6 +115,8 @@ n <- suppressWarnings(batch_extract("n", files = file.path(fullpathdir,paste0(fi
 if(is.null(n$n)) witch_regions <- "World" else witch_regions <- unique(n$n$V1)
 if(exists("nice_region_names")) witch_regions <- mapvalues(witch_regions , from=names(nice_region_names), to=nice_region_names, warn_missing = FALSE)
 display_regions <- witch_regions
+
+if(!dir.exists(file.path(witch_folder, paste0("data_", reg_id)))) print("No data_* directory for historical data found.")
 
 region_palette_specific <- setNames(rainbow(length(witch_regions)), witch_regions) #just in case have a fall back colour
 region_palette_witch <- c(usa="darkblue",Usa="darkblue",oldeuro="blue", neweuro="cornflowerblue",kosau="darkgreen",Kosau="darkgreen",cajaz="chartreuse4",Cajaz="chartreuse4",te="gold2",Te="gold2",mena="darkgoldenrod4",Mena="darkgoldenrod4",ssa="goldenrod",Ssa="goldenrod",sasia="darkorange2","South Asia"="darkorange2",china="deeppink3",PRC="deeppink3",easia="orangered",ESEAP="orangered",laca="#fbb714",Laca="#fbb714",india="#fbf003",India="#fbf003",europe="blue",Europe="blue",indonesia="lightsalmon3",Indonesia="lightsalmon3",Rest_of_World="grey48",chinaw="darkorange",chinac="darkorange2",chinae="darkorange4",italy="green",mexico="slateblue2",brazil="tomato4",canada="blueviolet",jpnkor="darkseagreen",oceania="forestgreen",southafrica="indianred3",seasia="orangered",World="black", "Global Pool"="black")
@@ -180,7 +182,3 @@ source('R/climate_plots.R')
 source('R/policy_cost.R')
 source('R/inequality_plots.R')
 source('R/RICE50x_plots.R')
-
-if(!dir.exists(file.path(witch_folder, paste0("data_", reg_id)))) print("No data_* directory for historical data found.")
-
-

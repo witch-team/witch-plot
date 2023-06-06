@@ -63,7 +63,7 @@ shinyServer(function(input, output, session) {
     variable <- input$variable_selected
     if (is.null(variable)) variable <- list_of_variables[1]
     # get data
-    afd <- get_witch(variable, check_calibration = TRUE, results = "return")
+    afd <- get_witch(variable, check_calibration = TRUE)
     if (verbose) print(str_glue("Variable {variable} loaded."))
     # get the name of the additional set
     additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))
@@ -144,7 +144,7 @@ shinyServer(function(input, output, session) {
       afd_global <- afd_global %>%
         mutate(n = "World") %>%
         as.data.frame()
-      afd <- rbind(afd, afd_global[, c("t", "n", "value", file_group_columns, "pathdir")])
+      afd <- rbind(afd, afd_global[, names(afd)])
     }
 
     # in case growth rates
@@ -208,7 +208,7 @@ shinyServer(function(input, output, session) {
     variable <- input$variable_selected
     if (is.null(variable)) variable <- list_of_variables[1]
     # get data
-    afd <- get_witch(variable, check_calibration = TRUE, results = "return")
+    afd <- get_witch(variable, check_calibration = TRUE)
     if (verbose) print(str_glue("Variable {variable} loaded."))
     # get the name of the additional set
     additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))
@@ -320,7 +320,7 @@ shinyServer(function(input, output, session) {
     variable <- input$variable_selected
     if (is.null(variable)) variable <- list_of_variables[1]
     # get data
-    afd <- get_witch(variable, check_calibration = TRUE, results = "return")
+    afd <- get_witch(variable, check_calibration = TRUE)
     if (verbose) print(str_glue("Variable {variable} loaded."))
     # get the name of the additional set
     additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))
@@ -400,7 +400,7 @@ shinyServer(function(input, output, session) {
       afd_global <- afd_global %>%
         mutate(n = "World") %>%
         as.data.frame()
-      afd <- rbind(afd, afd_global[, c("t", "n", "value", file_group_columns, "pathdir")])
+      afd <- rbind(afd, afd_global[, names(afd)])
     }
 
     # in case growth rates
@@ -474,13 +474,12 @@ shinyServer(function(input, output, session) {
     yearmax <- input$yearmax
     scenarios <- input$scenarios_selected
 
-    get_witch("elapsed")
+    elapsed <- get_witch("elapsed")
     if (!exists("elapsed")) elapsed <- data.frame(file = scenlist, value = 0)
-    get_witch("Y")
-    get_witch("TATM")
-    get_witch("MIU")
-    get_witch("l")
-    # get_witch("DAMFRAC")
+    Y <- get_witch("Y")
+    TATM <- get_witch("TATM")
+    MIU <- get_witch("MIU")
+    l <- get_witch("l")
     # compute Gini index
     gini <- Y %>%
       left_join(l %>% rename(pop = value), by = c("t", "n", "file", "pathdir")) %>%

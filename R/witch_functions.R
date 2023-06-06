@@ -50,29 +50,26 @@ require_package <- function(package){
   suppressPackageStartupMessages(library(package,character.only=T, quietly = TRUE))  
 }
 
-pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap','sf', 'rnaturalearth', 'plotly', 'purrr', 'reldist', 'tidytidbits', 'forcats', 'arrow')
+pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap','sf', 'rnaturalearth', 'plotly', 'purrr', 'reldist', 'tidytidbits', 'forcats', 'arrow', 'memoise')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 library(dplyr, warn.conflicts = FALSE)
 # Suppress summarise info
 options(dplyr.summarise.inform = FALSE)
 
-#In case creating data Excel files creates a problem with old zip!!!
-#Sys.setenv(R_ZIPCMD= "C:/apps/Rtools/bin/zip")   
-
 #load basic functions
 source('R/auxiliary_functions.R')
 source('R/witch_load_and_plot.R')
 source('R/add_historical_values.R')
 
-filelist = gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
-#by default  only files starting "results_" are taken
-restrict_files <- c("results_", restrict_files); restrict_files <- restrict_files[restrict_files != ""]
-for(i in 1:length(restrict_files)){
-  .filelist_res = filelist[apply(outer(filelist, restrict_files[i], str_detect), 1, all)]
-  if(i==1) .filelist_res_all <- .filelist_res else .filelist_res_all <- c(.filelist_res_all, .filelist_res)
+filelist <- gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="^results.*.gdx", recursive = FALSE))
+if(restrict_files[1]!=""){
+  for(i in 1:length(restrict_files)){
+    .filelist_res = filelist[apply(outer(filelist, restrict_files[i], str_detect), 1, all)]
+    if(i==1) .filelist_res_all <- .filelist_res else .filelist_res_all <- c(.filelist_res_all, .filelist_res)
+  }
+  filelist <- unique(.filelist_res_all)
 }
-filelist <- unique(.filelist_res_all)
 if(exclude_files[1]!="") filelist = filelist[!str_detect(filelist, paste(exclude_files, collapse = '|'))]
 if(length(filelist)==0){stop("No GDX files found.")}
 if(exists("scenlist")){
@@ -97,8 +94,8 @@ all_var_descriptions <- rbind(data.frame(name=mygdx$variables$name, description=
 
 #Palettes for WITCH regions and regional aggregation
 if(!exists("reg_id")){
-get_witch("conf")
-if(!(exists("conf"))) stop("No conf set found. Please specify reg_id = 'x' manually!")
+conf <- get_witch("conf")
+if(!(exists("conf"))) stop("No conf set found. Please specify region_i = x manually!")
 if(length(unique(subset(conf, V1=="regions")$V2))>1) print("Be careful: not all results files were run with the same regional aggregation!")
 reg_id <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) & V1=="regions")$V2
 }
@@ -110,6 +107,8 @@ if(is.null(n$n)) {
 
 if(exists("nice_region_names")) witch_regions <- mapvalues(witch_regions , from=names(nice_region_names), to=nice_region_names, warn_missing = FALSE)
 display_regions <- witch_regions
+
+if(!dir.exists(file.path(witch_folder, paste0("data_", reg_id)))) print("No data_* directory for historical data found.")
 
 region_palette_specific <- setNames(rainbow(length(witch_regions)), witch_regions) #just in case have a fall back colour
 region_palette_witch <- c(usa="darkblue",Usa="darkblue",oldeuro="blue", neweuro="cornflowerblue",kosau="darkgreen",Kosau="darkgreen",cajaz="chartreuse4",Cajaz="chartreuse4",te="gold2",Te="gold2",mena="darkgoldenrod4",Mena="darkgoldenrod4",ssa="goldenrod",Ssa="goldenrod",sasia="darkorange2","South Asia"="darkorange2",china="deeppink3",PRC="deeppink3",easia="orangered",ESEAP="orangered",laca="#fbb714",Laca="#fbb714",india="#fbf003",India="#fbf003",europe="blue",Europe="blue",indonesia="lightsalmon3",Indonesia="lightsalmon3",Rest_of_World="grey48",chinaw="darkorange",chinac="darkorange2",chinae="darkorange4",italy="green",mexico="slateblue2",brazil="tomato4",canada="blueviolet",jpnkor="darkseagreen",oceania="forestgreen",southafrica="indianred3",seasia="orangered",World="black", "Global Pool"="black")
@@ -175,7 +174,3 @@ source('R/climate_plots.R')
 source('R/policy_cost.R')
 source('R/inequality_plots.R')
 source('R/RICE50x_plots.R')
-
-if(!dir.exists(file.path(witch_folder, paste0("data_", reg_id)))) print("No data_* directory for historical data found.")
-
-

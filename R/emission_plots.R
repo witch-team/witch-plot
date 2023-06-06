@@ -5,9 +5,9 @@
 
 Intensity_Plot <- function(years=c(2050, 2100), regions="World", year0=2010, scenplot=scenlist, animate_plot=FALSE){
   if(animate_plot) {regions="World"; years = seq(yearmin, yearmax); year0 = 2005; require(gganimate)}
-  get_witch("tpes"); tpes_IP <- tpes %>% mutate(value=value*0.0036) %>% rename(PES=value)
-  get_witch("Q_EMI"); Q_EMI_IP <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2") %>% select(-e) %>% rename(CO2=value)
-  get_witch("Q"); Q_IP <- Q %>% mutate(value=value*1e3) %>% filter(iq=="y") %>% select(-iq) %>% rename(GDP=value)
+ tpes <- get_witch("tpes"); tpes_IP <- tpes %>% mutate(value=value*0.0036) %>% rename(PES=value)
+  Q_EMI <- get_witch("Q_EMI"); Q_EMI_IP <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2") %>% select(-e) %>% rename(CO2=value)
+  Q <- get_witch("Q"); Q_IP <- Q %>% mutate(value=value*1e3) %>% filter(iq=="y") %>% select(-iq) %>% rename(GDP=value)
   Intensity <- merge(tpes_IP, Q_EMI_IP, by=c("t", file_group_columns, "pathdir", "n"))
   Intensity <- merge(Intensity, Q_IP, by=c("t", file_group_columns, "pathdir", "n"))
   Intensity_World <- Intensity; Intensity_World$n <- NULL
@@ -43,9 +43,9 @@ Intensity_Plot <- function(years=c(2050, 2100), regions="World", year0=2010, sce
 
 #Sectoral Emissions
 Sectoral_Emissions <- function(regions=witch_regions, scenplot=scenlist){
-get_witch("Q_EMI"); Q_EMI_FFI <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2ffi") %>% select(-e)
+Q_EMI <- get_witch("Q_EMI"); Q_EMI_FFI <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2ffi") %>% select(-e)
 Q_EMI_FFI$sector="Fossil Fuels and Industrial"#FFI
-get_witch("Q_EMI"); Q_EMI_LU <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2lu") %>% select(-e)
+Q_EMI <- get_witch("Q_EMI"); Q_EMI_LU <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2lu") %>% select(-e)
 Q_EMI_LU$sector="Land Use"#LU
 Q_EMI_SECTORS = rbind(Q_EMI_FFI, Q_EMI_LU)
 Q_EMI_SECTORS <- Q_EMI_SECTORS %>% filter(ttoyear(t) >= 2000 & ttoyear(t) <= 2100)
@@ -60,12 +60,10 @@ saveplot("Sectoral CO2 Emissions LU")
 
 
 
-#all_to_reference option is not yet working, alwaysiterative scenario stringency improvement!
-
-
+#all_to_reference option is not yet working, always iterative scenario stringency improvement!
 #Emission reduction by source
 Mitigation_Sources <- function(regions=witch_regions, scenario_stringency_order, all_to_reference=FALSE, t_plot=c(2,4,6,8,10)){
-  get_witch("Q_EMI")
+  Q_EMI <- get_witch("Q_EMI")
   Q_EMI <- as.data.frame(Q_EMI); Q_EMI_orig <- Q_EMI
   Q_EMI <- subset(Q_EMI, select=-pathdir)
   Q_EMI <- reshape(Q_EMI, timevar = "e",idvar = c("t", "n", "file"),direction = "wide")
@@ -74,7 +72,7 @@ Mitigation_Sources <- function(regions=witch_regions, scenario_stringency_order,
   Q_EMI$CCS <- -Q_EMI$value.ccs
   Q_EMI$CO2LU <- Q_EMI$value.co2lu
   #Non-CO2 based on set
-  get_witch("ghg") # to get GHGs for non-co2 sets
+  ghg <- get_witch("ghg") # to get GHGs for non-co2 sets
   Q_EMI$"NON-CO2" <- rowSums(Q_EMI[colnames(Q_EMI) %in% paste0("value.",unique(ghg$e))]) - Q_EMI$value.co2
   Q_EMI <- subset(Q_EMI, select=c("t", "n", "file", emi_sources))
   Q_EMI <- subset(Q_EMI, file %in% scenario_stringency_order)
@@ -109,9 +107,10 @@ Mitigation_Sources <- function(regions=witch_regions, scenario_stringency_order,
 Mitigation_Decomposition <- function(regions=witch_regions, scenario_stringency_order, all_to_reference=FALSE, t_plot=c(2,4,6,8,10), plotname="Mitigation Decomposition"){
   if("ida" %in% rownames(installed.packages()) == FALSE) {install.packages("ida", repos = c(getOption("repos"), "http://userpage.fu-berlin.de/~kweinert/R"), dependencies = c("Depends", "Suggests"))}
   library("ida")
-  get_witch("l")
-  get_witch("Q")
-  get_witch("tpes")
+  l <- get_witch("l")
+  Q <- get_witch("Q")
+  Q_EMI <- get_witch("Q_EMI")
+  tpes <- get_witch("tpes")
   #Sectoral_Emissions(regions=regions, scenplot = scenario_stringency_order)
   Mitigation_Sources(regions=regions, scenario_stringency_order = scenario_stringency_order, all_to_reference = all_to_reference, t_plot = t_plot)
   l <- subset(l, file %in% scenario_stringency_order & n %in% regions & t %in% t_plot) %>% mutate(Population=value) %>% select(-value)
@@ -167,7 +166,7 @@ Mitigation_Decomposition <- function(regions=witch_regions, scenario_stringency_
 Global_Emissions_Stacked <- function(regions=witch_regions, scenario, plotname="CO2 Emissions Carbon Budget"){
   #add GLOBAL carbon budget for some regions and RoW based on one scenario
   #for now only CO2 with hist!
-  get_witch("Q_EMI"); ALL_EMI <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2ffi") %>% select(-e) %>% filter(file==scenario)
+  Q_EMI <- get_witch("Q_EMI"); ALL_EMI <- Q_EMI %>% mutate(value=value*3.667) %>% filter(e=="co2ffi") %>% select(-e) %>% filter(file==scenario)
   ALL_REST_WOLD <- ALL_EMI %>% filter(!(n %in% regions)) %>% select(-n) %>% group_by(t, file, pathdir) %>% summarize(value=sum(value)) %>% mutate(n="Rest_of_World") %>% as.data.frame()
   #ALL_REST_WOLD <- subset(ALL_EMI, !(n %in% regions))[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir")]
   #ALL_REST_WOLD$n <- "Rest_of_World"
@@ -182,7 +181,7 @@ Global_Emissions_Stacked <- function(regions=witch_regions, scenario, plotname="
 
 
 Plot_Global_Emissions <- function(bauscen="ssp2_bau", scenplot=scenlist){
-  get_witch("Q_EMI", scenplot = scenplot)
+  Q_EMI <- get_witch("Q_EMI", scenplot = scenplot)
   Q_EMI <- as.data.frame(Q_EMI); Q_EMI_orig <- Q_EMI
   Q_EMI <- reshape(Q_EMI, timevar = "e",idvar = c("t", "n", "file", "pathdir"),direction = "wide")
   emi_sources= c("CO2FFI", "CCS", "CO2LU", "NON-CO2")
@@ -190,7 +189,7 @@ Plot_Global_Emissions <- function(bauscen="ssp2_bau", scenplot=scenlist){
   Q_EMI$CCS <- -Q_EMI$value.ccs
   Q_EMI$CO2LU <- Q_EMI$value.co2lu
   #Non-CO2 based on set
-  get_witch("ghg") # to get GHGs for non-co2 sets
+  ghg <- get_witch("ghg") # to get GHGs for non-co2 sets
   Q_EMI$"NON-CO2"  <- rowSums(Q_EMI[colnames(Q_EMI) %in% paste0("value.",unique(ghg$e))]) - Q_EMI$value.co2
   Q_EMI <- subset(Q_EMI, select=c("t", "n", "file", "pathdir", emi_sources))
   ALL_EMI <- Q_EMI

@@ -29,7 +29,7 @@ runApp(appDir = "gdxcompaR/witch")
 stop("Just load everything")
 
 
-get_witch("MCOST_INV", check_calibration = T, force_reload = T)
+MCOST_INV <- get_witch("MCOST_INV", check_calibration = T)
 ggplot(MCOST_INV %>% filter(jreal %in% c("elpv", "elcsp", "elwindon", "elwindoff") & t<=10 & n=="usa")) + geom_line(aes(ttoyear(t), value*1e3, color=file)) +facet_grid(pathdir ~ jreal, ncol=1) + xlab("") + ylab("Capital cost [$/kW]")
 
 
@@ -40,14 +40,14 @@ saveplot("CEBGE")
 
 #implicit carbon price in cooperative
 #1e3/c2co2
-# get_witch("eqq_emi_co2ffi_c_world", field = "m", force_reload = T)
-# get_witch("eqq_y_c_world", field = "m", force_reload = T)
+# get_witch("eqq_emi_co2ffi_c_world", field = "m")
+# get_witch("eqq_y_c_world", field = "m")
 # setnames(eqq_y_c_world, "value", "marg_cons")
 # eqq_emi_co2ffi_c_world$marg_cons <- eqq_y_c_world$marg_cons
 # eqq_emi_co2ffi_c_world$co2price <- -1e3/(44/12)*eqq_emi_co2ffi_c_world$value/eqq_emi_co2ffi_c_world$marg_cons
 # ggplot(eqq_emi_co2ffi_c_world %>% filter(ttoyear(t)<=2100)) + geom_line(aes(ttoyear(t), co2price, color=file))
 #Carbon budget
-get_witch("Q_EMI")
+Q_EMI <- get_witch("Q_EMI")
 Q_EMI <- Q_EMI  %>% mutate(growth_rate=as.numeric(gsub("R",3.4,str_sub(file,-1,-1))), cb=str_sub(file,-6,-4))
 ggplot(Q_EMI %>% filter(e=="co2" & t>=4 & t<=20) %>% group_by(file) %>% summarize(cb=sum(value)*5*44/12)) + geom_bar(aes(file, cb, fill=file), stat = "identity") + ylab("Carbon budget 2018-2100")
 # compare all gases
@@ -60,7 +60,7 @@ saveplot("Actual Carbon Budget")
 ggplot(Q_EMI %>% filter(e=="co2" & ttoyear(t)>=2000) %>% group_by(t, cb, growth_rate) %>% summarize(co2emi=sum(value)*44/12)) + geom_line(aes(ttoyear(t), co2emi, color=as.factor(growth_rate)), stat = "identity") + ylab("CO2 Emissions") + facet_grid(cb ~ .) + theme(legend.position = "bottom") + xlab("")
 saveplot("Emission Profile")
 #Carbon Price
-get_witch("carbonprice")
+carbonprice <- get_witch("carbonprice")
 carbonprice <- carbonprice %>% mutate(growth_rate=as.numeric(gsub("R",3.4,str_sub(file,-1,-1))), cb=str_sub(file,-6,-4))
 ggplot(carbonprice %>% group_by(t, cb,growth_rate, file) %>% filter(ttoyear(t)<=2100) %>% summarize(ctax=mean(value)*1e3/(44/12))) + geom_line(aes(ttoyear(t), ctax, color=cb), stat = "identity") + ylab("Carbon price [$/tCO2eq]") + facet_grid(cb ~ growth_rate)
 saveplot("Carbon price")
@@ -122,7 +122,7 @@ climate_plot()
 
 #Impact Map
 t_map = 20; bau_scen = scenlist[1]
-get_witch("Q")
+Q <- get_witch("Q")
 impact_map_data <- Q %>% filter(iq=="y" & t==t_map) %>% group_by(n, pathdir) %>% mutate(value = -((value/sum(value[file==bau_scen]))-1)*100) %>% filter(is.finite(value))
 witchmap(impact_map_data, file_report=scenlist[2], t_report=t_map, mapcolor="Reds", map_name="Impact Map", map_legend = "GDP loss [%]")
 

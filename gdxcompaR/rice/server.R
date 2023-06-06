@@ -144,7 +144,7 @@ shinyServer(function(input, output, session) {
       afd_global <- afd_global %>%
         mutate(n = "World") %>%
         as.data.frame()
-      afd <- rbind(afd, afd_global[, c("t", "n", "value", file_group_columns, "pathdir")])
+      afd <- rbind(afd, afd_global[, names(afd)])
     }
 
     # in case growth rates
@@ -400,7 +400,7 @@ shinyServer(function(input, output, session) {
       afd_global <- afd_global %>%
         mutate(n = "World") %>%
         as.data.frame()
-      afd <- rbind(afd, afd_global[, c("t", "n", "value", file_group_columns, "pathdir")])
+      afd <- rbind(afd, afd_global[, names(afd)])
     }
 
     # in case growth rates

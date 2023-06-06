@@ -148,7 +148,7 @@ shinyServer(function(input, output, session) {
               afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value), .groups = 'drop')
             }
       afd_global <- afd_global %>% mutate(n = "World") %>% as.data.frame()
-      afd <- rbind(afd, afd_global[,c("t","n","value",file_group_columns, "pathdir")])
+      afd <- rbind(afd, afd_global[, names(afd)])
       }
       #same for EU
       if(nrow(afd)>0){
@@ -165,7 +165,7 @@ shinyServer(function(input, output, session) {
           afd_global <- afd_global %>% group_by_at(setdiff(names(afd_global), "value")) %>% summarize(value=sum(value), .groups = 'drop')
         }
         afd_global <- afd_global %>% mutate(n = "EU") %>% as.data.frame()
-        afd <- rbind(afd, afd_global[,c("t","n","value",file_group_columns, "pathdir")])
+        afd <- rbind(afd, afd_global[, names(afd)])
       }
       
       #scenarios, potentially add stochastic scenarios to show
@@ -294,7 +294,7 @@ shinyServer(function(input, output, session) {
           }
         }
         afd_global <- afd_global %>% mutate(n = "World") %>% as.data.frame()
-        afd <- rbind(afd, afd_global[,c("t","n","value",file_group_columns, "pathdir")])
+        afd <- rbind(afd, afd_global[, names(afd)])
       }
       
       #scenarios, potentially add stochastic scenarios to show

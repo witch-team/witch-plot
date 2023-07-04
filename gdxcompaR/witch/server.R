@@ -21,12 +21,24 @@ shinyServer(function(input, output, session) {
     
     #Scenario selector
     output$select_scenarios <- renderUI({
-    selectInput("scenarios_selected", "Select scenarios", unname(scenlist), size = length(scenlist), selectize = F, multiple = T, selected = unname(scenlist))
+    selectInput(inputId = "scenarios_selected", 
+                label = "Select scenarios", 
+                choices = unname(scenlist), 
+                size = length(scenlist), 
+                selectize = FALSE, 
+                multiple = TRUE, 
+                selected = unname(scenlist))
     })  
     
     #Variable selector
     output$select_variable <- renderUI({
-    selectInput("variable_selected", "Select variable", list_of_variables, size=1, selectize = F, multiple = F, selected = list_of_variables[1])
+    selectInput(inputId = "variable_selected",
+                label = "Variable:", 
+                choices = c("Select one" = "", list_of_variables), 
+                #size=1, 
+                selectize = TRUE, 
+                multiple = FALSE,
+                selected = list_of_variables[1])
     })  
     variable_selected_reactive <- reactive({input$variable_selected})
     
@@ -38,7 +50,13 @@ shinyServer(function(input, output, session) {
     #REGION selector
     output$select_regions <- renderUI({
       regions_for_selector <- c(witch_regions, "EU", "World")
-    selectInput("regions_selected", "Select regions", regions_for_selector, size=length(regions_for_selector), selectize = F, multiple = T, selected = witch_regions)
+      selectInput("regions_selected", 
+                  "Select regions", 
+                  regions_for_selector, 
+                  size = length(regions_for_selector), 
+                  selectize = F, 
+                  multiple = T, 
+                  selected = "World")
     })
   
     observeEvent(input$button_saveplotdata, {
@@ -56,24 +74,28 @@ shinyServer(function(input, output, session) {
       assign("historical", input$add_historical, envir = .GlobalEnv)
       ylim_zero <- input$ylim_zero
       field_show <- input$field
-      #plotly_dynamic <- input$plotly_dynamic
+
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
+      
       #get data
       afd <- get_witch(variable, check_calibration=T, field = field_show)
       if(verbose) print(str_glue("Variable {variable} loaded."))
+      
       #get the name of the additional set
       additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))
+      
       #extract additional set elements
-      if(length(additional_sets)==0){additional_set_id="na"; set_elements = "na"; additional_set_id2="na"; set_elements2 = "na"}
-      else if(length(additional_sets)==1)
-      {
+      if (length(additional_sets) == 0) {
+        additional_set_id <- "na"
+        set_elements <- "na"
+        additional_set_id2 <- "na"
+        set_elements2 <- "na"
+      } else if (length(additional_sets) == 1) {
         additional_set_id <- additional_sets[1]
         set_elements <- unique(tolower(as.data.frame(afd)[, match(additional_set_id, colnames(afd))]))
         additional_set_id2="na"; set_elements2 = "na"
-      }
-      else if(length(additional_sets)==2)
-      {
+      } else if(length(additional_sets) == 2) {
         additional_set_id <- additional_sets[1]
         set_elements <- unique(tolower(as.data.frame(afd)[, match(additional_set_id, colnames(afd))]))
         additional_set_id2 <- additional_sets[2] 
@@ -86,7 +108,13 @@ shinyServer(function(input, output, session) {
         if(is.null(variable)) variable <- list_of_variables[1]
         sel <- input$additional_set_id_selected
         size_elements <- min(length(set_elements), 5)
-        selectInput("additional_set_id_selected", "Additional set element", set_elements, size=size_elements, selectize = F, multiple = T, selected = sel)
+        selectInput("additional_set_id_selected", 
+                    "Additional set element", 
+                    sort(set_elements), 
+                    size = size_elements, 
+                    selectize = F, 
+                    multiple = T, 
+                    selected = sel)
       })
       #Selector for additional set #2
       output$choose_additional_set2 <- renderUI({
@@ -94,7 +122,13 @@ shinyServer(function(input, output, session) {
         if(is.null(variable)) variable <- list_of_variables[1]
         sel2 <- input$additional_set_id_selected2
         size_elements2 <- min(length(set_elements2), 5)
-        selectInput("additional_set_id_selected2", "Additional set element 2", set_elements2, size=size_elements2, selectize = F, multiple = T, selected = sel2)
+        selectInput("additional_set_id_selected2", 
+                    "Additional set element 2", 
+                    sort(set_elements2), 
+                    size = size_elements2, 
+                    selectize = F, 
+                    multiple = T, 
+                    selected = sel2)
       })
       
       #get input from sliders/buttons
@@ -106,10 +140,17 @@ shinyServer(function(input, output, session) {
       regions <- input$regions_selected
       scenarios <- input$scenarios_selected
       
-      #in case they have not yet been set, set to default values
-      if(is.null(regions)) regions <- display_regions
-      if(is.null(additional_set_selected)) additional_set_selected <- set_elements[1]
-      if((additional_set_id!="na" & additional_set_selected[1]=="na") | !(additional_set_selected[1] %in% set_elements)) additional_set_selected <- set_elements[1] 
+      # In case they have not yet been set, set to default values
+      if (is.null(regions)) {
+        regions <- display_regions
+      }
+      if (is.null(additional_set_selected)) {
+        additional_set_selected <- set_elements[1]
+      }
+      if ((additional_set_id != "na" & additional_set_selected[1] == "na") | 
+          !(additional_set_selected[1] %in% set_elements)) {
+        additional_set_selected <- set_elements[1]
+      }
       if(is.null(additional_set_selected2)) additional_set_selected2 <- set_elements2[1]
       if((additional_set_id2!="na" & additional_set_selected2[1]=="na") | !(additional_set_selected2[1] %in% set_elements2)) additional_set_selected2 <- set_elements2[1] 
       

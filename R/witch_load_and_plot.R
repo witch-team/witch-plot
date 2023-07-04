@@ -195,7 +195,8 @@ getvar_witchhist <- function(varname, unit_conversion=1, hist_varname=varname, a
 
 
 #Function to create a snapshot and setup the data for gdxompaR witch-online to be self-containted and deployed e.g. through shinyapps.io
-create_witch_online <- function(list_of_variables=c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "I_RD", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l"), deploy = F) {
+create_witch_online <- function(
+  list_of_variables=c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "I_RD", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l"), deploy = F) {
   #preload all variables (execult eht followig lines separately before deploying)
   aux_vars <- c("ghg", "csi", "allerr", "allinfoiter", "all_optimal", "all_feasible", "price_iter")
   lapply(c(aux_vars, list_of_variables), get_witch)

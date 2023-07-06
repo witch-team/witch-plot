@@ -239,14 +239,31 @@ shinyServer(function(input, output, session) {
           xlab("year") + 
           ylab(unit_conv$unit) + 
           xlim(yearlim[1],yearlim[2])
-        p <- p + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", linewidth=1.0, linetype="solid")
-        p <- p + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year,value,colour=file), size=4.0, shape=18)
+        p <- p + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),
+                           aes(x = year, y = value, 
+                               linetype = str_replace(file, "historical_","")),
+                           stat = "identity", 
+                           color = "black", alpha = 0.8,
+                           linewidth = 1.0)
+        p <- p + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),
+                            aes(x = year, y = value, 
+                                shape = str_replace(file, "valid_","")),
+                            color = "black", alpha = 0.8,
+                            size = 3.0)
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
       } else {
         p <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", linewidth=1.5) + xlab("year") + ylab(unit_conv$unit) + scale_colour_manual(values = region_palette) + xlim(yearlim[1],yearlim[2])
-        p <- p + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year, value, colour=n, group=interaction(n, file)), linetype = "solid", stat="identity", linewidth=1.0)
-        p <- p + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year, value, colour=n, shape=file), size=4.0)
+        p <- p + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),
+                           aes(year, value, colour=n, group=interaction(n, file),
+                               linetype = str_replace(file, "historical_","")), 
+                           stat="identity",
+                           color = "black", alpha = 0.8,
+                           linewidth = 1.0)
+        p <- p + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),
+                            aes(year, value, colour=n, shape=file),
+                            color = "black", alpha = 0.8,
+                            size = 3.0)
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 2), linetype=guide_legend(title=NULL))
         

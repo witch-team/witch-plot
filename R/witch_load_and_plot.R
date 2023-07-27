@@ -1,7 +1,5 @@
 # Load GDX of all scenarios and basic pre-processing 
 get_witch <- function(variable_name, scenplot=scenlist, check_calibration=FALSE, field = "l", postprocesssuffix=NULL, skip_restrict_regions=F){
-  if(!exists(variable_name) | (variable_name %in% c("t", "n", "p", "I"))){
-    if(exists("allfilesdata", envir = .GlobalEnv)){rm(allfilesdata, envir = .GlobalEnv)}
     for (current_pathdir in fullpathdir){
       for (file in filelist){
         if(file.exists(file.path(current_pathdir, paste0(file,".gdx")))){
@@ -62,9 +60,6 @@ get_witch <- function(variable_name, scenplot=scenlist, check_calibration=FALSE,
       if(("t" %in% names(allfilesdata)) & (!any(str_detect(allfilesdata$t, "_")))) allfilesdata$t <- as.numeric(allfilesdata$t)
       return(allfilesdata)
     }else{print(str_glue("Element {variable_name} was not found in any GDX file."));return(data.frame())}
-  }else{
-    return(return(data.frame()))
-  }
 }
 
 #use memoise for get_witch function

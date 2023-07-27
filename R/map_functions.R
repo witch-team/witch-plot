@@ -208,7 +208,10 @@ map_new <- function(data, yearmap=2100, title="", scenplot=scenlist) {
   data_map <- data %>% select(t, file, pathdir, value, iso_a3) %>% full_join(world) %>% filter(!is.na(value) & !is.na(iso_a3) & !is.na(file)) %>% as.data.frame()
   p_map <- ggplot(data = data_map) + geom_sf(aes(fill = value, geometry = geometry)) +  scale_fill_viridis_c(option = "plasma", direction = -1) + ggtitle(title) + labs(fill = varname) + theme_bw() + theme(strip.background = element_rect(fill = "white"))
   if(length(scenplot)>1) p_map <- p_map + facet_wrap(file ~ .)
+  #remove Antarctica
+  p_map <- p_map + coord_sf(ylim = c(-50, 90))
   saveplot("Map", width = 12, height = 10)
+  return(p_map)
 }
 
 

@@ -100,10 +100,7 @@ if(length(unique(subset(conf, V1=="regions")$V2))>1) print("Be careful: not all 
 reg_id <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) & V1=="regions")$V2
 }
 n <- suppressWarnings(batch_extract("n", files = file.path(fullpathdir,paste0(filelist,".gdx"))))
-if(is.null(n$n)) {
-  n <- suppressWarnings(batch_extract("r", files = file.path(fullpathdir,paste0(filelist,".gdx")))) #FIDELIO
-  if(!is.null(n$r)) witch_regions <- tolower(unique(n$r$wr)) else witch_regions <- "World"
-} else witch_regions <- unique(n$n$V1)
+if(is.null(n$n)) {witch_regions <- "World"} else witch_regions <- unique(n$n$V1)
 
 if(exists("nice_region_names")) witch_regions <- mapvalues(witch_regions , from=names(nice_region_names), to=nice_region_names, warn_missing = FALSE)
 display_regions <- witch_regions

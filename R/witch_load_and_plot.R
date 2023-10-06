@@ -8,17 +8,7 @@ get_witch <- function(variable_name, scenplot=scenlist, check_calibration=FALSE,
           if(is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$parameters) | is.element(variable_name, all_items(mygdx)$sets) | is.element(variable_name, all_items(mygdx)$variables) | is.element(variable_name, all_items(mygdx)$equations))
           {
             tempdata <- data.table(mygdx[variable_name, field = field])
-            if(!("n" %in% names(tempdata))){
-              if("r" %in% names(tempdata)) {  #FIDELIO
-                tempdata <- tempdata %>% dplyr::rename(n=r) %>% mutate(n = tolower(n))
-                if("t_all" %in% names(tempdata)) tempdata <- tempdata %>% dplyr::rename(t=t_all) %>% mutate(t = as.numeric(t) - year0 + 1)
-                if("wr" %in% names(tempdata)) tempdata <- tempdata %>% filter(wr=="ZROW") %>% select(-wr) #for now if bilateral data only take towards ROW
-                if("sim" %in% names(tempdata)) tempdata <-  tempdata %>% filter(sim=="base") %>% select(-sim) #for now if bilateral data only take towards ROW
-              } 
-              else {
-                tempdata$n <- "World"
-              } 
-            }
+            if(!("n" %in% names(tempdata))) tempdata$n <- "World"
             tempdata$file <- as.character(file)
             if(length(fullpathdir)>=1){tempdata$pathdir <- basename(current_pathdir)}
             if(!exists("allfilesdata")){allfilesdata<-tempdata}else{allfilesdata <-rbind(allfilesdata,tempdata)}

@@ -4,6 +4,7 @@
 .RData
 plotgdx_witch_*.R
 plotgdx_rice_*.R
+plotgdx_fidelio_*.R
 # Example code in package build process
 *-Ex.R
 # RStudio files
@@ -13,6 +14,7 @@ vignettes/*.html
 vignettes/*.pdf
 !plotgdx_witch.R
 !plotgdx_rice.R
+!plotgdx_fidelio.R
 .httr-oauth
 .Rproj.user
 # data from online deployed gdxcompaR

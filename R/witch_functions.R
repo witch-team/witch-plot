@@ -79,9 +79,9 @@ if(exists("scenlist")){
   scenlist <- scenlist[filelist]
   }
 if(!exists("scenlist")){scenlist <- gsub(paste(c("results_", removepattern), collapse="|"), "", filelist); names(scenlist) <- filelist}
-#print("GDX Files:")
-#print(filelist)
-#print(paste("Scenarios used:", length(scenlist)))
+print("GDX Files:")
+print(filelist)
+print(paste("Scenarios used:", length(scenlist)))
 print(data.frame(scenlist=scenlist))
 
 #file to separate check
@@ -100,7 +100,8 @@ if(length(unique(subset(conf, V1=="regions")$V2))>1) print("Be careful: not all 
 reg_id <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) & V1=="regions")$V2
 }
 n <- suppressWarnings(batch_extract("n", files = file.path(fullpathdir,paste0(filelist,".gdx"))))
-if(is.null(n$n)) witch_regions <- "World" else witch_regions <- unique(n$n$V1)
+if(is.null(n$n)) {witch_regions <- "World"} else witch_regions <- unique(n$n$V1)
+
 if(exists("nice_region_names")) witch_regions <- mapvalues(witch_regions , from=names(nice_region_names), to=nice_region_names, warn_missing = FALSE)
 display_regions <- witch_regions
 

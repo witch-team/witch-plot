@@ -1,6 +1,6 @@
 
 add_historical_values <- function(variable, varname=deparse(substitute(variable)), scenplot=scenlist, check_calibration=FALSE, overlap_years="model", verbose=T){
-  if(length(list.files(path=file.path(witch_folder, paste0("data_", reg_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE))>0){
+  if(length(list.files(path=file.path(witch_folder, paste0("data_", reg_id)), full.names = TRUE, pattern="^data_historical(.*).gdx$", recursive = FALSE))>0){
   #have to decide what to do with years with both model and historical data: overlap_years = #historical"  or "model" 
   #for different models or variable names, use mapping
   if(exists("map_var_hist")){
@@ -21,6 +21,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   if(varname=="Q"){valid_suffix <- c("_valid_wdi", "_valid_weo")}
   #if(varname=="SOCECON"){valid_suffix <- "_valid_wdi_sum"}
   if(varname=="Q_IN"){valid_suffix <- "_valid_notcompatible"}
+  if(varname=="sigma"){valid_suffix <- "_valid_notcompatible"}
   if(varname=="quantiles"){valid_suffix <- "_valid_swiid"} #for quantiles
   if(varname=="K_EN"){valid_suffix <- c("_valid_platts_tot", "_valid_irena", "_valid_iaea", "_valid_gcpt")} #for quantiles, set it to 
   
@@ -30,7 +31,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   
   #check which GDX file to use (all files that start with data_historical*.gdx)
   if(!dir.exists(file.path(witch_folder, paste0("data_", reg_id)))) return(as.data.table(variable))
-  gdxhistlist <- list.files(path=file.path(witch_folder, paste0("data_", reg_id)), full.names = TRUE, pattern="^data_historical", recursive = FALSE)
+  gdxhistlist <- list.files(path=file.path(witch_folder, paste0("data_", reg_id)), full.names = TRUE, pattern="^data_historical(.*).gdx$", recursive = FALSE)
   
   for(.gdxname in gdxhistlist){
     #print(.gdxname)

@@ -168,10 +168,7 @@ plot_winners_losers_time <- function(scen0, scen1, showvar = "people", yeardist=
 
 #computes (model and historical) Gini and deciles at the global level based on Y_DIST and Y (=assumes GDP at PPP in the model! (historical is always using PPP))
 compute_global_inequality <- function(Y_DIST="Y_DIST", Y="Y", l="l", scenplot=scenlist){
-  Y_DIST <- get_witch(Y_DIST)
-  l <- get_witch(l, scenplot = scenplot)
-  Y <- get_witch(Y, scenplot = scenplot)
-  inequality_dataset_model <- Y_DIST %>% full_join(Y %>% dplyr::rename(Y=value)) %>% full_join(l %>% dplyr::rename(pop=value)) %>% mutate(year=ttoyear(t), gdppcppp=Y*1e6/pop, value=value/Y)
+  inequality_dataset_model <- get_witch(Y_DIST) %>% full_join(get_witch(Y, scenplot = scenplot) %>% dplyr::rename(Y=value)) %>% full_join(get_witch(l, scenplot = scenplot) %>% dplyr::rename(pop=value)) %>% mutate(year=ttoyear(t), gdppcppp=Y*1e6/pop, value=value/Y)
   
   #now get historical data on ed57 aggregation
   data_hist_quantiles <- gdx(file.path(witch_folder, paste0("data_", reg_id), "data_historical_values_inequality_converted.gdx"))

@@ -463,7 +463,7 @@ shinyServer(function(input, output, session) {
     yearmin <- input$yearmin
     yearmax <- input$yearmax
     scenarios <- input$scenarios_selected
-    map_new(varname = variable, yearmap = yearmax, scenplot = scenarios, title = str_glue("{variable} in {yearmax}"))
+    map_new(variable, yearmap = yearmax, scenplot = scenarios, title = str_glue("{variable} in {yearmax}"))
   })
 
 

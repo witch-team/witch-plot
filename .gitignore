@@ -18,3 +18,4 @@ vignettes/*.pdf
 # data from online deployed gdxcompaR
 gdxcompaR/witch-online/*.RData
 gdxcompaR/witch-online/rsconnect
+iiasa_credentials.yml

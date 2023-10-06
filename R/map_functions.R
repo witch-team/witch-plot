@@ -186,8 +186,7 @@ CalcDists <- function(longlats) {
 
 
 #New maps for RICE+
-map_new <- function(data, yearmap=2100, title="", scenplot=scenlist) {
-  if(!is.data.frame(data)) {varname <- data; data <- get_witch(data)}else{varname <- deparse(substitute(data))}
+map_simple <- function(data, yearmap=2100, title="", scenplot=scenlist, legend_title = "Variable") {
   sf::sf_use_s2(FALSE) #to avoid errors
   world <- ne_countries(scale = "medium", returnclass = "sf")
   #add geometry
@@ -203,10 +202,10 @@ map_new <- function(data, yearmap=2100, title="", scenplot=scenlist) {
   setnames(mod.countries, c("n", "iso_a3"))
   #Add data to iso3 list
   data <- data %>% filter(t == yeartot(yearmap) & file %in% scenplot)
-  data <- data %>% full_join(mod.countries)
+  data <- data %>% full_join(mod.countries, relationship = "many-to-many")
   #Add data to world polygon
-  data_map <- data %>% select(t, file, pathdir, value, iso_a3) %>% full_join(world) %>% filter(!is.na(value) & !is.na(iso_a3) & !is.na(file)) %>% as.data.frame()
-  p_map <- ggplot(data = data_map) + geom_sf(aes(fill = value, geometry = geometry)) +  scale_fill_viridis_c(option = "plasma", direction = -1) + ggtitle(title) + labs(fill = varname) + theme_bw() + theme(strip.background = element_rect(fill = "white"))
+  data_map <- data %>% select(t, file, pathdir, value, iso_a3) %>% full_join(world, relationship = "many-to-many") %>% filter(!is.na(value) & !is.na(iso_a3) & !is.na(file)) %>% as.data.frame()
+  p_map <- ggplot(data = data_map) + geom_sf(aes(fill = value, geometry = geometry)) +  scale_fill_viridis_c(option = "plasma", direction = -1) + ggtitle(title) + labs(fill = legend_title) + theme_bw() + theme(strip.background = element_rect(fill = "white"))
   if(length(scenplot)>1) p_map <- p_map + facet_wrap(file ~ .)
   #remove Antarctica
   p_map <- p_map + coord_sf(ylim = c(-50, 90))

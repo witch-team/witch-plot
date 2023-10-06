@@ -79,9 +79,9 @@ if(exists("scenlist")){
   scenlist <- scenlist[filelist]
   }
 if(!exists("scenlist")){scenlist <- gsub(paste(c("results_", removepattern), collapse="|"), "", filelist); names(scenlist) <- filelist}
-#print("GDX Files:")
-#print(filelist)
-#print(paste("Scenarios used:", length(scenlist)))
+print("GDX Files:")
+print(filelist)
+print(paste("Scenarios used:", length(scenlist)))
 print(data.frame(scenlist=scenlist))
 
 #file to separate check

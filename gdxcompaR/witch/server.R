@@ -60,7 +60,7 @@ shinyServer(function(input, output, session) {
       variable <- input$variable_selected
       if(is.null(variable)) variable <- list_of_variables[1]
       #get data
-      afd <- get_witch(variable, check_calibration=T, field = field_show)
+      afd <- get_witch(variable, check_calibration=F, field = field_show)
       if(verbose) print(str_glue("Variable {variable} loaded."))
       #get the name of the additional set
       additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))

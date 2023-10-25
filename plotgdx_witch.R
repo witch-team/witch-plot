@@ -1,8 +1,8 @@
 rm(list = ls())
 witch_folder = "../witch" #Where you're WITCH code is located
 #main directory of your results files
-main_directory <- witch_folder # by default, the witch source folder
-#main_directory <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/EIEE/WITCH_CODING/WITCH_RUNS_2018/submission_cdlinks/2019_04_15"
+main_folder <- witch_folder # by default, the witch source folder
+#main_folder <- "C:/Users/Emmerling/Documents/Dropbox (CMCC)/EIEE/WITCH_CODING/WITCH_RUNS_2018/submission_cdlinks/2019_04_15"
 subdir = c("") #can be multiple directories
 
 

@@ -4,7 +4,7 @@
 #require(yaml)
 
 #Function to get IIASAdb variable
-get_iiasadb <- function(database="ar6-public", varlist="Emissions|CO2", varname=NULL, region="World", show_variables = F){
+get_iiasadb <- function(database="ar6-public", varlist="Emissions|CO2", varname=NULL, modlist="*", scenlist="*", region="World", show_variables = F, add_metadata = T){
   require(reticulate)
   pyam <- import("pyam", convert = FALSE)
   #if private databases provide credentials
@@ -17,9 +17,9 @@ get_iiasadb <- function(database="ar6-public", varlist="Emissions|CO2", varname=
   if(show_variables) print(py_to_r(pyam$iiasa$Connection(database)$variables()))
   assign("iiasadb_variables_available", as.data.frame(py_to_r(pyam$iiasa$Connection(database)$variables())), envir = .GlobalEnv)
   print("Available_Connections:"); print(py_to_r(pyam$iiasa$Connection(database)$valid_connections))
-  iiasadb_data <- pyam$read_iiasa(database, model='*', scenario="*", variable=varlist, region=region, meta=1)
+  iiasadb_data <- pyam$read_iiasa(database, model=modlist, scenario=scenlist, variable=varlist, region=region, meta=1)
   #If AR6, also add meta categories and other meta data
-  if(database == "ar6_public" ){
+  if(database == "ar6_public" & add_metadata){
      #as_pandas concatenates data and meta into a pandas DF (meta_cols = TRUE adds all meta data)
     iiasadb_df <- iiasadb_data$as_pandas(meta_cols = c("Ssp_family", "Policy_category", "Policy_category_name", "Category", "IMP_marker"))
     #pandas to R data frame

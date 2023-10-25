@@ -21,11 +21,11 @@ if(!exists("yearmax")) yearmax = 2100
 
 
 witch_folder <- normalizePath(witch_folder)
-main_directory <- normalizePath(main_directory)
+main_folder <- normalizePath(main_folder)
 
-fullpathdir = file.path(main_directory, subdir)
+fullpathdir = file.path(main_folder, subdir)
 #Specify directory for graphs and data to be saved: by default: /graphs/ in the folder
-graphdir = if(length(fullpathdir)>1){file.path(main_directory, "graphs") }else{file.path(fullpathdir, "graphs")}
+graphdir = if(length(fullpathdir)>1){file.path(main_folder, "graphs") }else{file.path(fullpathdir, "graphs")}
 
 #check if directory valid
 if(any(!dir.exists(fullpathdir))){stop("Please check the main directory and sub directory!")}
@@ -62,7 +62,8 @@ source('R/auxiliary_functions.R')
 source('R/witch_load_and_plot.R')
 source('R/add_historical_values.R')
 
-filelist <- gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="^results.*.gdx", recursive = FALSE))
+filelist <- gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
+if(!exists("restrict_files")) restrict_files <- "results_"
 if(restrict_files[1]!=""){
   for(i in 1:length(restrict_files)){
     .filelist_res = filelist[apply(outer(filelist, restrict_files[i], str_detect), 1, all)]
@@ -70,7 +71,7 @@ if(restrict_files[1]!=""){
   }
   filelist <- unique(.filelist_res_all)
 }
-if(exclude_files[1]!="") filelist = filelist[!str_detect(filelist, paste(exclude_files, collapse = '|'))]
+if(exists("exclude_files")) if(exclude_files[1]!="") filelist = filelist[!str_detect(filelist, paste(exclude_files, collapse = '|'))]
 if(length(filelist)==0){stop("No GDX files found.")}
 if(exists("scenlist")){
   #check if missing scenarios in scenlist
@@ -78,10 +79,11 @@ if(exists("scenlist")){
   filelist <- intersect(names(scenlist), filelist)
   scenlist <- scenlist[filelist]
   }
-if(!exists("scenlist")){scenlist <- gsub(paste(c("results_", removepattern), collapse="|"), "", filelist); names(scenlist) <- filelist}
-print("GDX Files:")
-print(filelist)
-print(paste("Scenarios used:", length(scenlist)))
+if(!exists("removepattern")) removepattern <- "results_"
+if(!exists("scenlist")){scenlist <- gsub(paste(removepattern, collapse="|"), "", filelist); names(scenlist) <- filelist}
+#print("GDX Files:")
+#print(filelist)
+#print(paste("Scenarios used:", length(scenlist)))
 print(data.frame(scenlist=scenlist))
 
 #file to separate check

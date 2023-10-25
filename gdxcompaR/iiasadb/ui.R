@@ -27,10 +27,7 @@ shinyUI(fluidPage(pageWithSidebar(
                 step  = 10),
     
 
-    uiOutput("select_scenarios_1"),
-    uiOutput("select_scenarios_2"),
-    uiOutput("select_scenarios_3"),
-    uiOutput("select_scenarios_4"),
+    uiOutput("select_scenarios"),
     uiOutput("select_models"),
     uiOutput("select_regions"),
     #div(style="display:inline-block",uiOutput("compare_models_scenarios")),     
@@ -45,7 +42,7 @@ shinyUI(fluidPage(pageWithSidebar(
   mainPanel(
   tabsetPanel(type = "tabs", id = "tabs",
                 tabPanel("iiasadb_compaR", id = "iiasadb_compaR", h2(textOutput("varname")),plotOutput("iiasadb_compaRplot", width = "100%", height = "80vh")),
-                tabPanel("iiasadb_compaRly (BETA)", id = "iiasadb_compaRly", plotlyOutput("iiasadb_compaRly", width = "100%", height = "80vh"))
+                #tabPanel("iiasadb_compaRly (BETA)", id = "iiasadb_compaRly", h2(textOutput("varname")),plotlyOutput("iiasadb_compaRly", width = "100%", height = "80vh"))
                 
     )
   )

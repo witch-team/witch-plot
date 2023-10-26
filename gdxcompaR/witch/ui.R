@@ -1,6 +1,32 @@
-# Define UI
-#shinyUI(fluidPage(theme = shinytheme("superhero"), pageWithSidebar(
-shinyUI(fluidPage(pageWithSidebar(
+# WITCH gdxcompaR
+
+#if deploying online be sure to run plotgdx_witch.R first, and then execute create_witch_plot_online() to create and save the snapshot.
+#then run and "publish" the shiny app
+
+#only if deployed online
+deploy_online <<- F
+if(!exists("witch_folder")){
+  load(file="allvariables.Rdata", envir = .GlobalEnv)
+  #Install and load packages
+  require_package <- function(package){
+    suppressPackageStartupMessages(require(package,character.only=T, quietly = TRUE))  
+  }
+  pkgs <- c('data.table', 'stringr', 'countrycode', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'plotly', 'purrr', 'reldist', 'tidytidbits', 'forcats', 'arrow')
+  res <- lapply(pkgs, require_package)
+  deploy_online <<- T
+} 
+  
+
+
+shinyUI(fluidPage(
+  tags$style("
+    body {
+    -moz-transform: scale(0.8, 0.8); /* Moz-browsers */
+    zoom: 0.8; /* Other non-webkit browsers */
+    zoom: 80%; /* Webkit browsers */
+}              "),
+  
+  pageWithSidebar(
     
   
   # Application title

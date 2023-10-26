@@ -18,8 +18,8 @@ vignettes/*.pdf
 .httr-oauth
 .Rproj.user
 # data from online deployed gdxcompaR
-gdxcompaR/witch-online/*.RData
-gdxcompaR/witch-online/rsconnect
+gdxcompaR/witch/*.RData
+gdxcompaR/witch/rsconnect
 gdxcompaR/iiasadb/*.RData
 gdxcompaR/iiasadb/rsconnect
 iiasa_credentials.yml

@@ -1,5 +1,5 @@
 # Load GDX of all scenarios and basic pre-processing 
-get_witch <- function(variable_name, scenplot=scenlist, check_calibration=FALSE, field = "l", postprocesssuffix=NULL, skip_restrict_regions=F){
+get_witch <- function(variable_name, scenplot=scenlist, check_calibration=TRUE, field = "l", postprocesssuffix=NULL, skip_restrict_regions=F){
     for (current_pathdir in fullpathdir){
       for (file in filelist){
         if(file.exists(file.path(current_pathdir, paste0(file,".gdx")))){
@@ -256,17 +256,20 @@ getvar_witchhist <- function(varname, unit_conversion=1, hist_varname=varname, a
 
 
 #Function to create a snapshot and setup the data for gdxompaR witch-online to be self-containted and deployed e.g. through shinyapps.io
-create_witch_online <- function(list_of_variables=c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "I_RD", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l"), deploy = F) {
+create_witch_plot_online <- function(list_of_variables=c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "I_EN", "I", "I_RD", "MCOST_INV", "COST_EMI", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_IN", "ykali", "tpes", "carbonprice", "emi_cap", "l"), deploy = F) {
   #preload all variables (execult eht followig lines separately before deploying)
   aux_vars <- c("ghg", "csi", "allerr", "allinfoiter", "all_optimal", "all_feasible", "price_iter")
-  lapply(c(aux_vars, list_of_variables), get_witch)
-  if(file.exists("gdxcompaR//witch-online//allvariables.Rdata")) file.remove("gdxcompaR//witch-online//allvariables.Rdata")
-  assign("deploy_online", TRUE, envir = .GlobalEnv)
-  save.image(file="gdxcompaR//witch-online//allvariables.Rdata")
+  allvariables <- lapply(c(aux_vars, list_of_variables), get_witch)
+  names(allvariables) <- as.list(c(aux_vars, list_of_variables))
+  #now also store as variables in the environment
+  for(i in 1:length(allvariables)) assign(names(allvariables)[i], allvariables[[i]])
+  if(file.exists("gdxcompaR//witch//allvariables.Rdata")) file.remove("gdxcompaR//witch//allvariables.Rdata")
+  deploy_online <<- TRUE
+  save.image(file="gdxcompaR//witch//allvariables.Rdata")
   #deploy app
   if(deploy){
     library(rsconnect)
-    deployApp(appDir = "gdxcompaR/witch-online/")
+    deployApp(appDir = "gdxcompaR/witch")
   }
 }
 

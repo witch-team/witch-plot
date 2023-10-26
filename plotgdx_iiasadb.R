@@ -1,5 +1,5 @@
 rm(list = ls())
-witch_folder = "../witch-ecemf" #Where you're WITCH code is located
+witch_folder = "../witch" #Where you're WITCH code is located
 main_folder <- witch_folder # by default, the witch source folder
 subdir = c("EIEE-MIP") #can be multiple directories
 

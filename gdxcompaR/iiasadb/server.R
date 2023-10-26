@@ -160,7 +160,7 @@ shinyServer(function(input, output, session) {
       }
       p_dyn <- p + theme(legend.position = "none") + labs(title=variable)
       print(p_dyn)
-      ggplotly()
+      if(length(ggplot_build(p_dyn)$data[[1]]) > 0) ggplotly()
     })
  
 })

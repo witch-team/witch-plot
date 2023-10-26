@@ -449,7 +449,7 @@ shinyServer(function(input, output, session) {
     }
     p_dyn <- p_dyn + theme(legend.position = "none")
     print(p_dyn)
-    ggplotly()
+    if(length(ggplot_build(p_dyn)$data[[1]]) > 0) ggplotly()
   })
 
 

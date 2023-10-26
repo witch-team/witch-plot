@@ -37,7 +37,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   if(str_detect(varname, "HECTOR")) varname <- gsub("HECTOR", "", varname)
   
   #check which GDX file to use (all files that start with data_historical*.gdx)
-  if(!dir.exists(file.path(witch_folder, paste0("data_", reg_id)))) return(as.data.table(variable))
+  if(!dir.exists(file.path(witch_folder, paste0("data_", reg_id[1])))) return(as.data.table(variable))
   gdxhistlist <- list.files(path=file.path(witch_folder, paste0("data_", reg_id)), full.names = TRUE, pattern="^data_historical(.*).gdx$", recursive = FALSE)
   
   for(.gdxname in gdxhistlist){
@@ -80,11 +80,11 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   .hist$t <- yeartot(.hist$t)
   t_historical<-unique(.hist$t)
   #adjust scenario names
-  .hist$n  <- mapvalues(.hist$n , from=witch_regions, to=display_regions, warn_missing = F)
+  if(exists("witch_regions")) .hist$n  <- mapvalues(.hist$n , from=witch_regions, to=display_regions, warn_missing = F)
   
   #if check_calibration, add validation as data points!
   if(check_calibration){
-    .gdx_validation <- gdx(file.path(witch_folder, paste0("data_", reg_id), "data_validation.gdx"))
+    .gdx_validation <- gdx(file.path(witch_folder, paste0("data_", reg_id[1]), "data_validation.gdx"))
     for(.item in intersect(item, .gdx_validation$parameters$name)){.hist_validation_single <- as.data.table(.gdx_validation[.item]); .hist_validation_single$file <- gsub(paste0(tolower(varname), "_"), "", .item); if(.item==item[1]){.hist_validation <- .hist_validation_single}else{.hist_validation <- rbind(.hist_validation,.hist_validation_single)} }
     if(exists(".hist_validation")){
     if(!("n" %in% colnames(.hist_validation))){.hist_validation$n = "World"}
@@ -150,7 +150,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   if(iiasadb){
     #adjusting region names
     #creating same data format as iiasadb
-    .hist <- .hist %>% mutate(VARIABLE=varname_original, UNIT=unique(variable$UNIT), SCENARIO="historical", MODEL=file)
+    .hist <- .hist %>% mutate(VARIABLE=varname_original, UNIT=unique(variable$UNIT)[1], SCENARIO="historical", MODEL=file)
     .hist <- .hist %>% select(-file, -pathdir)
     #keep only historical, no valid data points
     .hist <- .hist %>% filter(!str_detect(MODEL, "valid"))
@@ -159,6 +159,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   merged_variable <- rbind(variable, .hist)
   merged_variable$t <- as.numeric(merged_variable$t)
   if(iiasadb) merged_variable <- merged_variable %>% dplyr::rename(REGION=n) %>% mutate(t=ttoyear(t)) %>% dplyr::rename(YEAR=t) %>% mutate(VARIABLE=gsub("_","|",VARIABLE))
+  if(iiasadb) merged_variable <- merged_variable %>% mutate(REGION=toupper(REGION)) #for now use upper case for all regions
   #remove additional columns if using mapping
   if(exists("varname_original")){
     if(map_var_hist[varname_model==varname_original]$set_witch!="") merged_variable <- merged_variable %>% filter(get(map_var_hist[varname_model==varname_original]$set_witch)==map_var_hist[varname_model==varname_original]$element_witch) %>% select(-one_of(map_var_hist[varname_model==varname_original]$set_witch)) 

@@ -61,7 +61,12 @@ options(dplyr.summarise.inform = FALSE)
 source('R/auxiliary_functions.R')
 source('R/witch_load_and_plot.R')
 source('R/add_historical_values.R')
+source('R/get_iiasadb.R')
 
+
+
+#from here only if GDX files are loaded
+if(!exists("iamc_filename") & !exists("iamc_databasename")){
 filelist <- gsub(".gdx","",list.files(path=fullpathdir[1], full.names = FALSE, pattern="*.gdx", recursive = FALSE))
 if(!exists("restrict_files")) restrict_files <- "results_"
 if(restrict_files[1]!=""){
@@ -173,4 +178,4 @@ source('R/climate_plots.R')
 source('R/policy_cost.R')
 source('R/inequality_plots.R')
 source('R/RICE50x_plots.R')
-source('R/get_iiasadb.R')
+}

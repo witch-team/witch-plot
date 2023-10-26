@@ -1,12 +1,12 @@
 rm(list = ls())
 witch_folder = "../witch" #Where you're WITCH code is located
 main_folder <- witch_folder # by default, the witch source folder
-subdir = c("") #can be multiple directories
+subdir = c("EIEE-MIP") #can be multiple directories
 
-reg_id <- "witch17" #choose the aggregation that has the historical data at the aggregation closes to the iamc data
+reg_id <- c("witch20", "global") #choose the aggregations that has the historical data at the aggregation closes to the iamc data
 
 #set or an iamc_filename OR iamc_databasename
-iamc_filename <- "template_NAVIGATE_2023-10-24_14-17-53-trade-new.xlsx"  #IIASADB snapshot file to read in main_folder/subdir/
+iamc_filename <- "EIEE_MIP.csv"  #IIASADB snapshot file to read in main_folder/subdir/
 #iamc_databasename <- "ar6_public" #IIASADB database name to read
 
 
@@ -35,13 +35,20 @@ if(exists("iamc_databasename")){
 }else{
 #IIASADB from a xlsx/csv/zipped csv file in the subfolder specified above
 # IIASADB snapshot file to read
-if(str_detect(iamc_filename, ".xlsx")){iiasadb_snapshot <- read.xlsx(file.path(main_folder, subdir, iamc_filename), sheet = 1);names(iiasadb_snapshot) <- toupper(names(iiasadb_snapshot))}
+if(str_detect(iamc_filename, ".xlsx$")){iiasadb_snapshot <- read.xlsx(file.path(main_folder, subdir, iamc_filename), sheet = 1);names(iiasadb_snapshot) <- toupper(names(iiasadb_snapshot))}
 #from zipped CSV files (old iiasadb snapshots)
-if(str_detect(iamc_filename, ".csv.zip")) iiasadb_snapshot <- fread(cmd=paste0('unzip -cq "', file.path(file.path(main_folder, subdir, iamc_filename)),'" ', gsub(".zip","",basename(file.path(main_folder, subdir, iamc_filename)))), header=T, quote="\"", sep=",", check.names = FALSE)
+if(str_detect(iamc_filename, ".csv.zip$")){iiasadb_snapshot <- fread(cmd=paste0('unzip -cq "', file.path(file.path(main_folder, subdir, iamc_filename)),'" ', gsub(".zip","",basename(file.path(main_folder, subdir, iamc_filename)))), header=T, quote="\"", sep=",", check.names = FALSE);names(iiasadb_snapshot) <- toupper(names(iiasadb_snapshot))}
+#from zipped CSV files (old iiasadb snapshots)
+if(str_detect(iamc_filename, ".csv$")){iiasadb_snapshot <- fread(file.path(main_folder, subdir, iamc_filename), header=T, quote="\"", sep=",", check.names = FALSE);names(iiasadb_snapshot) <- toupper(names(iiasadb_snapshot))}
 #convert to iiasadb long format
 iiasadb_snapshot <- iiasadb_snapshot %>% pivot_longer(cols = -c(MODEL, SCENARIO, REGION, VARIABLE, UNIT), names_to = "YEAR") %>% mutate(YEAR=as.integer(YEAR))
 }
+#to avoid casing issues, for now always use upper case for regions
+iiasadb_snapshot <- iiasadb_snapshot %>% mutate(REGION=toupper(REGION))
 if(!exists("iiasadb_snapshot")) stop("Please check you specified a correct iiasadb file or connection.")
+
+#use only a subset of the data
+iiasadb_snapshot <- iiasadb_snapshot %>% filter(REGION %in% c("WORLD", "EU27", "EUROPE", "ITALY"))
 
 
 #launch gdxcompaR

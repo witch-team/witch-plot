@@ -10,7 +10,7 @@ shinyServer(function(input, output, session) {
     models <- unique(iiasadb_snapshot$MODEL)
     variables <- unique(iiasadb_snapshot$VARIABLE)
     variables <- sort(variables)
-    variable_atstart <- ifelse("Emissions|CO2" %in% variables, "Emissions|CO2", variables[1])
+    variable_atstart <- ifelse("Population" %in% variables, "Population", variables[1])
     scenarios <- unique(iiasadb_snapshot$SCENARIO)
 
     #Scenario selector
@@ -85,7 +85,7 @@ shinyServer(function(input, output, session) {
         if(length(models_selected)==1){
           p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=SCENARIO)) + geom_line(stat="identity", linewidth=1.5) + xlab("") + ylab(unitplot) + xlim(yearmin,yearmax)
         }else{
-          p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=MODEL)) + geom_line(stat="identity", size=1.5) + xlab("") + ylab(unitplot) + xlim(yearmin,yearmax)
+          p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=MODEL, linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("") + ylab(unitplot) + xlim(yearmin,yearmax)
         }
         p <- p + geom_line(data=subset(allfilesdata, REGION %in% regions & SCENARIO=="historical"), aes(YEAR,value, linetype=MODEL), stat="identity", linewidth=1.0, colour = "black")
         if(ylim_zero) p <- p + ylim(0, NA)

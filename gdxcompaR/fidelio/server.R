@@ -430,7 +430,7 @@ shinyServer(function(input, output, session) {
         ylab(unit_conv$unit) +
         xlim(yearmin, yearmax)
       if (ylim_zero) p_dyn <- p_dyn + ylim(0, NA)
-      p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", size=1.0, linetype="solid")
+      if("historical" %in% unique(allfilesdata %>% filter(n %in% regions))$file) p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", size=1.0, linetype="solid")
       # legends:
       p_dyn <- p_dyn + theme(text = element_text(size = 16), legend.position = "bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title = element_blank()) + guides(color = guide_legend(title = NULL))
     } else {
@@ -440,7 +440,7 @@ shinyServer(function(input, output, session) {
         ylab(unit_conv$unit) +
         scale_colour_manual(values = region_palette) +
         xlim(yearmin, yearmax)
-      p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(ttoyear(t),value,colour=n), linetype = "solid", stat="identity", size=1.0)
+      if("historical" %in% unique(allfilesdata %>% filter(n %in% regions))$file) p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(ttoyear(t),value,colour=n), linetype = "solid", stat="identity", size=1.0)
       # legends:
       p_dyn <- p_dyn + theme(text = element_text(size = 16), legend.position = "bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title = element_blank()) + guides(color = guide_legend(title = NULL, nrow = 2), linetype = guide_legend(title = NULL))
     }
@@ -449,7 +449,7 @@ shinyServer(function(input, output, session) {
     }
     p_dyn <- p_dyn + theme(legend.position = "none")
     print(p_dyn)
-    suppressWarnings(ggplotly()) # to be done: fix error "argument 1 is not a vector", shoudl be done by plotly package
+    ggplotly()
   })
 
 

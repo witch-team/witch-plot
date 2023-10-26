@@ -1,4 +1,12 @@
-#Create gdxcompaR based on iiasa forma csv or xlsx files
+#Create gdxcompaR based on iiasa form csv or xlsx files or direct database connection
+
+#require packages if online deployed
+if(deploy_online){
+  suppressPackageStartupMessages(require(tidyverse))
+  require(plotly)
+  add_historical_values <- function(x, varname, check_calibration, iiasadb, verbose){return(x)}
+} 
+
 
 # Define server 
 shinyServer(function(input, output, session) {
@@ -53,7 +61,7 @@ shinyServer(function(input, output, session) {
     
 
     # MAIN CODE FOR PLOT GENERATION  
-    output$iiasadb_compaRplot <- renderPlot({
+    output$iiasadb_compaR <- renderPlot({
       ylim_zero <- input$ylim_zero
       variable <- input$variable_selected
       if(is.null(variable)) variable <- variables[1]
@@ -85,7 +93,7 @@ shinyServer(function(input, output, session) {
         if(length(models_selected)==1){
           p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=SCENARIO)) + geom_line(stat="identity", linewidth=1.5) + xlab("") + ylab(unitplot) + xlim(yearmin,yearmax)
         }else{
-          p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=MODEL, linetype=SCENARIO)) + geom_line(stat="identity", size=1.5) + xlab("") + ylab(unitplot) + xlim(yearmin,yearmax)
+          p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=MODEL, linetype=SCENARIO)) + geom_line(stat="identity", linewidth=1.5) + xlab("") + ylab(unitplot) + xlim(yearmin,yearmax)
         }
         p <- p + geom_line(data=subset(allfilesdata, REGION %in% regions & SCENARIO=="historical"), aes(YEAR,value, linetype=MODEL), stat="identity", linewidth=1.0, colour = "black")
         if(ylim_zero) p <- p + ylim(0, NA)
@@ -103,10 +111,6 @@ shinyServer(function(input, output, session) {
     
     
     
- 
-    
-    
-    
     
     # MAIN CODE FOR PLOT GENERATION  
     output$iiasadb_compaRly <- renderPlotly({
@@ -115,14 +119,9 @@ shinyServer(function(input, output, session) {
       if(is.null(variable)) variable <- variables[1]
       #get data
       allfilesdata <- subset(iiasadb_snapshot, VARIABLE==variable)
-      #convert to witchplotR format
-      allfilesdata <- as.data.frame(allfilesdata)[,colSums(is.na(allfilesdata))<nrow(allfilesdata)] #drop years without observations
-      allfilesdata <- as.data.table(allfilesdata)
-      allfilesdata <- data.table::melt(allfilesdata, id.vars = c("VARIABLE", "UNIT", "REGION", "SCENARIO", "MODEL"), variable.name = "YEAR")
-      allfilesdata$YEAR <- as.integer(as.character(allfilesdata$YEAR))
       unitplot <- unique(allfilesdata$UNIT)[1]
       #add historical data
-      allfilesdata <- rbind(allfilesdata, get_historical_iiasadb(variable))
+      allfilesdata <- add_historical_values(allfilesdata, varname = variable, check_calibration = T, iiasadb = T, verbose = F)
       
       #get input from sliders/buttons
       yearmin = input$yearmin
@@ -131,10 +130,9 @@ shinyServer(function(input, output, session) {
       models_selected <- input$models_selected
       #get all possible scenarios
       scenarios_selected <- input$scenarios_selected
-      
       #select scenarios
       allfilesdata <- subset(allfilesdata, SCENARIO %in% c(scenarios_selected, "historical"))
-      allfilesdata <- subset(allfilesdata, MODEL %in% c(models_selected, "historical"))
+      allfilesdata <- subset(allfilesdata, !(MODEL %in% setdiff(models, models_selected)))
       
       #time frame
       allfilesdata <- subset(allfilesdata, YEAR>=yearmin & YEAR<=yearmax)
@@ -143,41 +141,26 @@ shinyServer(function(input, output, session) {
       
       if(is.null(regions)) regions <- "World"
       
-      if(length(models_selected)==1){
-        color_aesthetics <- "SCENARIO"
-        linetype_aesthetics <- "MODEL"
-      }else{
-        color_aesthetics <- "MODEL"
-        linetype_aesthetics <- "SCENARIO"
-      } 
-      
       if(regions[1]=="World" | length(regions)==1){#if only World is displayed or only one region, show files with colors
         if(length(models_selected)==1){
-          p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=SCENARIO)) + geom_line(stat="identity", linewidth=1) + xlab("") + ylab(unitplot) + xlim(yearmin,yearmax)
+          p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=SCENARIO)) + geom_line(stat="identity", linewidth=1.5) + xlab("") + ylab(unitplot) + xlim(yearmin,yearmax)
         }else{
-          p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=MODEL, linetype=SCENARIO)) + geom_line(stat="identity", linewidth=1) + xlab("") + ylab(unitplot) + xlim(yearmin,yearmax)
+          p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=MODEL, linetype=SCENARIO)) + geom_line(stat="identity", linewidth=1.5) + xlab("") + ylab(unitplot) + xlim(yearmin,yearmax)
         }
-        p <- p + geom_line(data=subset(allfilesdata, REGION %in% regions & SCENARIO=="historical"), aes(YEAR,value), stat="identity", linewidth=1.0, colour = "black")
+        if("historical" %in% unique(allfilesdata %>% filter(REGION %in% regions))$SCENARIO) p <- p + geom_line(data=subset(allfilesdata, REGION %in% regions & SCENARIO=="historical"), aes(YEAR,value, linetype=MODEL), stat="identity", linewidth=1.0, colour = "black")
         if(ylim_zero) p <- p + ylim(0, NA)
         #legends:
-        p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
+        p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL), linetype=guide_legend(title=NULL))
       }else{
         p <- ggplot(subset(allfilesdata, REGION %in% regions & SCENARIO!="historical"),aes(YEAR,value,colour=interaction(REGION, MODEL), linetype=SCENARIO)) + geom_line(stat="identity", linewidth=1.5) + xlab("year") + ylab(unitplot) + xlim(yearmin,yearmax) + facet_grid(. ~ REGION)
-        p <- p + geom_line(data=subset(allfilesdata, REGION %in% regions & SCENARIO=="historical"), aes(YEAR,value,colour=REGION), stat="identity", linewidth=1.0)
+        if("historical" %in% unique(allfilesdata %>% filter(REGION %in% regions))$SCENARIO) p <- p + geom_line(data=subset(allfilesdata, REGION %in% regions & SCENARIO=="historical"), aes(YEAR,value,colour=REGION, linetype=MODEL), stat="identity", linewidth=1.0)
         if(ylim_zero) p <- p + ylim(0, NA)
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 2), linetype=guide_legend(title=NULL))
       }
       p_dyn <- p + theme(legend.position = "none") + labs(title=variable)
       print(p_dyn)
-      suppressWarnings(ggplotly()) #to be done: fix error "argument 1 is not a vector", shoudl be done by plotly package
+      ggplotly()
     })
-    
-    
-    
-
-
-    
-    
+ 
 })
-

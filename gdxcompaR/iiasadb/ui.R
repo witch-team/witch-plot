@@ -1,10 +1,31 @@
 # Define UI
-#shinyUI(fluidPage(theme = shinytheme("superhero"), pageWithSidebar(
-shinyUI(fluidPage(pageWithSidebar(
-    
+
+#load data if not running locally
+deploy_online <<- F
+if(!exists("iiasadb_snapshot")){
+  load("iiasadb_snapshot.Rdata", envir = .GlobalEnv)
+  #Install and load packages
+  require_package <- function(package){
+    suppressPackageStartupMessages(require(package,character.only=T, quietly = TRUE))  
+  }
+  pkgs <- c('data.table', 'stringr', 'countrycode', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'plotly', 'purrr', 'reldist', 'tidytidbits', 'forcats', 'arrow')
+  res <- lapply(pkgs, require_package)
+  deploy_online <<- T
+} 
+
+
+shinyUI(fluidPage(
+  tags$style("
+    body {
+    -moz-transform: scale(0.8, 0.8); /* Moz-browsers */
+    zoom: 0.8; /* Other non-webkit browsers */
+    zoom: 80%; /* Webkit browsers */
+}              "),
   
+  pageWithSidebar(
+    
   # Application title
-  headerPanel("IIASAdb gdxcompaR"),
+  headerPanel("iiasadb gdxcompaR"),
   
   # Sidebar with a slider of years and set elements
   sidebarPanel(
@@ -41,8 +62,8 @@ shinyUI(fluidPage(pageWithSidebar(
   # Show the plot
   mainPanel(
   tabsetPanel(type = "tabs", id = "tabs",
-                tabPanel("iiasadb_compaR", id = "iiasadb_compaR", h2(textOutput("varname")),plotOutput("iiasadb_compaRplot", width = "100%", height = "80vh")),
-                #tabPanel("iiasadb_compaRly (BETA)", id = "iiasadb_compaRly", h2(textOutput("varname")),plotlyOutput("iiasadb_compaRly", width = "100%", height = "80vh"))
+                tabPanel("iiasadb_compaR", id = "iiasadb_compaR", h2(textOutput("varname")),plotOutput("iiasadb_compaR", width = "100%", height = "80vh")),
+                tabPanel("iiasadb_compaRly", id = "iiasadb_compaRly", plotlyOutput("iiasadb_compaRly", width = "100%", height = "80vh")),
                 
     )
   )

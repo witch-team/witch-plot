@@ -4,7 +4,10 @@
 if(deploy_online){
   suppressPackageStartupMessages(require(tidyverse))
   require(plotly)
-  add_historical_values <- function(x, varname, check_calibration, iiasadb, verbose){return(x)}
+  add_historical_values <- function(x, varname, check_calibration, iiasadb, verbose){
+    x <- rbind(x, iiasadb_historical %>% filter(VARIABLE==varname))
+    return(x)
+    }
 } 
 
 
@@ -159,8 +162,8 @@ shinyServer(function(input, output, session) {
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 2), linetype=guide_legend(title=NULL))
       }
       p_dyn <- p + theme(legend.position = "none") + labs(title=variable)
-      print(p_dyn)
-      if(length(ggplot_build(p_dyn)$data[[1]]) > 0) ggplotly()
+      #print(p_dyn)
+      if(length(ggplot_build(p_dyn)$data[[1]]) > 0) ggplotly(p_dyn)
     })
  
     #plotoutput shiny frames for these three plots
@@ -168,21 +171,21 @@ shinyServer(function(input, output, session) {
       models_selected <- input$models_selected
       scenarios_selected <- input$scenarios_selected
       #Scenarios
-      suppressWarnings(ggplot(iiasadb_snapshot %>% filter(SCENARIO %in% scenarios_selected & MODEL %in% models_selected) %>% group_by(MODEL, SCENARIO) %>% filter(!str_detect(REGION, "\\|")) %>% summarize(REGION=unique(REGION)) %>% ungroup() %>% group_by(MODEL, SCENARIO) %>% summarize(REGIONS=length(REGION)), aes(SCENARIO, MODEL, fill=REGIONS)) + geom_tile() + theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + geom_text(aes(label=REGIONS))  + scale_fill_gradient2(low = "white", mid = "yellow", high = "darkgreen") + scale_x_discrete(labels = function(x) str_wrap(x, width = 50)))
+      suppressWarnings(ggplot(iiasadb_snapshot %>% filter(SCENARIO %in% scenarios_selected & MODEL %in% models_selected) %>% group_by(MODEL, SCENARIO) %>% filter(!str_detect(REGION, "\\|")) %>% summarize(REGION=unique(REGION)) %>% ungroup() %>% group_by(MODEL, SCENARIO) %>% summarize(REGIONS=length(REGION)), aes(SCENARIO, MODEL, fill=REGIONS)) + geom_tile() + theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + geom_text(aes(label=REGIONS))  + theme(text = element_text(size=16)) + scale_fill_gradient2(low = "white", mid = "yellow", high = "darkgreen") + scale_x_discrete(labels = function(x) str_wrap(x, width = 50)))
     })
       
     output$iiasadb_coverage_regions <- renderPlot({
       models_selected <- input$models_selected
       scenarios_selected <- input$scenarios_selected
       #Regions
-      suppressWarnings(ggplot(iiasadb_snapshot %>% filter(SCENARIO %in% scenarios_selected & MODEL %in% models_selected)  %>% group_by(MODEL, SCENARIO) %>% filter(!str_detect(REGION, "\\|")) %>% summarize(REGION=unique(REGION)) %>% ungroup() %>% group_by(MODEL, REGION) %>% summarize(SCENARIOS=length(SCENARIO)), aes(REGION, MODEL, fill=SCENARIOS)) + geom_tile() + theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + geom_text(aes(label=SCENARIOS))  + scale_fill_gradient2(low = "white", mid = "yellow", high = "darkgreen") + scale_x_discrete(labels = function(x) str_wrap(x, width = 50)))
+      suppressWarnings(ggplot(iiasadb_snapshot %>% filter(SCENARIO %in% scenarios_selected & MODEL %in% models_selected)  %>% group_by(MODEL, SCENARIO) %>% filter(!str_detect(REGION, "\\|")) %>% summarize(REGION=unique(REGION)) %>% ungroup() %>% group_by(MODEL, REGION) %>% summarize(SCENARIOS=length(SCENARIO)), aes(REGION, MODEL, fill=SCENARIOS)) + geom_tile() + theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + geom_text(aes(label=SCENARIOS))  + theme(text = element_text(size=16)) + scale_fill_gradient2(low = "white", mid = "yellow", high = "darkgreen") + scale_x_discrete(labels = function(x) str_wrap(x, width = 50)))
     })
     
     output$iiasadb_coverage_variables <- renderPlot({
       models_selected <- input$models_selected
       scenarios_selected <- input$scenarios_selected
       #Variables
-      suppressWarnings(ggplot(iiasadb_snapshot %>% group_by(MODEL, SCENARIO) %>% filter(!str_detect(REGION, "\\|")) %>% summarize(VARIABLE=unique(VARIABLE)) %>% ungroup() %>% group_by(MODEL, VARIABLE) %>% summarize(SCENARIOS=length(SCENARIO)), aes(VARIABLE, MODEL, fill=SCENARIOS)) + geom_tile() + theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + geom_text(aes(label=SCENARIOS))  + scale_fill_gradient2(low = "white", mid = "yellow", high = "darkgreen") + scale_x_discrete(labels = function(x) str_wrap(x, width = 50)))
+      suppressWarnings(ggplot(iiasadb_snapshot %>% group_by(MODEL, SCENARIO) %>% filter(!str_detect(REGION, "\\|")) %>% summarize(VARIABLE=unique(VARIABLE)) %>% ungroup() %>% group_by(MODEL, VARIABLE) %>% summarize(SCENARIOS=length(SCENARIO)), aes(VARIABLE, MODEL, fill=SCENARIOS)) + geom_tile() + theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + geom_text(aes(label=SCENARIOS))  + theme(text = element_text(size=16)) + scale_fill_gradient2(low = "white", mid = "yellow", high = "darkgreen") + scale_x_discrete(labels = function(x) str_wrap(x, width = 50)))
     })
       
 

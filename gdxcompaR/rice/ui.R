@@ -1,7 +1,8 @@
 # Define UI
 #shinyUI(fluidPage(theme = shinytheme("superhero"), pageWithSidebar(
-shinyUI(fluidPage(pageWithSidebar(
-    
+shinyUI(fluidPage(
+  
+  pageWithSidebar(
   
   # Application title
   headerPanel("RICE gdxcompaR"),

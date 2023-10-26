@@ -19,15 +19,8 @@ if(!exists("witch_folder")){
 
 
 shinyUI(fluidPage(
-  tags$style("
-    body {
-    -moz-transform: scale(0.8, 0.8); /* Moz-browsers */
-    zoom: 0.8; /* Other non-webkit browsers */
-    zoom: 80%; /* Webkit browsers */
-}              "),
   
   pageWithSidebar(
-    
   
   # Application title
   headerPanel("WITCH gdxcompaR"),

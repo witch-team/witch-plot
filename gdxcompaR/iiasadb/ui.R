@@ -15,12 +15,6 @@ if(!exists("iiasadb_snapshot")){
 
 
 shinyUI(fluidPage(
-  tags$style("
-    body {
-    -moz-transform: scale(0.8, 0.8); /* Moz-browsers */
-    zoom: 0.8; /* Other non-webkit browsers */
-    zoom: 80%; /* Webkit browsers */
-}              "),
   
   pageWithSidebar(
     
@@ -53,7 +47,7 @@ shinyUI(fluidPage(
     uiOutput("select_regions"),
     #div(style="display:inline-block",uiOutput("compare_models_scenarios")),     
     div(style="display:inline-block",checkboxInput("ylim_zero", " Set y-axis limit to zero", value = F)),
-    div(style="display:inline-block",actionButton("button_saveplotdata", "Save Plot"))
+    if(!deploy_online){div(style="display:inline-block",actionButton("button_saveplotdata", "Save Plot"))}
     
     
 ),

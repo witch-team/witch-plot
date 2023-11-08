@@ -28,10 +28,15 @@ map_var_hist <- map_var_hist %>% rowwise() %>% mutate(conv=eval(parse(text = con
 
 
 if(exists("iamc_databasename")){
-  iiasadb_snapshot <- get_iiasadb(database = iamc_databasename, varlist = "Emissions|CO2", region="World", modlist = "*", scenlist = "*", add_metadata = F)
+  if(file.exists("gdxcompaR/iiasadb/iiasadb_snapshot.Rdata")){
+    input <- menu(c("Yes", "No"), title="THere is a snapshot saved. Do you want to load it locally?")
+    if(input==1) load("gdxcompaR/iiasadb/iiasadb_snapshot.Rdata")
+  }else{
+  iiasadb_snapshot <- get_iiasadb(database = iamc_databasename, varlist = "*", region="World", modlist = "*", scenlist = "*", add_metadata = F)
   #convert to IAMC standard format
   names(iiasadb_snapshot) <- toupper(names(iiasadb_snapshot))
   iiasadb_snapshot <- iiasadb_snapshot %>% select(MODEL, SCENARIO, REGION, VARIABLE, UNIT, YEAR, VALUE) %>% dplyr::rename(value=VALUE) %>% filter(!is.na(value))
+  }
 }else{
 #IIASADB from a xlsx/csv/zipped csv file in the subfolder specified above
 # IIASADB snapshot file to read
@@ -48,9 +53,18 @@ iiasadb_snapshot <- iiasadb_snapshot %>% mutate(REGION=toupper(REGION))
 if(!exists("iiasadb_snapshot")) stop("Please check you specified a correct iiasadb file or connection.")
 
 #use only a subset of the data
-iiasadb_snapshot <- iiasadb_snapshot %>% filter(REGION %in% c("WORLD", "EU27", "EUROPE", "ITALY"))
-#store temporarily also in teh shiny folder for eventual online publication
-save(iiasadb_snapshot, file = "gdxcompaR/iiasadb/iiasadb_snapshot.Rdata")
+#iiasadb_snapshot <- iiasadb_snapshot %>% filter(REGION %in% c("WORLD", "EU27", "EUROPE", "ITALY"))
+
+#function to get historical values for all data where map_var_hist is defined
+iiasadb_with_historical = list()
+for(varname in map_var_hist$varname_model){
+  iiasadb_with_historical[[varname]] <- add_historical_values(iiasadb_snapshot %>% filter(VARIABLE==varname), varname = varname, check_calibration = T, iiasadb = T, verbose = F)
+}
+iiasadb_historical <- rbindlist(iiasadb_with_historical) %>% filter(str_detect(SCENARIO, "historical")) %>% as.data.frame()
+
+#store also in the shiny folder for online deployment
+save(iiasadb_snapshot, iiasadb_historical, file = "gdxcompaR/iiasadb/iiasadb_snapshot.Rdata")
+
 #launch gdxcompaR
 runApp(appDir = "gdxcompaR/iiasadb")
 

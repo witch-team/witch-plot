@@ -258,7 +258,7 @@ shinyServer(function(input, output, session) {
     }
 
     # time frame
-    afd <- subset(afd, ttoyear(t) >= yearmin & ttoyear(t) <= yearmax)
+    afd <- subset(afd, ttoyear(t) >= yearlim[1] & ttoyear(t) <= yearlim[2])
     # clean data
     afd <- afd %>% filter(!is.na(value))
 
@@ -343,8 +343,7 @@ shinyServer(function(input, output, session) {
     })
 
     # get input from sliders/buttons
-    yearmin <- input$yearmin
-    yearmax <- input$yearmax
+    yearlim <- input$yearlim
     additional_set_selected <- input$additional_set_id_selected
     regions <- input$regions_selected
     scenarios <- input$scenarios_selected
@@ -454,8 +453,7 @@ shinyServer(function(input, output, session) {
   output$diagnostics <- renderPlot({
     # get input from sliders/buttons
     variable <- input$variable_selected
-    yearmin <- input$yearmin
-    yearmax <- input$yearmax
+    yearlim <- input$yearlim
     scenarios <- input$scenarios_selected
 
     get_witch("elapsed")

@@ -53,7 +53,7 @@ get_witch <- function(variable_name, scenplot=scenlist, check_calibration=TRUE, 
       if(exists("restrict_regions") & !skip_restrict_regions & !unique(allfilesdata$n)[1]=="World") allfilesdata <- subset(allfilesdata, n %in% restrict_regions)
       #in case separate file to more meaningful columns
       if(exists("file_separate")){
-        allfilesdata <- filetosep(allfilesdata, type = file_separate[1], sep = file_separate[2], names = file_separate[-c(1,2)])
+        allfilesdata <- filetosep(as.data.frame(allfilesdata), type = file_separate[1], sep = file_separate[2], names = file_separate[-c(1,2)])
         for(sep in unname(file_separate[3:length(file_separate)])) allfilesdata[[sep]] <- gsub(sep, "", allfilesdata[[sep]])
       }
       

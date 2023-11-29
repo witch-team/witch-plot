@@ -51,8 +51,15 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   ####### #here continue only if we're sure data will be merged ########
   if(verbose) print(paste0("Historical values added for '", varname, "'."))
   item <- grep(paste(paste0("^", tolower(varname), valid_suffix), collapse = '|'), .gdx$parameters$name, value = TRUE) #use grep with ^ to have them start by varname
-  if(!check_calibration) item <- item[1] #if not check calibration, just take the first (unique) element)
-  for(.item in item){.hist_single <- as.data.table(.gdx[.item]); .hist_single$file <- gsub(paste0(tolower(varname), "_"), "", .item); if(.item==item[1]){.hist <- .hist_single}else{.hist <- rbind(.hist,.hist_single)} } 
+  if(!check_calibration) item <- item[1] #if not check calibration, just take the first (unique) data source)
+  for(.item in item){
+    for(.reg_id_file in list.files(path=file.path(witch_folder, paste0("data_", reg_id)), full.names = TRUE, pattern=basename(.gdxname), recursive = FALSE)){
+      .hist_single_one_reg_id <- as.data.table(gdx(.reg_id_file)[.item]);
+      if(.reg_id_file==list.files(path=file.path(witch_folder, paste0("data_", reg_id)), full.names = TRUE, pattern=basename(.gdxname), recursive = FALSE)[1]){.hist_single <- .hist_single_one_reg_id}else{.hist_single <- rbind(.hist_single, .hist_single_one_reg_id)}
+    }
+     .hist_single$file <- gsub(paste0(tolower(varname), "_"), "", .item); 
+    if(.item==item[1]){.hist <- .hist_single}else{.hist <- rbind(.hist,.hist_single)} 
+    } 
   
   #get set dependency based on /build/ folder
   use_build <- F; 
@@ -84,7 +91,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   
   #if check_calibration, add validation as data points!
   if(check_calibration){
-    .gdx_validation <- gdx(file.path(witch_folder, paste0("data_", reg_id[1]), "data_validation.gdx"))
+    .gdx_validation <- gdx(file.path(witch_folder, paste0("data_", reg_id[1]), "data_validation.gdx")) #only first reg_id
     for(.item in intersect(item, .gdx_validation$parameters$name)){.hist_validation_single <- as.data.table(.gdx_validation[.item]); .hist_validation_single$file <- gsub(paste0(tolower(varname), "_"), "", .item); if(.item==item[1]){.hist_validation <- .hist_validation_single}else{.hist_validation <- rbind(.hist_validation,.hist_validation_single)} }
     if(exists(".hist_validation")){
     if(!("n" %in% colnames(.hist_validation))){.hist_validation$n = "World"}
@@ -149,6 +156,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   
   if(iiasadb){
     #adjusting region names
+    
     #creating same data format as iiasadb
     .hist <- .hist %>% mutate(VARIABLE=varname_original, UNIT=unique(variable$UNIT)[1], SCENARIO="historical", MODEL=file)
     .hist <- .hist %>% select(-file, -pathdir)

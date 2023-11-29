@@ -4,7 +4,7 @@ witch_folder = "../FIDELIO" #Where you're RICE/DICE/RICE50x code is located (FID
 main_folder <- witch_folder # by default, the witch source folder
 subdir = c("") #can be multiple directories
 
-reg_id = "fidelio36" #for historical data folder
+reg_id = "fidelio46" #for historical data folder
 year0 = 2010
 tstep = 1
 

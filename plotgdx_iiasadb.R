@@ -1,13 +1,13 @@
 rm(list = ls())
-witch_folder = "../witch" #Where you're WITCH code is located
+witch_folder = "../witch-ecemf" #Where you're WITCH code is located
 main_folder <- witch_folder # by default, the witch source folder
 subdir = c("EIEE-MIP") #can be multiple directories
 
 reg_id <- c("witch20", "global") #choose the aggregations that has the historical data at the aggregation closes to the iamc data
 
 #set or an iamc_filename OR iamc_databasename
-iamc_filename <- "EIEE_MIP.csv"  #IIASADB snapshot file to read in main_folder/subdir/
-#iamc_databasename <- "ar6_public" #IIASADB database name to read
+iamc_filename <- "EIEE_MIP_2023_11_23.csv"  #IIASADB snapshot file to read in main_folder/subdir/
+#iamc_databasename <- "navigate_internal" #IIASADB database name to read
 
 
 source('R/witch_functions.R')
@@ -29,7 +29,7 @@ map_var_hist <- map_var_hist %>% rowwise() %>% mutate(conv=eval(parse(text = con
 
 if(exists("iamc_databasename")){
   if(file.exists("gdxcompaR/iiasadb/iiasadb_snapshot.Rdata")){
-    input <- menu(c("Yes", "No"), title="THere is a snapshot saved. Do you want to load it locally?")
+    input <- menu(c("Yes", "No"), title="There is a snapshot saved. Do you want to load it locally?")
     if(input==1) load("gdxcompaR/iiasadb/iiasadb_snapshot.Rdata")
   }else{
   iiasadb_snapshot <- get_iiasadb(database = iamc_databasename, varlist = "*", region="World", modlist = "*", scenlist = "*", add_metadata = F)
@@ -53,7 +53,7 @@ iiasadb_snapshot <- iiasadb_snapshot %>% mutate(REGION=toupper(REGION))
 if(!exists("iiasadb_snapshot")) stop("Please check you specified a correct iiasadb file or connection.")
 
 #use only a subset of the data
-#iiasadb_snapshot <- iiasadb_snapshot %>% filter(REGION %in% c("WORLD", "EU27", "EUROPE", "ITALY"))
+#iiasadb_snapshot <- iiasadb_snapshot %>% filter(REGION %in% c("WORLD", "EU27", "EUROPE", "ITALY", "JAPAN"))
 
 #function to get historical values for all data where map_var_hist is defined
 iiasadb_with_historical = list()
@@ -69,4 +69,5 @@ save(iiasadb_snapshot, iiasadb_historical, file = "gdxcompaR/iiasadb/iiasadb_sna
 runApp(appDir = "gdxcompaR/iiasadb")
 
 
+stop("Just run the App")
 

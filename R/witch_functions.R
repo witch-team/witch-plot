@@ -50,7 +50,13 @@ require_package <- function(package){
   suppressPackageStartupMessages(library(package,character.only=T, quietly = TRUE))  
 }
 
-pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap','sf', 'rnaturalearth', 'plotly', 'purrr', 'reldist', 'tidytidbits', 'forcats', 'arrow', 'memoise')
+pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'ggplot2', 
+          'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 
+          'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap',
+          'sf', 'rnaturalearth', 'plotly', 'purrr', 
+          #'reldist', 
+          'tidytidbits',
+          'forcats', 'arrow', 'memoise')
 res <- lapply(pkgs, require_package)
 require_gdxtools()
 library(dplyr, warn.conflicts = FALSE)

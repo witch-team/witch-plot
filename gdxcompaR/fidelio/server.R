@@ -92,8 +92,7 @@ shinyServer(function(input, output, session) {
     })
 
     # get input from sliders/buttons
-    yearmin <- input$yearmin
-    yearmax <- input$yearmax
+    yearlim <- input$yearlim
     additional_set_selected <- input$additional_set_id_selected
     regions <- input$regions_selected
     scenarios <- input$scenarios_selected
@@ -118,7 +117,7 @@ shinyServer(function(input, output, session) {
     }
 
     # time frame
-    afd <- subset(afd, ttoyear(t) >= yearmin & ttoyear(t) <= yearmax)
+    afd <- subset(afd, ttoyear(t) >= yearlim[1] & ttoyear(t) <= yearlim[2])
     # clean data
     afd <- afd %>% filter(!is.na(value))
 
@@ -176,7 +175,7 @@ shinyServer(function(input, output, session) {
         geom_line(stat = "identity", linewidth = 1.5) +
         xlab("year") +
         ylab(unit_conv$unit) +
-        xlim(yearmin, yearmax)
+        xlim(yearlim[1], yearlim[2])
       if (ylim_zero) p <- p + ylim(0, NA)
       p <- p + geom_line(data = subset(afd, n %in% regions & str_detect(file, "historical")), aes(year, value, colour = file), stat = "identity", linewidth = 1.0, linetype = "solid")
       # legends:
@@ -187,7 +186,7 @@ shinyServer(function(input, output, session) {
         xlab("year") +
         ylab(unit_conv$unit) +
         scale_colour_manual(values = region_palette) +
-        xlim(yearmin, yearmax)
+        xlim(yearlim[1], yearlim[2])
       p <- p + geom_line(data = subset(afd, n %in% regions & str_detect(file, "historical")), aes(year, value, colour = n, group = interaction(n, file)), linetype = "solid", stat = "identity", linewidth = 1.0)
       # legends:
       p <- p + theme(text = element_text(size = 16), legend.position = "bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title = element_blank()) + guides(color = guide_legend(title = NULL, nrow = 2), linetype = guide_legend(title = NULL))
@@ -235,8 +234,7 @@ shinyServer(function(input, output, session) {
     })
 
     # get input from sliders/buttons
-    yearmin <- input$yearmin
-    yearmax <- input$yearmax
+    yearlim <- input$yearlim
     additional_set_selected <- input$additional_set_id_selected
     regions <- input$regions_selected
     scenarios <- input$scenarios_selected
@@ -252,7 +250,6 @@ shinyServer(function(input, output, session) {
       afd[[additional_set_id]] <- tolower(afd[[additional_set_id]]) # to fix erroneous gams cases (y and Y etc.)
       afd <- subset(afd, get(additional_set_id) %in% additional_set_selected)
       afd[[additional_set_id]] <- NULL # remove additional set column
-      # afd$t <- as.character(afd$t)
       if (length(additional_set_selected) > 1) {
         afd <- afd %>%
           group_by_at(setdiff(names(afd), "value")) %>%
@@ -294,7 +291,7 @@ shinyServer(function(input, output, session) {
       xlab("year") +
       ylab(unit_conv$unit) +
       scale_fill_manual(values = region_palette) +
-      xlim(yearmin, yearmax)
+      xlim(yearlim[1], yearlim[2])
     # p_stacked <- p_stacked + geom_area(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year, value, fill=n), linetype = "solid", stat="identity", size=1.0)
     # p_stacked <- p_stacked + geom_area(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year, value, fill=n), size=4.0)
     # legends:
@@ -372,7 +369,7 @@ shinyServer(function(input, output, session) {
     }
 
     # time frame
-    afd <- subset(afd, ttoyear(t) >= yearmin & ttoyear(t) <= yearmax)
+    afd <- subset(afd, ttoyear(t) >= yearlim[1] & ttoyear(t) <= yearlim[2])
     # clean data
     afd <- afd %>% filter(!is.na(value))
 
@@ -428,7 +425,7 @@ shinyServer(function(input, output, session) {
         geom_line(stat = "identity", size = 1.5) +
         xlab("year") +
         ylab(unit_conv$unit) +
-        xlim(yearmin, yearmax)
+        xlim(yearlim[1], yearlim[2])
       if (ylim_zero) p_dyn <- p_dyn + ylim(0, NA)
       if("historical" %in% unique(allfilesdata %>% filter(n %in% regions))$file) p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", size=1.0, linetype="solid")
       # legends:
@@ -439,7 +436,7 @@ shinyServer(function(input, output, session) {
         xlab("year") +
         ylab(unit_conv$unit) +
         scale_colour_manual(values = region_palette) +
-        xlim(yearmin, yearmax)
+        xlim(yearlim[1], yearlim[2])
       if("historical" %in% unique(allfilesdata %>% filter(n %in% regions))$file) p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(ttoyear(t),value,colour=n), linetype = "solid", stat="identity", size=1.0)
       # legends:
       p_dyn <- p_dyn + theme(text = element_text(size = 16), legend.position = "bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title = element_blank()) + guides(color = guide_legend(title = NULL, nrow = 2), linetype = guide_legend(title = NULL))

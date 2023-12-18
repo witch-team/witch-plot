@@ -16,6 +16,8 @@ shinyServer(function(input, output, session) {
     #For WITCH, select variables by hand collected in this vector (since there are too many)
     list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "K_RD", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "COST_FUEL", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_FEN", "Q_IN", "I_DAC", "ykali", "tpes", "carbonprice", "emi_cap", "l", "QNEL_OUT", "I_DAC")
     
+    list_of_variables <- sort(list_of_variables)
+    
     #get list of variables and parameters in all files
     if(F){
       list_of_variables <- NULL
@@ -30,13 +32,25 @@ shinyServer(function(input, output, session) {
     
     #Scenario selector
     output$select_scenarios <- renderUI({
-    selectInput("scenarios_selected", "Select scenarios", unname(scenlist), size = length(scenlist), selectize = F, multiple = T, selected = unname(scenlist))
-    })  
-    
+    selectInput(inputId = "scenarios_selected", 
+                label = "Scenarios", 
+                choices = unname(scenlist),
+                size = length(scenlist), 
+                selectize = FALSE, 
+                multiple = TRUE,
+                selected = unname(scenlist)) # Select all scenarios by default
+    })
+
     #Variable selector
     output$select_variable <- renderUI({
-    selectInput("variable_selected", "Select variable", list_of_variables, size=1, selectize = F, multiple = F, selected = list_of_variables[1])
-    })  
+    selectInput(inputId = "variable_selected", 
+                label = "Variable:", 
+                choices = c("Select one" = "", list_of_variables),
+                #size = 1,
+                selectize = TRUE,
+                multiple = FALSE,
+                selected = "Q_EMI") # Default variable
+    })
     variable_selected_reactive <- reactive({input$variable_selected})
     
     #Display selected variable and set
@@ -47,7 +61,13 @@ shinyServer(function(input, output, session) {
     #REGION selector
     output$select_regions <- renderUI({
       regions_for_selector <- c(witch_regions, "EU", "World")
-    selectInput("regions_selected", "Select regions", regions_for_selector, size=length(regions_for_selector), selectize = F, multiple = T, selected = witch_regions)
+    selectInput(inputId = "regions_selected", 
+                label = "Regions:", 
+                regions_for_selector, 
+                size = length(regions_for_selector), 
+                selectize = FALSE, 
+                multiple = TRUE,
+                selected = "World")
     })
   
     observeEvent(input$button_saveplotdata, {
@@ -186,7 +206,12 @@ shinyServer(function(input, output, session) {
       
       if(regions[1]=="World" | regions[1]=="EU" | length(regions)==1){#if only World is displayed or only one region, show files with colors
         p <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=file)) + geom_line(stat="identity", linewidth=1.5) + xlab(NULL) + ylab(unit_conv$unit) + xlim(yearlim[1],yearlim[2])
-        if(ylim_zero) p <- p + ylim(0, NA)
+        
+        # Add a horizontal line at y=0
+        if(ylim_zero) {
+          p <- p + geom_hline(yintercept = 0, alpha = 0.5)
+        }
+        
         p <- p + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", linewidth=1.0, linetype="solid")
         p <- p + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year,value,colour=file), size=4.0, shape=18)
         #legends:
@@ -314,9 +339,14 @@ shinyServer(function(input, output, session) {
       
       if(regions[1]=="World" | regions[1]=="EU" | length(regions)==1){#if only World is displayed or only one region, show files with colors
         p_dyn <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=file)) + geom_line(stat="identity", linewidth=1.5) + xlab(NULL) + ylab(unit_conv$unit) + xlim(yearlim[1],yearlim[2])
-        if(ylim_zero) p_dyn <- p_dyn + ylim(0, NA)
-        #if("historical" %in% unique(allfilesdata %>% filter(n %in% regions))$file) p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", size=1.0, linetype="solid")
+        
+        # Add a horizontal line at y=0
+        if(ylim_zero) {
+          p <- p + geom_hline(yintercept = 0, alpha = 0.5)
+        }
+        
         if("valid" %in% unique(allfilesdata %>% filter(n %in% regions))$file) p_dyn <- p_dyn + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year,value,colour=file), size=4.0, shape=18)
+
         #legends:
         p_dyn <- p_dyn + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
       }else{

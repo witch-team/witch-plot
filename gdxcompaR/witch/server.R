@@ -27,7 +27,8 @@ shinyServer(function(input, output, session) {
       #list_of_variables <- c(list_of_variables, all_items(.gdx)$parameters) #also all parameters
     }
     list_of_variables <- unique(list_of_variables)
-    list_of_variables <- c(sort(str_subset(list_of_variables, "^[:upper:]")), sort(str_subset(list_of_variables, "^[:lower:]")))
+    list_of_variables <- c(sort(str_subset(list_of_variables, "^[:upper:]")), 
+                           sort(str_subset(list_of_variables, "^[:lower:]")))
     }
     
     #Scenario selector
@@ -55,16 +56,19 @@ shinyServer(function(input, output, session) {
     
     #Display selected variable and set
     output$varname <- renderText({  
-      paste("Variable:", variable_selected_reactive()," Element 1:", paste(input$additional_set_id_selected, collapse=","), " Element 2:", paste(input$additional_set_id_selected2, collapse=","))
+      paste("Variable:", variable_selected_reactive()," Element 1:", 
+            paste(input$additional_set_id_selected, collapse=","), 
+            " Element 2:", paste(input$additional_set_id_selected2, collapse=","))
     }) 
 
     #REGION selector
     output$select_regions <- renderUI({
-      regions_for_selector <- c(witch_regions, "EU", "World")
+      regions_for_selector <- list(Aggregate = list("World", "EU"),  
+                                   `Native regions` = witch_regions)
     selectInput(inputId = "regions_selected", 
                 label = "Regions:", 
                 regions_for_selector, 
-                size = length(regions_for_selector), 
+                size = max(10, length(regions_for_selector)), 
                 selectize = FALSE, 
                 multiple = TRUE,
                 selected = "World")
@@ -99,14 +103,18 @@ shinyServer(function(input, output, session) {
       {
         additional_set_id <- additional_sets[1]
         set_elements <- unique(tolower(as.data.frame(afd)[, match(additional_set_id, colnames(afd))]))
-        additional_set_id2="na"; set_elements2 = "na"
+        set_elements <- sort(set_elements)
+        additional_set_id2 <- "na"
+        set_elements2 <- "na"
       }
       else if(length(additional_sets)==2)
       {
         additional_set_id <- additional_sets[1]
         set_elements <- unique(tolower(as.data.frame(afd)[, match(additional_set_id, colnames(afd))]))
+        set_elements <- sort(set_elements)
         additional_set_id2 <- additional_sets[2] 
         set_elements2 <- unique(tolower(as.data.frame(afd)[, match(additional_set_id2, colnames(afd))]))
+        set_elements2 <- sort(set_elements2)
       }
 
       #Selector for additional set
@@ -115,7 +123,13 @@ shinyServer(function(input, output, session) {
         if(is.null(variable)) variable <- list_of_variables[1]
         sel <- input$additional_set_id_selected
         size_elements <- min(length(set_elements), 5)
-        selectInput("additional_set_id_selected", "Additional set element", set_elements, size=size_elements, selectize = F, multiple = T, selected = sel)
+        selectInput(inputId = "additional_set_id_selected", 
+                    label = "Additional set element", 
+                    choices = set_elements, 
+                    size = size_elements, 
+                    selectize = FALSE, 
+                    multiple = TRUE,
+                    selected = sel)
       })
       #Selector for additional set #2
       output$choose_additional_set2 <- renderUI({
@@ -123,7 +137,13 @@ shinyServer(function(input, output, session) {
         if(is.null(variable)) variable <- list_of_variables[1]
         sel2 <- input$additional_set_id_selected2
         size_elements2 <- min(length(set_elements2), 5)
-        selectInput("additional_set_id_selected2", "Additional set element 2", set_elements2, size=size_elements2, selectize = F, multiple = T, selected = sel2)
+        selectInput(inputId = "additional_set_id_selected2", 
+                    label = "Additional set element 2", 
+                    choices = set_elements2, 
+                    size = size_elements2, 
+                    selectize = FALSE, 
+                    multiple = TRUE, 
+                    selected = sel2)
       })
       
       #get input from sliders/buttons
@@ -204,7 +224,8 @@ shinyServer(function(input, output, session) {
       afd$value <- afd$value * unit_conv$convert   
       afd$year <- ttoyear(afd$t)
       
-      if(regions[1]=="World" | regions[1]=="EU" | length(regions)==1){#if only World is displayed or only one region, show files with colors
+      # If only World/EU is displayed or only one region, show files with colors
+      if ( length(regions)==1 | (length(regions) == 1 & regions[1] %in% c("World","EU"))) {
         p <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=file)) + geom_line(stat="identity", linewidth=1.5) + xlab(NULL) + ylab(unit_conv$unit) + xlim(yearlim[1],yearlim[2])
         
         # Add a horizontal line at y=0
@@ -218,6 +239,12 @@ shinyServer(function(input, output, session) {
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
       }else{
         p <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", linewidth=1.5) + xlab(NULL) + ylab(unit_conv$unit) + scale_colour_manual(values = region_palette) + xlim(yearlim[1],yearlim[2])
+        
+        # Add a horizontal line at y=0
+        if(ylim_zero) {
+          p <- p + geom_hline(yintercept = 0, alpha = 0.5)
+        }
+        
         p <- p + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year, value, colour=n, group=interaction(n, file)), linetype = "solid", stat="identity", linewidth=1.0)
         p <- p + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year, value, colour=n, shape=file), size=4.0)
         #legends:

@@ -16,10 +16,6 @@ if(!exists("yearmin")) yearmin = 1980
 if(!exists("yearmax")) yearmax = 2100
 ## End of further Options ##
 
-
-
-
-
 witch_folder <- normalizePath(witch_folder)
 main_folder <- normalizePath(main_folder)
 
@@ -51,8 +47,11 @@ require_package <- function(package){
 }
 
 pkgs <- c('data.table', 'stringr', 'docopt', 'countrycode', 'ggplot2', 
-          'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 
-          'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'rworldmap',
+          'ggpubr', 'scales', 'RColorBrewer', 
+          'dplyr', 'openxlsx',
+          'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinyWidgets','bslib',
+          'shinythemes', 
+          'rworldmap',
           'sf', 'rnaturalearth', 'plotly', 'purrr', 
           #'reldist', 
           'tidytidbits',
@@ -68,7 +67,7 @@ source('R/auxiliary_functions.R')
 source('R/witch_load_and_plot.R')
 source('R/add_historical_values.R')
 source('R/get_iiasadb.R')
-
+source('R/get_witch.R')
 
 
 #from here only if GDX files are loaded

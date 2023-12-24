@@ -12,53 +12,56 @@ shinyServer(function(input, output, session) {
   
     #some global flags
     verbose = FALSE
-  
-    #For WITCH, select variables by hand collected in this vector (since there are too many)
-    list_of_variables <- c("Q", "Q_EN", "Q_FUEL", "Q_OUT", "Q_EMI", "K", "K_EN", "K_RD", "I_EN", "I", "FPRICE", "MCOST_INV", "COST_EMI", "COST_FUEL", "MCOST_EMI", "CPRICE", "MCOST_FUEL", "TEMP", "TRF", "OMEGA", "Q_FEN", "Q_IN", "I_DAC", "ykali", "tpes", "carbonprice", "emi_cap", "l", "QNEL_OUT", "I_DAC")
     
-    list_of_variables <- sort(list_of_variables)
-    
-    #get list of variables and parameters in all files
-    if(F){
-      list_of_variables <- NULL
+    # Get list of variables and parameters in all files
+    list_of_variables <- NULL
     for(f in filelist){
       .gdx <- gdx(paste(file.path(fullpathdir[1], f),".gdx",sep=""))
-      list_of_variables <- c(list_of_variables, all_items(.gdx)$variables)
-      #list_of_variables <- c(list_of_variables, all_items(.gdx)$parameters) #also all parameters
+      # Select all variables and parameters 
+      #  -> with "t" in their domain names
+      #  -> with dimension <= 2
+      for (item in c("variables", "parameters")) {
+        info_item <- .gdx[[item]]
+        info_item <- info_item[info_item$dim <= 3,]
+        info_item <- info_item[sapply(info_item$domnames, 
+                                      function(x) "t" %in% x),]
+        list_of_variables <- c(list_of_variables, info_item$name)
+      }
     }
     list_of_variables <- unique(list_of_variables)
     list_of_variables <- c(sort(str_subset(list_of_variables, "^[:upper:]")), 
                            sort(str_subset(list_of_variables, "^[:lower:]")))
-    }
-    
+
     #Scenario selector
     output$select_scenarios <- renderUI({
     selectInput(inputId = "scenarios_selected", 
-                label = "Scenarios", 
+                label = "Scenarios:", 
                 choices = unname(scenlist),
                 size = length(scenlist), 
                 selectize = FALSE, 
                 multiple = TRUE,
                 selected = unname(scenlist)) # Select all scenarios by default
     })
-
+    
+    
     #Variable selector
     output$select_variable <- renderUI({
-    selectInput(inputId = "variable_selected", 
-                label = "Variable:", 
-                choices = c("Select one" = "", list_of_variables),
-                #size = 1,
-                selectize = TRUE,
-                multiple = FALSE,
-                selected = "Q_EMI") # Default variable
+      pickerInput(
+        inputId = "variable_selected",
+        label = "Variable:", 
+        choices = list_of_variables,
+        selected = "Q_EMI",
+        options = list(
+          `live-search` = TRUE)
+      )
     })
     variable_selected_reactive <- reactive({input$variable_selected})
     
     #Display selected variable and set
     output$varname <- renderText({  
-      paste("Variable:", variable_selected_reactive()," Element 1:", 
-            paste(input$additional_set_id_selected, collapse=","), 
-            " Element 2:", paste(input$additional_set_id_selected2, collapse=","))
+      paste("Variable:", variable_selected_reactive(),
+            "Element 1:", paste(input$additional_set_id_selected, collapse=","), 
+            "Element 2:", paste(input$additional_set_id_selected2, collapse=","))
     }) 
 
     #REGION selector
@@ -79,10 +82,6 @@ shinyServer(function(input, output, session) {
       print("Current plot saved in subdirectory 'graphs'")
       saveplot(variable, width = 14, height = 7)
     })
-
-    #Additional selector for specific Panels
-    
-    
 
     # MAIN CODE FOR PLOT GENERATION  
     output$gdxompaRplot <- renderPlot({
@@ -120,11 +119,20 @@ shinyServer(function(input, output, session) {
       #Selector for additional set
       output$choose_additional_set <- renderUI({
         variable <- variable_selected_reactive()
-        if(is.null(variable)) variable <- list_of_variables[1]
+        if (is.null(variable)) {
+          variable <- list_of_variables[1]
+        }
         sel <- input$additional_set_id_selected
+        if (is.null(sel)) {
+          if ("co2_ffi" %in% set_elements) {
+            sel <- "co2_ffi"
+          } else {
+            sel <- set_elements[1]
+          }
+        }
         size_elements <- min(length(set_elements), 5)
         selectInput(inputId = "additional_set_id_selected", 
-                    label = "Additional set element", 
+                    label = "Indices 1:", 
                     choices = set_elements, 
                     size = size_elements, 
                     selectize = FALSE, 
@@ -138,7 +146,7 @@ shinyServer(function(input, output, session) {
         sel2 <- input$additional_set_id_selected2
         size_elements2 <- min(length(set_elements2), 5)
         selectInput(inputId = "additional_set_id_selected2", 
-                    label = "Additional set element 2", 
+                    label = "Indices 2:", 
                     choices = set_elements2, 
                     size = size_elements2, 
                     selectize = FALSE, 
@@ -154,8 +162,12 @@ shinyServer(function(input, output, session) {
       scenarios <- input$scenarios_selected
       
       #in case they have not yet been set, set to default values
-      if(is.null(regions)) regions <- display_regions
-      if(is.null(additional_set_selected)) additional_set_selected <- set_elements[1]
+      if (is.null(regions)) {
+        regions <- display_regions
+      }
+      if (is.null(additional_set_selected)) {
+        additional_set_selected <- set_elements[1]
+      }
       if((additional_set_id!="na" & additional_set_selected[1]=="na") | !(additional_set_selected[1] %in% set_elements)) additional_set_selected <- set_elements[1] 
       if(is.null(additional_set_selected2)) additional_set_selected2 <- set_elements2[1]
       if((additional_set_id2!="na" & additional_set_selected2[1]=="na") | !(additional_set_selected2[1] %in% set_elements2)) additional_set_selected2 <- set_elements2[1] 

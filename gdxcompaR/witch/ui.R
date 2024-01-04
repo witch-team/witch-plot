@@ -30,7 +30,14 @@ sidebar_ui <- sidebarPanel(
               max = 2150,
               value = c(1990,2100),
               step = 5),
-  div(style="display:inline-block",checkboxInput("add_historical", "Add historical", value = T)),
+  div(style="display:inline-block",
+      checkboxInput("time_filter", 
+                    "Time filter", 
+                    value = TRUE)),
+  div(style="display:inline-block",
+      checkboxInput("add_historical", 
+                    "Historical", 
+                    value = TRUE)),
   div(style="display:inline-block",
       checkboxInput("ylim_zero",
                     "ymin=0",
@@ -41,7 +48,7 @@ sidebar_ui <- sidebarPanel(
 
 tabs_ui <- tabsetPanel(type = "tabs", id = "tabs",
                        
-                       tabPanel("gdxcompaR", id = "gdxcompaR", h2(textOutput("varname")),plotOutput("gdxompaRplot", width = "100%", height = "80vh")),
+                       tabPanel("gdxcompaR", id = "gdxcompaR", h3(textOutput("varname")),plotOutput("gdxompaRplot", width = "100%", height = "80vh")),
                        tabPanel("gdxcompaRly (BETA)", id = "gdxcompaRly", plotlyOutput("gdxompaRplotly", width = "100%", height = "80vh")),
                        
                        tabPanel("Inequality", id = "Inequality", 

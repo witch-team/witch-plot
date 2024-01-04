@@ -59,9 +59,16 @@ shinyServer(function(input, output, session) {
     
     #Display selected variable and set
     output$varname <- renderText({  
-      paste("Variable:", variable_selected_reactive(),
-            "Element 1:", paste(input$additional_set_id_selected, collapse=","), 
-            "Element 2:", paste(input$additional_set_id_selected2, collapse=","))
+      paste0(variable_selected_reactive(),
+            "|", str_trunc(paste(input$additional_set_id_selected, 
+                                 collapse=","), 20),
+            ifelse(is.null(input$additional_set_id_selected2) | 
+                     input$additional_set_id_selected2 == "na" ,
+                   "",
+                   paste0("|", str_trunc(paste(input$additional_set_id_selected2, 
+                                               collapse=","), 20))),
+            "|", str_trunc(paste(input$regions_selected, 
+                                 collapse=","), 10))
     }) 
 
     #REGION selector
@@ -189,7 +196,9 @@ shinyServer(function(input, output, session) {
       }
      
       #time frame
-      afd <- subset(afd, ttoyear(t) >= yearlim[1] & ttoyear(t) <= yearlim[2])
+      if (input$time_filter) {
+        afd <- subset(afd, ttoyear(t) >= yearlim[1] & ttoyear(t) <= yearlim[2])
+      }
       #clean data
       afd <- afd %>% filter(!is.na(value))
       
@@ -238,7 +247,14 @@ shinyServer(function(input, output, session) {
       
       # If only World/EU is displayed or only one region, show files with colors
       if ( length(regions)==1 | (length(regions) == 1 & regions[1] %in% c("World","EU"))) {
-        p <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=file)) + geom_line(stat="identity", linewidth=1.5) + xlab(NULL) + ylab(unit_conv$unit) + xlim(yearlim[1],yearlim[2])
+        p <- ggplot(subset(afd, n %in% regions & 
+                             !str_detect(file, "historical") & 
+                             !str_detect(file, "valid")),
+                    aes(ttoyear(t), value, colour=file)) + 
+          geom_line(stat="identity", linewidth=1.5) + 
+          xlab(NULL) + 
+          ylab(unit_conv$unit) + 
+          coord_cartesian(xlim = yearlim)
         
         # Add a horizontal line at y=0
         if(ylim_zero) {
@@ -250,8 +266,16 @@ shinyServer(function(input, output, session) {
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL))
       }else{
-        p <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", linewidth=1.5) + xlab(NULL) + ylab(unit_conv$unit) + scale_colour_manual(values = region_palette) + xlim(yearlim[1],yearlim[2])
-        
+        p <- ggplot(subset(afd, n %in% regions & 
+                             !str_detect(file, "historical") & 
+                             !str_detect(file, "valid")),
+                    aes(ttoyear(t), value, colour=n, linetype=file)) + 
+          geom_line(stat="identity", linewidth=1.5) + 
+          xlab(NULL) + 
+          ylab(unit_conv$unit) + 
+          scale_colour_manual(values = region_palette) + 
+          coord_cartesian(xlim = yearlim) 
+
         # Add a horizontal line at y=0
         if(ylim_zero) {
           p <- p + geom_hline(yintercept = 0, alpha = 0.5)

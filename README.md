@@ -32,7 +32,7 @@ Loads the variable "varname" from all results GDX files and stores them in a dat
 
 ### gdxcompaR
 ShinyApp based dynamic comparison tool for multiple results files.
-Simplyu run 'runApp(appDir = "gdxcompaR/witch")' or runApp(appDir = "gdxcompaR/rice") to launch the interactive App after sourcing the main file 'plotgdx_witch.R' or 'plotgdx_rice.R'.
+Simply run 'runApp(appDir = "gdxcompaR/witch")' or runApp(appDir = "gdxcompaR/rice") to launch the interactive App after sourcing the main file 'plotgdx_witch.R' or 'plotgdx_rice.R'.
 
 
 

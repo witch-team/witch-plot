@@ -65,7 +65,12 @@ get_witch <- function(variable_name,
       }}
     
     #try adding historical values
-    if(historical & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata <- add_historical_values(allfilesdata, varname=variable_name, scenplot=scenplot, check_calibration=check_calibration, verbose=F)}
+    if(historical & !(is.element(variable_name, all_items(mygdx)$sets))) {
+      allfilesdata <- add_historical_values(allfilesdata, 
+                                            varname = variable_name, 
+                                            scenplot = scenplot, 
+                                            check_calibration = check_calibration, 
+                                            verbose = FALSE)}
     # also save as data.table
     allfilesdata <- as.data.table(allfilesdata)
     #in case nice_region_names exist map region names for those with a nice name

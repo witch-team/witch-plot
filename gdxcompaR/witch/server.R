@@ -53,9 +53,13 @@ shinyServer(function(input, output, session) {
         selected = "Q_EMI",
         options = list(
           `live-search` = TRUE)
-      )
-    })
-    variable_input <- reactive({input$variable_selected})
+        )
+      })
+    
+    # Reactively update variable selector
+    variable_input <- reactive({
+      return(input$variable_selected)
+      })
     
     #Display selected variable and set
     output$varname <- renderText({  

@@ -26,17 +26,15 @@ graphdir = if(length(fullpathdir)>1){file.path(main_folder, "graphs") }else{file
 if(any(!dir.exists(fullpathdir))){stop("Please check the main directory and sub directory!")}
 if(!dir.exists(witch_folder)){stop("Please check your witch directory!")}
 
-# gdxtools
-require_gdxtools <- function(){ 
-  if(!is.element("gdxtools", .packages(all.available = TRUE))){
-  require_package("devtools")
-  install_github('lolow/gdxtools')
+# witchtools
+if (!"witchtools" %in% rownames(installed.packages())) {
+  if (!"remotes" %in% rownames(installed.packages()))
+    install.packages("remotes", repos = "http://cloud.r-project.org")
+  remotes::install_github("witch-team/witchtools")
+  if (!requireNamespace("witchtools")) stop("Package witchtools not found")
 }
-if(packageVersion("gdxtools")<numeric_version("0.4.0")){
-  stop("You need to install a newer version of gdxtools (>=0.4.0). Please run remove.packages('gdxtools'), restart R and rerun this script.")
-}
-suppressPackageStartupMessages(library(gdxtools, quietly = TRUE))
-}
+library(witchtools)
+
 #Install and load packages
 require_package <- function(package){
   if(!is.element(package, .packages(all.available = TRUE))){

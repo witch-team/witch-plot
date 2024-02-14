@@ -47,7 +47,7 @@ Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(yearmin
     if(add_total_tpes & PES_y=="value"){
       total_tpes <- get_witch("tpes") %>% mutate(value=value*0.0036)
       if(regions[1]=="World"){total_tpes$n <- NULL; total_tpes <- total_tpes[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir")]; total_tpes$n <- "World"}else{total_tpes <- subset(total_tpes, n %in% regions)}
-      p <- p + geom_line(data = subset(total_tpes, ttoyear(t)<=yearmax & n %in% regions & file %in% scenplot), aes(ttoyear(t),value), color="darkgrey", linetype="dashed") 
+      p <- p + geom_line(data = subset(total_tpes, ttoyear(t)<=yearmax & n %in% regions & ttoyear(t) %in% years & file %in% scenplot), aes(ttoyear(t),value), color="darkgrey", linetype="dashed") 
     }
     saveplot(plot_name)
 }
@@ -119,7 +119,7 @@ Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(ye
     if(add_total_elec & Electricity_y=="value"){
       total_elec <- get_witch("Q_EN") %>% filter(j=="el") %>% mutate(value=value*0.0036)
       if(regions[1]=="World"){total_elec$n <- NULL; total_elec <- total_elec[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir")]; total_elec$n <- "World"}else{total_elec <- subset(total_elec, n %in% regions)}
-      p <- p + geom_line(data = subset(total_elec, ttoyear(t)<=yearmax & n %in% regions & file %in% scenplot), aes(ttoyear(t),value), color="darkgrey", linetype="dashed") 
+      p <- p + geom_line(data = subset(total_elec, ttoyear(t)<=yearmax & n %in% regions & ttoyear(t) %in% years & file %in% scenplot), aes(ttoyear(t),value), color="darkgrey", linetype="dashed") 
     }
     saveplot(plot_name)
 }

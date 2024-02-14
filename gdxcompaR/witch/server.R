@@ -19,10 +19,10 @@ shinyServer(function(input, output, session) {
       .gdx <- gdx(paste(file.path(fullpathdir[1], f),".gdx",sep=""))
       # Select all variables and parameters 
       #  -> with "t" in their domain names
-      #  -> with dimension <= 2
+      #  -> with dimension <= 3
       for (item in c("variables", "parameters")) {
         info_item <- .gdx[[item]]
-        info_item <- info_item[info_item$dim <= 3,]
+        info_item <- info_item[info_item$dim <= 4,]
         info_item <- info_item[sapply(info_item$domnames, 
                                       function(x) "t" %in% x),]
         list_of_variables <- c(list_of_variables, info_item$name)
@@ -31,7 +31,6 @@ shinyServer(function(input, output, session) {
     list_of_variables <- unique(list_of_variables)
     list_of_variables <- c(sort(str_subset(list_of_variables, "^[:upper:]")), 
                            sort(str_subset(list_of_variables, "^[:lower:]")))
-
     #Scenario selector
     output$select_scenarios <- renderUI({
     selectInput(inputId = "scenarios_selected", 
@@ -267,7 +266,7 @@ shinyServer(function(input, output, session) {
       print(p + labs(title=variable))
   })
     
-    
+    ################################################################################################
     
     # MAIN CODE FOR PLOTLY GENERATION (copied from standard ggplot)  
     output$gdxompaRplotly <- renderPlotly({
@@ -396,8 +395,8 @@ shinyServer(function(input, output, session) {
       if(regions[1]=="World" | regions[1]=="EU" | length(regions)==1){#if only World is displayed or only one region, show files with colors
         p_dyn <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))),aes(year,value,colour=file)) + geom_line(stat="identity", linewidth=1.5) + xlab(NULL) + ylab(unit_conv$unit) + xlim(yearlim[1],yearlim[2])
         
-        p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", linewidth=1.0, linetype="solid")
-        p_dyn <- p_dyn + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year,value,colour=file), size=4.0, shape=18)
+        if(nrow(afd %>% filter(n %in% regions & str_detect(file, "historical"))) > 0 ) p_dyn <- p_dyn + geom_line(data=subset(afd, n %in% regions & str_detect(file, "historical")),aes(year,value,colour=file), stat="identity", linewidth=1.0, linetype="solid")
+        if(nrow(afd %>% filter(n %in% regions & str_detect(file, "valid"))) > 0 ) p_dyn <- p_dyn + geom_point(data=subset(afd, n %in% regions & str_detect(file, "valid")),aes(year,value,colour=file), size=4.0, shape=18)
         
         # Add a horizontal line at y=0
         if(ylim_zero) {

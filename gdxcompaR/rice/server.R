@@ -15,40 +15,54 @@ shinyServer(function(input, output, session) {
   list_of_variables <- unique(list_of_variables)
   list_of_variables <- c(sort(str_subset(list_of_variables, "^[:upper:]")), sort(str_subset(list_of_variables, "^[:lower:]")))
 
-  # Scenario selector
-  output$select_scenarios <- renderUI({
-    selectInput("scenarios_selected", "Select scenarios", unname(scenlist), size = length(scenlist), selectize = F, multiple = T, selected = unname(scenlist))
-  })
-
-  # Variable selector
-  output$select_variable <- renderUI({
-    selectInput("variable_selected", "Select variable", list_of_variables, size = 1, selectize = F, multiple = F, selected = list_of_variables[1])
-  })
-  variable_selected_reactive <- reactive({
-    input$variable_selected
-  })
+   #Scenario selector
+    output$select_scenarios <- renderUI({
+    selectInput(inputId = "scenarios_selected", 
+                label = "Scenarios:", 
+                choices = unname(scenlist),
+                size = length(scenlist), 
+                selectize = FALSE, 
+                multiple = TRUE,
+                selected = unname(scenlist)) # Select all scenarios by default
+    })
+    
+    
+    #Variable selector
+    output$select_variable <- renderUI({
+      pickerInput(
+        inputId = "variable_selected",
+        label = "Variable:", 
+        choices = list_of_variables,
+        selected = "E",
+        options = list(
+          `live-search` = TRUE)
+      )
+    })
+    variable_selected_reactive <- reactive({input$variable_selected})
 
   # Display selected variable and set
   output$varname <- renderText({
     paste("Variable:", variable_selected_reactive(), " Element:", paste(input$additional_set_id_selected, collapse = ","))
   })
 
-  # Display selected variable and set
-  output$varname2 <- renderText({
-    paste("Variable:", variable_selected_reactive(), " Element:", paste(input$additional_set_id_selected, collapse = ","))
-  })
-
-  # REGION selector
-  output$select_regions <- renderUI({
-    regions_for_selector <- c(witch_regions, "World")
-    selectInput("regions_selected", "Select regions", regions_for_selector, size = min(17, length(regions_for_selector)), selectize = F, multiple = T, selected = witch_regions)
-  })
-
-  observeEvent(input$button_saveplotdata, {
-    variable <- input$variable_selected
-    print("Current plot saved in subdirectory 'graphs'")
-    saveplot(variable, width = 14, height = 7)
-  })
+    #REGION selector
+    output$select_regions <- renderUI({
+      regions_for_selector <- list(Aggregate = list("World"),  
+                                   `Native regions` = witch_regions)
+    selectInput(inputId = "regions_selected", 
+                label = "Regions:", 
+                regions_for_selector, 
+                size = max(10, length(regions_for_selector)), 
+                selectize = FALSE, 
+                multiple = TRUE,
+                selected = "World")
+    })
+  
+    observeEvent(input$button_saveplotdata, {
+      variable <- input$variable_selected
+      print("Current plot saved in subdirectory 'graphs'")
+      saveplot(variable, width = 14, height = 7)
+    })
 
   # Additional selector for specific Panels
 
@@ -58,12 +72,13 @@ shinyServer(function(input, output, session) {
   output$gdxcompaRplot <- renderPlot({
     assign("historical", input$add_historical, envir = .GlobalEnv)
     ylim_zero <- input$ylim_zero
+    field_show <- input$field
     growth_rate <- input$growth_rate
     # plotly_dynamic <- input$plotly_dynamic
     variable <- input$variable_selected
     if (is.null(variable)) variable <- list_of_variables[1]
     # get data
-    afd <- get_witch(variable, check_calibration = TRUE)
+    afd <- get_witch(variable, check_calibration = TRUE, field = field_show)
     if (verbose) print(str_glue("Variable {variable} loaded."))
     # get the name of the additional set
     additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))
@@ -204,10 +219,11 @@ shinyServer(function(input, output, session) {
   output$gdxcompaRstackedplot <- renderPlot({
     assign("historical", input$add_historical, envir = .GlobalEnv)
     ylim_zero <- input$ylim_zero
+    field_show <- input$field
     variable <- input$variable_selected
     if (is.null(variable)) variable <- list_of_variables[1]
     # get data
-    afd <- get_witch(variable, check_calibration = TRUE)
+    afd <- get_witch(variable, check_calibration = TRUE, field = field_show)
     if (verbose) print(str_glue("Variable {variable} loaded."))
     # get the name of the additional set
     additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))
@@ -313,12 +329,13 @@ shinyServer(function(input, output, session) {
   output$gdxompaRplotly <- renderPlotly({
     assign("historical", input$add_historical, envir = .GlobalEnv)
     ylim_zero <- input$ylim_zero
+    field_show <- input$field
     growth_rate <- input$growth_rate
     plotly_dynamic <- input$plotly_dynamic
     variable <- input$variable_selected
     if (is.null(variable)) variable <- list_of_variables[1]
     # get data
-    afd <- get_witch(variable, check_calibration = TRUE)
+    afd <- get_witch(variable, check_calibration = TRUE, field = field_show)
     if (verbose) print(str_glue("Variable {variable} loaded."))
     # get the name of the additional set
     additional_sets <- setdiff(colnames(afd), c(file_group_columns, "pathdir", "t", "n", "value"))

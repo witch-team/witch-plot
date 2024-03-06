@@ -451,7 +451,7 @@ shinyServer(function(input, output, session) {
       p_dyn <- p_dyn + theme(text = element_text(size = 16), legend.position = "bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title = element_blank()) + guides(color = guide_legend(title = NULL))
     } else {
       p_dyn <- ggplot(subset(afd, n %in% regions & (!str_detect(file, "historical") & !str_detect(file, "valid"))), aes(year, value, colour = n, linetype = file)) +
-        geom_line(stat = "identity", size = 1.5) +
+        geom_line(stat = "identity", linewidth = 1.5) +
         xlab("year") +
         ylab(unit_conv$unit) +
         scale_colour_manual(values = region_palette) +
@@ -507,22 +507,22 @@ shinyServer(function(input, output, session) {
         scale_y_time(labels = function(l) strftime(l, "%M:%S")),
       ggarrange(
         ggplot(MIU %>% group_by(t, file, pathdir) %>% summarise(value = mean(value)) %>% filter(file %in% scenarios)) +
-          geom_line(aes(ttoyear(t), value, color = file), size = 1) +
+          geom_line(aes(ttoyear(t), value, color = file), linewidth = 1) +
           ylab("MIU") +
           xlab(""),
         ggplot(Y %>% filter(file %in% scenarios) %>% group_by(t, file, pathdir) %>% summarise(value = sum(value))) +
-          geom_line(aes(ttoyear(t), value, color = file), size = 1) +
+          geom_line(aes(ttoyear(t), value, color = file), linewidth = 1) +
           ylab("GDP [T$]") +
           xlab(""),
         ncol = 2, common.legend = T, legend = "none"
       ),
       ggarrange(
         ggplot(TATM %>% filter(file %in% scenarios & !is.na(value))) +
-          geom_line(aes(ttoyear(t), value, color = file), size = 1) +
+          geom_line(aes(ttoyear(t), value, color = file), linewidth = 1) +
           ylab("TATM") +
           xlab(""),
         ggplot(gini %>% filter(file %in% scenarios)) +
-          geom_line(aes(ttoyear(t), value, color = file), size = 1) +
+          geom_line(aes(ttoyear(t), value, color = file), linewidth = 1) +
           ylab("Gini index") +
           xlab("") +
           ylim(0, 1),

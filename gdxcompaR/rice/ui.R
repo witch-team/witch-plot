@@ -1,5 +1,5 @@
 # Define UI
-header_ui <- headerPanel("WITCH gdxcompaR")
+header_ui <- headerPanel("RICE50+ gdxcompaR")
 
 sidebar_ui <- sidebarPanel(
   uiOutput("select_scenarios"),

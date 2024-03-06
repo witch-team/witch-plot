@@ -23,8 +23,7 @@ shinyServer(function(input, output, session) {
       for (item in c("variables", "parameters")) {
         info_item <- .gdx[[item]]
         info_item <- info_item[info_item$dim <= 4,]
-        info_item <- info_item[sapply(info_item$domnames, 
-                                      function(x) "t" %in% x),]
+        info_item <- info_item[sapply(info_item$domnames, function(x) "t" %in% x),]
         list_of_variables <- c(list_of_variables, info_item$name)
       }
     }

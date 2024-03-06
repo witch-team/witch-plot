@@ -6,7 +6,7 @@ main_folder <- witch_folder # by default, the witch source folder
 subdir = c("") #can be multiple directories
 
 
-restrict_files = c("") #to all scenarios matching partly one of its arguments
+restrict_files = c("results_") #to all scenarios matching partly one of its arguments
 exclude_files = c("")
 removepattern = c("")
 

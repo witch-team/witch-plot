@@ -136,29 +136,6 @@ make_cumulative <- function(data,cols=c("t","n","file"),yearstart=2020,yearend=2
 
 
 
-convert_stochastic_gdx <- function(allfilesdata){
-  if(nrow(allfilesdata) > 0){
-    for(.file in unique(allfilesdata$file)){
-    tempstochdata <- subset(allfilesdata, file==.file)
-    if('10_1' %in% tempstochdata$t){
-      tempstochdata_before_resolution <- subset(tempstochdata, !grepl("_", t))
-      tempstochdata <- subset(tempstochdata, grepl("_", t))
-      tempstochdata$file <- paste0(.file, "(b",str_sub(tempstochdata$t, -1),")")
-      branches <- unique(str_sub(tempstochdata$t, -1))
-      tempstochdata$t <- str_sub(tempstochdata$t, 1,2)
-      for(.branch in branches){
-        tempstochdata_before_resolution$file <- paste0(.file, "(b",.branch,")")
-        tempstochdata <-rbind(tempstochdata,tempstochdata_before_resolution)}
-    }
-    if(.file==unique(allfilesdata$file)[1]){allfilesdata_stoch_converted=tempstochdata}else{allfilesdata_stoch_converted <-rbind(allfilesdata_stoch_converted,tempstochdata)}
-  }
-  return(allfilesdata_stoch_converted)  
-  }else{return(allfilesdata)}
-}
-
-
-
-
 unit_conversion <- function(variable_name, unit="", convert=1){
   #if unit is not "", keep its unit and convert using convert factor
   if(unit!=""){

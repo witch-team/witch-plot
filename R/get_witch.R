@@ -20,6 +20,7 @@ get_witch <- function(variable_name,
            is.element(variable_name, all_items(mygdx)$equations))
         {
           tempdata <- data.table(mygdx[variable_name, field = field])
+          if(is.element(variable_name, all_items(mygdx)$equations)) names(tempdata)[1:2] <- c("t", "n")
           if(!("n" %in% names(tempdata))) tempdata$n <- "World"
           tempdata$file <- as.character(file)
           if(length(fullpathdir)>=1){

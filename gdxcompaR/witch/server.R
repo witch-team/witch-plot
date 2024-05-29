@@ -51,13 +51,17 @@ shinyServer(function(input, output, session) {
         selected = "Q_EMI",
         options = list(
           `live-search` = TRUE)
-      )
-    })
-    variable_selected_reactive <- reactive({input$variable_selected})
+        )
+      })
+    
+    # Reactively update variable selector
+    variable_input <- reactive({
+      return(input$variable_selected)
+      })
     
     #Display selected variable and set
     output$varname <- renderText({  
-      paste0(variable_selected_reactive(),
+      paste0(variable_input(),
             "|", str_trunc(paste(input$additional_set_id_selected, 
                                  collapse=","), 20),
             ifelse(is.null(input$additional_set_id_selected2) | 
@@ -123,7 +127,7 @@ shinyServer(function(input, output, session) {
 
       #Selector for additional set
       output$choose_additional_set <- renderUI({
-        variable <- variable_selected_reactive()
+        variable <- variable_input()
         if (is.null(variable)) {
           variable <- list_of_variables[1]
         }
@@ -146,7 +150,7 @@ shinyServer(function(input, output, session) {
       })
       #Selector for additional set #2
       output$choose_additional_set2 <- renderUI({
-        variable <- variable_selected_reactive()
+        variable <- variable_input()
         if(is.null(variable)) variable <- list_of_variables[1]
         sel2 <- input$additional_set_id_selected2
         size_elements2 <- min(length(set_elements2), 5)
@@ -322,7 +326,7 @@ shinyServer(function(input, output, session) {
       
       #Selector for additional set
       output$choose_additional_set <- renderUI({
-        variable <- variable_selected_reactive()
+        variable <- variable_input()
         if(is.null(variable)) variable <- list_of_variables[1]
         sel <- input$additional_set_id_selected
         size_elements <- min(length(set_elements), 5)
@@ -330,7 +334,7 @@ shinyServer(function(input, output, session) {
       })
       #Selector for additional set #2
       output$choose_additional_set2 <- renderUI({
-        variable <- variable_selected_reactive()
+        variable <- variable_input()
         if(is.null(variable)) variable <- list_of_variables[1]
         sel2 <- input$additional_set_id_selected2
         size_elements2 <- min(length(set_elements2), 5)
@@ -442,7 +446,6 @@ shinyServer(function(input, output, session) {
       print(p_dyn)
       if(length(ggplot_build(p_dyn)$data[[1]]) > 0) ggplotly()
     })
-    
     
     output$inequalityplot <- renderPlot({
       #get input from sliders/buttons

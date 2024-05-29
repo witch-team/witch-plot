@@ -85,22 +85,6 @@ filetosep <- function(df, type = "separate", names = "file_new", sep = "_"){
 }
 
 
-ssptriple <- function(df) #Function converts a single "file" columns to three with SSP, RCP, SPA
-{
-  scenario <- df$file
-  triple <- as.data.frame(matrix(0, ncol = 0, nrow = length(scenario)))
-  triple$ssp=substr(scenario, 1, 4)
-  triple$rcp=substr(scenario, 6, 9)
-  triple$spa=substr(scenario, 11, 14)  
-  triple$spa <- str_replace(triple$spa, "spa[1-5]", "spaX")
-  #special cases for BAU
-  if(length(triple[str_detect(triple$rcp, "bau"),1])>0){triple[str_detect(triple$rcp, "bau"),]$rcp <- "bau"}
-  if(length(triple[str_detect(triple$rcp, "bau"),1])>0){triple[str_detect(triple$rcp, "bau"),]$spa <- "spa0"}
-  df_new <- cbind(df, triple)
-  df_new$file <- NULL
-  return(df_new)
-}
-
 readkey <- function()
 {
   cat ("Press [enter] to continue")
@@ -149,29 +133,6 @@ make_cumulative <- function(data,cols=c("t","n","file"),yearstart=2020,yearend=2
     summarise_at(nms, ~sum(./((1+dr)^(ttoyear(t)-yearstart)) ) ) %>%
     mutate(t=paste0(yearstart,"to",yearend))
   return(data) }
-
-
-
-convert_stochastic_gdx <- function(allfilesdata){
-  if(nrow(allfilesdata) > 0){
-    for(.file in unique(allfilesdata$file)){
-    tempstochdata <- subset(allfilesdata, file==.file)
-    if('10_1' %in% tempstochdata$t){
-      tempstochdata_before_resolution <- subset(tempstochdata, !grepl("_", t))
-      tempstochdata <- subset(tempstochdata, grepl("_", t))
-      tempstochdata$file <- paste0(.file, "(b",str_sub(tempstochdata$t, -1),")")
-      branches <- unique(str_sub(tempstochdata$t, -1))
-      tempstochdata$t <- str_sub(tempstochdata$t, 1,2)
-      for(.branch in branches){
-        tempstochdata_before_resolution$file <- paste0(.file, "(b",.branch,")")
-        tempstochdata <-rbind(tempstochdata,tempstochdata_before_resolution)}
-    }
-    if(.file==unique(allfilesdata$file)[1]){allfilesdata_stoch_converted=tempstochdata}else{allfilesdata_stoch_converted <-rbind(allfilesdata_stoch_converted,tempstochdata)}
-  }
-  return(allfilesdata_stoch_converted)  
-  }else{return(allfilesdata)}
-}
-
 
 
 

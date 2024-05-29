@@ -36,6 +36,6 @@ get_iiasadb <- function(database="ar6-public", varlist="Emissions|CO2", varname=
   {
     iiasadb_df <- py_to_r(iiasadb_data$as_pandas())
   }
-  if(!is.null(varname)) iiasadb_df <- iiasadb_df %>% mutate(variable = plyr::mapvalues(variable, from = varlist, to = varname))
+  if(!is.null(varname)) iiasadb_df <- iiasadb_df %>% mutate(variable = mapvalues(variable, from = varlist, to = varname))
   return(iiasadb_df)
 }

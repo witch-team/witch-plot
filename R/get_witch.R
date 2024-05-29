@@ -19,16 +19,17 @@ get_witch <- function(variable_name,
            is.element(variable_name, all_items(mygdx)$variables) | 
            is.element(variable_name, all_items(mygdx)$equations))
         {
-          tempdata <- data.table(mygdx[variable_name, field = field]) # SLOW (2500)
+          tempdata <- data.table(mygdx[variable_name, field = field])
+          if(is.element(variable_name, all_items(mygdx)$equations)) names(tempdata)[1:2] <- c("t", "n")
           if(!("n" %in% names(tempdata))) tempdata$n <- "World"
           tempdata$file <- as.character(file)
           if(length(fullpathdir)>=1){
-            tempdata$pathdir <- basename(current_pathdir) # SLOW (975)
+            tempdata$pathdir <- basename(current_pathdir)
           }
           if(!exists("allfilesdata")) {
             allfilesdata <- tempdata
           } else {
-            allfilesdata <- rbind(allfilesdata,tempdata) # SLOW (500)
+            allfilesdata <- rbind(allfilesdata,tempdata)
           }
           remove(tempdata)
         }
@@ -48,10 +49,19 @@ get_witch <- function(variable_name,
     allfilesdata <- subset(allfilesdata, file %in% scenplot)
     if(("t" %in% colnames(allfilesdata)) & !(variable_name=="t")){
       #check if stochastic and if so convert "branch" to "file" element
-      allfilesdata <- convert_stochastic_gdx(allfilesdata) # SLOW (1375)           
-      allfilesdata$t <- as.numeric(allfilesdata$t) # SLOW (500)
-    }
-    if (("n" %in% colnames(allfilesdata)) & !(is.element(variable_name, all_items(mygdx)$sets))){allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F)}else{if(!(variable_name %in% c("eu", "oecd", "eu27", "eu28", "europe"))) allfilesdata$n <- "World"} # SLOW (1060)
+      if(length(stochastic_files)>0){
+        #first add branches BEFORE bifurcation for each branch
+        allfilesdata_pre_bifurk <- allfilesdata %>% filter(!str_detect(t, "_")) %>% left_join(stochastic_files, by = "file") %>% filter(!is.na(num_branches)) %>% group_by(t, n, file, pathdir) %>%
+          slice(rep(1:n(), num_branches)) %>% mutate(t=paste0(t,"_",row_number())) %>% select(-num_branches) %>% ungroup()
+        #remove the string after "_" from t and addto file  after a parenthesis
+        allfilesdata <- bind_rows(allfilesdata_pre_bifurk, allfilesdata %>% filter(!(file %in% stochastic_files$file & !str_detect(t, "_")))) %>% mutate(
+          file = ifelse(str_detect(t, "_"), paste0(file, "(b", sub(".*_(\\w+)$", "\\1", t), ")"), as.character(file)),
+          t = sub("_(\\w+)$", "", t))
+        }
+      #since t is character in gams convert to numeric fastest way
+      allfilesdata <- allfilesdata %>% mutate(t=as.numeric(as.character(t)))
+      }
+    if(exists("display_regions"))  allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F) #map n to display regions
     if(str_detect(variable_name, "MAGICC|HECTOR")) {allfilesdata <- suppressWarnings(allfilesdata[,-c("magicc_n", "hector_n")])}
     
     #combine _old, _new, _late to one unit in case present
@@ -83,7 +93,6 @@ get_witch <- function(variable_name,
       for(sep in unname(file_separate[3:length(file_separate)])) allfilesdata[[sep]] <- gsub(sep, "", allfilesdata[[sep]])
     }
     
-    if(("t" %in% names(allfilesdata)) & (!any(str_detect(allfilesdata$t, "_")))) allfilesdata$t <- as.numeric(allfilesdata$t) # SLOW (575)
     return(allfilesdata)
   }else{print(str_glue("Element {variable_name} was not found in any GDX file."));return(data.frame())}
 }

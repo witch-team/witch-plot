@@ -1,14 +1,16 @@
 
 
-Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(yearmin, yearmax), plot_type="area", scenplot=scenlist, plot_name="Primary Energy Mix", plot_total_tpes=FALSE){
-  if(length(fullpathdir)!=1){print("PES mix REGIONAL only for one directory at a time!")}else{
-    ssp_grid_old=ssp_grid; assign("ssp_grid", FALSE, envir = .GlobalEnv) 
-    Q_FUEL <- get_witch("Q_FUEL"); Q_FUEL_pes <- Q_FUEL %>% mutate(value=value*0.0036)
-    Q_EN <- get_witch("Q_EN"); Q_EN_pes <- Q_EN %>% mutate(value=value*0.0036)
-    assign("ssp_grid", ssp_grid_old, envir = .GlobalEnv) 
+Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(yearmin, yearmax), plot_type="area", scenplot=scenlist, plot_name="Primary Energy Mix", add_total_tpes = F){
+  if(length(fullpathdir)!=1){print("PES mix REGIONAL only for one directory at a time!");break}
+    Q_FUEL <- get_witch("Q_FUEL"); Q_FUEL_pes <- Q_FUEL %>% mutate(value=value*0.0036) %>% rename(j=fuel)
+    #if fuel==uranium multiply by the efficiency of 0.3333
+    Q_FUEL_pes <- Q_FUEL_pes %>% mutate(value=ifelse(j=="uranium", value*0.3333, value))
+    Q_FUEL_pes
+    Q_EN <- get_witch("Q_EN") %>% filter(j %in% c("elhydro", "elwindon", "elwindoff", "elpv", "elcsp")); Q_EN_pes <- Q_EN %>% mutate(value=value*0.0036)
+    #add bunkers
+    BUNK_FUEL <- get_witch("BUNK_FUEL") %>% select(-jbunk) %>% mutate(value=value*0.0036) %>% rename(j=fuel)
     #aggregate sub-categories
-    setnames(Q_FUEL_pes,"fuel", "j")
-    TPES <- rbind(Q_FUEL_pes, Q_EN_pes)
+    TPES <- rbind(Q_FUEL_pes, Q_EN_pes, BUNK_FUEL)
     TPES <- subset(TPES, j %in% c("oil", "coal", "gas", "uranium", "trbiofuel", "wbio", "advbio", "trbiomass") | j %in% c("elpv", "elcsp", "elhydro", "elback", "elwindon", "elwindoff"))
     TPES$category[TPES$j %in% c("oil")] = "Oil"
     TPES$category[TPES$j %in% c("gas")] = "Natural Gas"
@@ -41,24 +43,23 @@ Primary_Energy_Mix <- function(PES_y="value", regions="World", years=seq(yearmin
     p <- p + xlab("") + guides(fill=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom")   
     p <- p + facet_grid(n ~ file, scales="free")
     if(PES_y=="share"){p <- p + ylab("%")}else{p <- p + ylab("EJ")}
+    
+    if(add_total_tpes & PES_y=="value"){
+      total_tpes <- get_witch("tpes") %>% mutate(value=value*0.0036)
+      if(regions[1]=="World"){total_tpes$n <- NULL; total_tpes <- total_tpes[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir")]; total_tpes$n <- "World"}else{total_tpes <- subset(total_tpes, n %in% regions)}
+      p <- p + geom_line(data = subset(total_tpes, ttoyear(t)<=yearmax & n %in% regions & ttoyear(t) %in% years & file %in% scenplot), aes(ttoyear(t),value), color="darkgrey", linetype="dashed") 
+    }
     saveplot(plot_name)
-  }
-  if(plot_total_tpes){
-  tpes <- get_witch("tpes"); tpes_global <- tpes %>% mutate(value=value*0.0036)
-  ggplot(subset(tpes_global, ttoyear(t)<=yearmax & n %in% regions & file %in% scenplot)) + geom_line(stat="identity", size=1.2, aes(ttoyear(t),value, color=file)) + facet_wrap( ~ n, scales = "free", switch=NULL, ncol=length(regions)) + ylab("EJ") + xlab("") + guides(color=guide_legend(title=NULL, nrow = 1)) + theme(legend.position="bottom")
-  saveplot("Primary Energy Regional")
-  }
 }
 
 
 
 
 
-Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(yearmin, yearmax), plot_type="area", plot_name="Electricity Mix", scenplot=scenlist){
-  if(length(fullpathdir)!=1){print("Electricity mix only for one directory at a time!")}else{
-    ssp_grid_old=ssp_grid; assign("ssp_grid", FALSE, envir = .GlobalEnv) 
+Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(yearmin, yearmax), plot_type="area", plot_name="Electricity Mix", scenplot=scenlist, add_total_elec=F){
+  if(length(fullpathdir)!=1){print("Electricity mix only for one directory at a time!");break}
     Q_IN <- get_witch("Q_IN"); Q_IN_el <- Q_IN %>% mutate(value=value * 0.0036)
-    csi <- get_witch("csi"); csi_el <- csi %>% rename(csi=value)
+    csi_el <- get_witch("csi") %>% rename(csi=value) %>% mutate(jfed=gsub("_new", "", jfed)) %>% filter(jfed %in% c("eloil", "elpb", "elpc", "elgastr", "elbigcc", "elcigcc", "elgasccs", "elpc_ccs", "elpc_oxy"))
     JFED <- merge(Q_IN_el, csi_el, by = c("t", "n", file_group_columns, "pathdir", "fuel", "jfed"), all=TRUE)
     JFED <- JFED %>% filter(jfed %in% c("eloil", "elpb", "elpc", "elgastr", "elbigcc", "elcigcc", "elgasccs", "elpc_ccs", "elpc_oxy"))
     #take efficiency for EL into account
@@ -66,7 +67,7 @@ Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(ye
     JFED$csi[is.na(JFED$csi) & JFED$jfed=="elpc"] <- 0.45
     JFED$csi[is.na(JFED$csi) & JFED$jfed=="eloil"] <- 0.3529
     JFED$csi[is.na(JFED$csi) & JFED$jfed=="elgastr"] <- 0.4554
-    JFED$csi[is.na(JFED$csi) & JFED$jfed=="elpb"] <- 1
+    JFED$csi[is.na(JFED$csi) & JFED$jfed=="elpb"] <- 0.3
     JFED$csi[is.na(JFED$csi)] <- 1
     JFED$value <- JFED$value * JFED$csi
     JFED$csi <- NULL
@@ -114,8 +115,13 @@ Electricity_Mix <- function(Electricity_y="value", regions="World", years=seq(ye
     }
     p <- p + facet_grid(n ~ file, scales="free")
     if(Electricity_y=="share"){p <- p + ylab("%")}else{p <- p + ylab("EJ")}
+    
+    if(add_total_elec & Electricity_y=="value"){
+      total_elec <- get_witch("Q_EN") %>% filter(j=="el") %>% mutate(value=value*0.0036)
+      if(regions[1]=="World"){total_elec$n <- NULL; total_elec <- total_elec[, lapply(.SD, sum), by=c("t", file_group_columns, "pathdir")]; total_elec$n <- "World"}else{total_elec <- subset(total_elec, n %in% regions)}
+      p <- p + geom_line(data = subset(total_elec, ttoyear(t)<=yearmax & n %in% regions & ttoyear(t) %in% years & file %in% scenplot), aes(ttoyear(t),value), color="darkgrey", linetype="dashed") 
+    }
     saveplot(plot_name)
-  }
 }
 
 
@@ -198,7 +204,6 @@ Investment_Plot <- function(regions=witch_regions, scenplot=scenlist, match_hist
 
 Power_capacity <- function(regions="World", years=seq(yearmin, yearmax), plot_name="Power Capacity", scenplot=scenlist){
   if(length(fullpathdir)!=1){print("Electricity mix only for one directory at a time!")}else{
-    ssp_grid_old=ssp_grid; assign("ssp_grid", FALSE, envir = .GlobalEnv) 
     K_EN <- get_witch("K_EN")
     K_EN <- K_EN %>% filter(jreal %in% c("eloil", "elpb", "elpc", "elgastr", "elbigcc", "elcigcc", "elgasccs", "elpc_ccs", "elpv", "elcsp", "elnuclear", "elwindon", "elwindoff", "elhydro"))
     K_EN$category <- mapvalues(K_EN$jreal, from = c("elpc", "elpc_ccs", "elgastr", "elgasccs", "eloil", "elnuclear", "elpb", "elbigcc", "elhydro", "elwindon", "elwindoff", "elpv", "elcsp"), to = c("Coal w/o CCS", "Coal w/ CCS", "Gas w/o CCS", "Gas w/ CCS", "Oil", "Nuclear", "Biomass w/o CCS", "Biomass w/ CCS", "Hydro", "Wind Onshore", "Wind Offshore", "Solar PV", "Solar CSP"))

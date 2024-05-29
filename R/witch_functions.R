@@ -7,7 +7,6 @@ figure_format="png"
 historical = TRUE  #add historical data where available
 ggplot2::theme_set(ggplot2::theme_bw()) #set default theme
 show_numbers_2100 = FALSE
-ssp_grid = FALSE
 legend_position="bottom"    # "none", "bottom", or "right"
 write_plotdata_csv = F #if true, saves data of plot as csv file
 varlist_combine_old_new_j <- c("Q_EN", "K_EN", "I_EN", "Q_IN")  #variables for which to combine old and new j technologies
@@ -27,17 +26,15 @@ graphdir = if(length(fullpathdir)>1){file.path(main_folder, "graphs") }else{file
 if(any(!dir.exists(fullpathdir))){stop("Please check the main directory and sub directory!")}
 if(!dir.exists(witch_folder)){stop("Please check your witch directory!")}
 
-# gdxtools
-require_gdxtools <- function(){ 
-  if(!is.element("gdxtools", .packages(all.available = TRUE))){
-  require_package("devtools")
-  install_github('lolow/gdxtools')
+# witchtools
+if (!"witchtools" %in% rownames(installed.packages())) {
+  if (!"remotes" %in% rownames(installed.packages()))
+    install.packages("remotes", repos = "http://cloud.r-project.org")
+  remotes::install_github("witch-team/witchtools")
+  if (!requireNamespace("witchtools")) stop("Package witchtools not found")
 }
-if(packageVersion("gdxtools")<numeric_version("0.4.0")){
-  stop("You need to install a newer version of gdxtools (>=0.4.0). Please run remove.packages('gdxtools'), restart R and rerun this script.")
-}
-suppressPackageStartupMessages(library(gdxtools, quietly = TRUE))
-}
+library(witchtools)
+
 #Install and load packages
 require_package <- function(package){
   if(!is.element(package, .packages(all.available = TRUE))){
@@ -99,6 +96,11 @@ print(data.frame(scenlist=scenlist))
 #file to separate check
 if(exists("file_separate")) file_group_columns <- c("file", unname(file_separate[3:length(file_separate)])) else file_group_columns <- "file"
 
+#in case some runs are stochastic, set flag and provide mapping
+tset <- get_witch("t")
+if(any(str_detect((tset %>% select(t) %>% unique())$t, "_"))){
+  stochastic_files <- tset %>% filter(str_detect(t, "_")) %>% mutate(numeric_t = as.numeric(sub(".*_(\\d+)$", "\\1", t))) %>% group_by(file) %>% summarise(num_branches = max(numeric_t, na.rm = TRUE))
+  }else{stochastic_files <- NULL}
 
 #get variable description of all variables from the 1st file
 mygdx <- gdx(file.path(fullpathdir[1],paste0(filelist[1],".gdx")))
@@ -124,7 +126,7 @@ region_palette_witch <- c(usa="darkblue",Usa="darkblue",oldeuro="blue", neweuro=
 #add ed57 region colors for RICE50+
 region_palette_ed57 <- c("arg" =  "#000000","aus" =  "#48d1cc","aut" =  "#ae8000","bel" =  "#800000","bgr" =  "#003366","blt" =  "#bf4040","bra" =  "#ffd633","can" =  "#6600cc","chl" =  "#ffece6","chn" =  "#ff531a","cor" =  "#adebad","cro" =  "#808080","dnk" =  "#ff9933","egy" =  "#0044cc","esp" =  "#ffd6cc","fin" =  "#00cccc","fra" =  "#cc0000","gbr" =  "#ffffdd","golf57"  =  "#33d6ff","grc" =  "#00ffcc","hun" =  "#9999ff","idn" =  "#996633","irl" =  "#ff4dff","ita" =  "#ffff00","jpn" =  "#006600","meme"=  "#b32d00","mex" =  "#ccff33","mys" =  "#145252","nde" =  "#00d900","nld" =  "#c309bd","noan"=  "#ffff99","noap"=  "#ecf2f9","nor" =  "#ff3399","oeu" =  "#ffb3ff","osea"=  "#008fb3","pol" =  "#d6f5d6","prt" =  "#003300","rcam"=  "#4d1919","rcz" =  "#00ffff","rfa" =  "#deb887","ris" =  "#000080","rjan57"  =  "#bf00ff","rom" =  "#ff00ff","rsaf"=  "#ff8000","rsam"=  "#0000ff","rsas"=  "#ccd6dd","rsl" =  "#00ff00","rus" =  "#66757f","slo" =  "#ff3091","sui" =  "#61a62f","swe" =  "#cb1942","tha" =  "#efff14","tur" =  "#4b0082","ukr" =  "#c198ff","usa" =  "#ffcc00","vnm" =  "#3377ff","zaf" =  "#b3ccff")
 #Add witch34 region colors
-region_palette_witch34 <- c("bnl" =  "#800000","northeu" =  "#bf4040","balkan" =  "#808080","easteu" =  "#9999ff", "che"="#61a62f", "deu" =  "#deb887", "rou" =  "#ff00ff", "cze" =  "#00ffff")
+region_palette_witch34 <- c("bnl" =  "#800000","northeu" =  "#bf4040","balkan" =  "#808080","easteu" =  "#9999ff", "che"="#61a62f", "deu" =  "#deb887", "rou" =  "#ff00ff", "cze" =  "#00ffff", "japan"="green", korea="red")
 region_palette <- replace(region_palette_specific, names(region_palette_witch), region_palette_witch)
 region_palette <- replace(region_palette, names(region_palette_ed57), region_palette_ed57)
 region_palette <- replace(region_palette, names(region_palette_witch34), region_palette_witch34)

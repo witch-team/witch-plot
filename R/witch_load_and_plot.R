@@ -29,7 +29,6 @@ get_plot_witch <- function(variable_name, additional_set="na", additional_set_id
   #aggregation=none: no graph is created no aggregation performed, just loads the element
   #some default values, maybe not even needed to customize
   #removepattern="results_"
-  #ssp_grid = FALSE
   #DEBUG:
   #variable_name="Q_OUT"; additional_set="f"; additional_set_id="oil"; convert=1; unit=""; aggregation="regional"; cumulative=FALSE; plot=TRUE; bar=""; bar_x="time"; bar_y="value"; bar_setvalues=""; bar_colors=""; regions=witch_regions; scenplot=scenlist; variable_field="l"; current_pathdir = fullpathdir[1]; file <- filelist[1];
   line_size = 1.5;
@@ -88,15 +87,11 @@ get_plot_witch <- function(variable_name, additional_set="na", additional_set_id
       else{allfilesdata <- aggregate(value~t+file, data=allfilesdata, sum)}
       #print(str(allfilesdata)); assign("test",allfilesdata,envir = .GlobalEnv)
       allfilesdata <- as.data.table(allfilesdata)
-      #if(ssp_grid){allfilesdata$ssp <- str_extract(allfilesdata$file, "ssp[1-5]")}
       #try for RCP:
-      if(ssp_grid){allfilesdata <- ssptriple(allfilesdata); line_colour = "rcp"; line_type="spa"}
       p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, colour=get(line_colour), linetype=get(line_type))) + geom_line(stat="identity", size=line_size) + xlab("year") +ylab(unit_conversion$unit)
       if(show_legend_title){p <- p + labs(linetype=line_type, colour=line_colour)}else{p <- p + theme(legend.title=element_blank())} 
       if(show_numbers_2100){p <- p + geom_text(data=subset(allfilesdata, t==20), aes(x=2100, y=value, label=round(value, 2)))}
-      if(ssp_grid){p <- p + facet_grid(. ~ ssp)}
       if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
-      if(length(fullpathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}
       if(length(fullpathdir)==1){p <- p + guides(linetype="none")}
       if(plot){saveplot(variable_name)}
     } 
@@ -104,24 +99,16 @@ get_plot_witch <- function(variable_name, additional_set="na", additional_set_id
     {
       allfilesdata$n <- NULL      
   allfilesdata <- allfilesdata %>% group_by_at(c("pathdir", file_group_columns, "t")) %>% summarize(value=mean(value), .groups = "drop")
-      if(ssp_grid){allfilesdata <- ssptriple(allfilesdata); line_colour = "rcp"; line_type="spa"}
       p <- ggplot(data=subset(allfilesdata),aes(ttoyear(t),value, colour=get(line_colour), linetype=get(line_type))) + geom_line(stat="identity", linewidth=line_size) + xlab("year") +ylab(unit_conversion$unit) + labs(linetype=line_type, colour=line_colour)
       if(show_numbers_2100){p <- p + geom_text(data=subset(allfilesdata, t==20), aes(x=2100, y=value, label=round(value, 2)))}
-      if(ssp_grid){p <- p + facet_grid(. ~ ssp)}
       if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
-      if(length(fullpathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}   
       if(length(fullpathdir)==1){p <- p + guides(linetype="none")}
       if(plot){saveplot(variable_name)}
     } 
     if (aggregation == "regional") 
     {
-      if(ssp_grid){allfilesdata$ssp <- str_extract(allfilesdata$file, "ssp[1-5]")}
-      # print(str(allfilesdata))
-      # assign("test", allfilesdata)
       p <- ggplot(subset(allfilesdata, n %in% regions),aes(ttoyear(t),value,colour=n, linetype=file)) + geom_line(stat="identity", linewidth=line_size) + xlab("year") +ylab(unit_conversion$unit) + scale_colour_manual(values = region_palette)
-      if(ssp_grid){p <- p + facet_grid(. ~ ssp)}
       if(length(fullpathdir)!=1){p <- p + facet_grid(pathdir ~ .)}
-      if(length(fullpathdir)!=1 & ssp_grid){p <- p + facet_grid(pathdir ~ ssp)}   
       if(plot){saveplot(variable_name)}
     }
     if (aggregation == "all") 

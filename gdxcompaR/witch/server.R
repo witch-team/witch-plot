@@ -326,7 +326,7 @@ shinyServer(function(input, output, session) {
       
       #Selector for additional set
       output$choose_additional_set <- renderUI({
-        variable <- variable_selected_reactive()
+        variable <- variable_input()
         if(is.null(variable)) variable <- list_of_variables[1]
         sel <- input$additional_set_id_selected
         size_elements <- min(length(set_elements), 5)
@@ -334,7 +334,7 @@ shinyServer(function(input, output, session) {
       })
       #Selector for additional set #2
       output$choose_additional_set2 <- renderUI({
-        variable <- variable_selected_reactive()
+        variable <- variable_input()
         if(is.null(variable)) variable <- list_of_variables[1]
         sel2 <- input$additional_set_id_selected2
         size_elements2 <- min(length(set_elements2), 5)

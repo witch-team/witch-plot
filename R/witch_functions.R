@@ -101,9 +101,9 @@ tset <- get_witch("t")
 if("t" %in% names(tset)){
   if(any(str_detect((tset %>% select(t) %>% unique())$t, "_"))){
   stochastic_files <- tset %>% filter(str_detect(t, "_")) %>% mutate(numeric_t = as.numeric(sub(".*_(\\d+)$", "\\1", t))) %>% group_by(file) %>% summarise(num_branches = max(numeric_t, na.rm = TRUE))
-  }
-}
-else{stochastic_files <- NULL}
+  }else{stochastic_files <- NULL}
+}else{stochastic_files <- NULL}
+
 
 #get variable description of all variables from the 1st file
 mygdx <- gdx(file.path(fullpathdir[1],paste0(filelist[1],".gdx")))

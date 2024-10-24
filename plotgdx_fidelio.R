@@ -1,5 +1,5 @@
 rm(list = ls())
-witch_folder = "../FIDELIO" #Where you're RICE/DICE/RICE50x code is located (FIDELIO is in EUR of 2010) (EUR2010 to USD2005 = 1.33/1.10774)
+witch_folder = "../fidelio" #Where you're RICE/DICE/RICE50x code is located (FIDELIO is in EUR of 2010) (EUR2010 to USD2005 = 1.33/1.10774)
 #main directory of your results files
 main_folder <- witch_folder # by default, the witch source folder
 subdir = c("") #can be multiple directories
@@ -8,7 +8,7 @@ reg_id = "fidelio46" #for historical data folder
 year0 = 2010
 tstep = 1
 
-restrict_files = c("") #to all scenarios matching partly one of its arguments
+restrict_files = c("results") #to all scenarios matching partly one of its arguments
 exclude_files = c("")
 removepattern = c("")
 

@@ -5,7 +5,7 @@ main_folder <- witch_folder # by default, the witch source folder
 subdir = c("") #can be multiple directories
 
 reg_id = "fidelio46" #for historical data folder
-year0 = 2010
+year0 = 2015
 tstep = 1
 
 restrict_files = c("results") #to all scenarios matching partly one of its arguments
@@ -27,7 +27,7 @@ ELAND, , , Q_EMI, e, co2lu, 1/(44/12)
 pop, , , l, , , 1e3
 K, , , K, g, fg, 1
 I, , , I, g, fg, 1
-GDP_VA_VAL_t, , , ykali, , , 1e6/1.200643
+GDP_VA_VAL_t, , , ykali, , , 1e6/1.09
 ")
 #compute numerical conversion factor
 map_var_hist <- map_var_hist %>% rowwise() %>% mutate(conv=eval(parse(text = conv))) %>% as.data.table()

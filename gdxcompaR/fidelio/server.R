@@ -199,6 +199,9 @@ shinyServer(function(input, output, session) {
         mutate(value = ifelse(is.na(value), 0, value)) %>%
         ungroup()
     }
+    
+    #all upper case except for world
+    afd$n <- ifelse(afd$n == "World", "World", toupper(afd$n))
 
 
     # scenarios, potentially add stochastic scenarios to show

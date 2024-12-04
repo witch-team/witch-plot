@@ -498,30 +498,33 @@ shinyServer(function(input, output, session) {
       group_by(t, file, pathdir) %>%
       summarize(value = reldist::gini(value / pop, weights = pop))
     # style
-    diagplot <- ggarrange(
-      ggplot(elapsed %>% filter(file %in% scenarios)) +
+    diagplot <- list()
+    for(p in subdir){
+    diagplot[[p]] <- ggarrange(
+      ggplot(elapsed %>% filter(file %in% scenarios & pathdir==p)) +
         geom_bar(aes(file, value, fill = file), stat = "identity") +
-        ylab("Run time (minutes)") +
+        ylab("Run time (minutes)") + ylim(0, max(elapsed$value)) +
         theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-        theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
-        scale_y_time(labels = function(l) strftime(l, "%M:%S")),
+        theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) + ggtitle(p) +
+        scale_y_continuous(limits = c(0, max(elapsed$value)), labels = function(l) strftime(as.POSIXct(l, origin = "1970-01-01"), "%M:%S"))
+        ,
       ggarrange(
-        ggplot(MIU %>% group_by(t, file, pathdir) %>% summarise(value = mean(value)) %>% filter(file %in% scenarios)) +
+        ggplot(MIU %>% group_by(t, file, pathdir) %>% summarise(value = mean(value)) %>% filter(file %in% scenarios & pathdir==p)) +
           geom_line(aes(ttoyear(t), value, color = file), linewidth = 1) +
           ylab("MIU") +
           xlab(""),
-        ggplot(Y %>% filter(file %in% scenarios) %>% group_by(t, file, pathdir) %>% summarise(value = sum(value))) +
+        ggplot(Y %>% filter(file %in% scenarios & pathdir==p) %>% group_by(t, file, pathdir) %>% summarise(value = sum(value))) +
           geom_line(aes(ttoyear(t), value, color = file), linewidth = 1) +
           ylab("GDP [T$]") +
           xlab(""),
         ncol = 2, common.legend = T, legend = "none"
       ),
       ggarrange(
-        ggplot(TATM %>% filter(file %in% scenarios & !is.na(value))) +
+        ggplot(TATM %>% filter(file %in% scenarios & pathdir==p & !is.na(value))) +
           geom_line(aes(ttoyear(t), value, color = file), linewidth = 1) +
           ylab("TATM") +
           xlab(""),
-        ggplot(gini %>% filter(file %in% scenarios)) +
+        ggplot(gini %>% filter(file %in% scenarios & pathdir==p)) +
           geom_line(aes(ttoyear(t), value, color = file), linewidth = 1) +
           ylab("Gini index") +
           xlab("") +
@@ -530,7 +533,9 @@ shinyServer(function(input, output, session) {
       ),
       nrow = 3, common.legend = T, legend = "bottom"
     )
-    print(diagplot)
+    }
+    diagplot_all <- ggarrange(plotlist = diagplot, ncol = length(diagplot), common.legend = T)
+    print(diagplot_all)
   })
 
 

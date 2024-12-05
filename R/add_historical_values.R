@@ -12,14 +12,15 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     }
   if(exists("map_var_hist")){
     map_var_hist$varname_model <- gsub("\\|","_",map_var_hist$varname_model) #just locally in this function
+    
     if(varname %in% map_var_hist$varname_model){
-      if(map_var_hist[varname_model==varname]$set_witch!=""){
+      if(map_var_hist[varname_model==varname]$set_witch[1]!="" & map_var_hist[varname_model==varname]$set_model[1]==""){ #only if no model set given
         variable <- cbind(tempset=map_var_hist[varname_model==varname]$element_witch, variable)
         setnames(variable, "tempset", map_var_hist[varname_model==varname]$set_witch)
       }
       #rename varname to WITCH one
       varname_original <- varname
-      varname <- map_var_hist[varname_model==varname]$var_witch
+      varname <- map_var_hist[varname_model==varname]$var_witch[1] #for now only one witch variable for a model variable can be used
     }
   }
 
@@ -89,11 +90,29 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   #adjust scenario names
   if(exists("witch_regions")) .hist$n  <- mapvalues(.hist$n , from=witch_regions, to=display_regions, warn_missing = F)
   
+  #change set name and element if map_var_hist has set_model defined
+  if(exists("map_var_hist")){
+    if(!all(map_var_hist[varname_model==varname_original]$set_model=="")){
+      .hist <- .hist %>% filter(c_across(map_var_hist[varname_model==varname_original]$set_model[1]) %in% map_var_hist[varname_model==varname_original]$element_witch) #keep only the data that are map_var_hist given for
+      set_map <- map_var_hist[varname_model==varname_original]$element_model; names(set_map) = map_var_hist[varname_model==varname_original]$element_witch
+      .hist <- .hist %>% mutate(across(all_of(map_var_hist$set_model[map_var_hist$varname_model == varname_original]), ~ dplyr::recode(., !!!set_map))) #map and change element names from witch to model [best way to replace mapvalues]
+    }
+    #unit conversion if needed
+    if(varname_original %in% map_var_hist$varname_model){
+      .conv <- map_var_hist[varname_model==varname_original] %>% select(set_model, element_model, conv)
+      if(all(.conv$set_model=="")) .hist$conv <- unique(.conv$conv) else {
+        setnames(.conv, "element_model", unique(.conv$set_model))
+        .hist <- .hist %>% left_join(.conv %>% select(-set_model))
+      }
+    .hist <- .hist %>% mutate(value =  value * conv) %>% select(-conv)
+    }
+  }
+  
   #if check_calibration, add validation as data points!
   if(check_calibration){
     .gdx_validation <- gdx(file.path(witch_folder, paste0("data_", reg_id[1]), "data_validation.gdx")) #only first reg_id
     for(.item in intersect(item, .gdx_validation$parameters$name)){.hist_validation_single <- as.data.table(.gdx_validation[.item]); .hist_validation_single$file <- gsub(paste0(tolower(varname), "_"), "", .item); if(.item==item[1]){.hist_validation <- .hist_validation_single}else{.hist_validation <- rbind(.hist_validation,.hist_validation_single)} }
-    if(exists(".hist_validation")){
+    if(exists(".hist_validation") & !exists("map_var_hist")){
     if(!("n" %in% colnames(.hist_validation))){.hist_validation$n = "World"}
     colnames(.hist_validation) <- colnames(.hist)
     .hist$file <- gsub("valid", "historical", .hist$file) #for the historical set, use "historical"
@@ -151,9 +170,6 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
     }
   }
 
-  #unit conversion if needed
-  if(exists("map_var_hist")) if(varname_original %in% map_var_hist$varname_model) .hist$value <- .hist$value * map_var_hist[varname_model==varname_original]$conv
-  
   if(iiasadb){
     #adjusting region names
     
@@ -168,9 +184,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   merged_variable$t <- as.numeric(merged_variable$t)
   if(iiasadb) merged_variable <- merged_variable %>% dplyr::rename(REGION=n) %>% mutate(t=ttoyear(t)) %>% dplyr::rename(YEAR=t) %>% mutate(VARIABLE=gsub("_","|",VARIABLE))
   if(iiasadb) merged_variable <- merged_variable %>% mutate(REGION=toupper(REGION)) #for now use upper case for all regions
-  #remove additional columns if using mapping
-  if(exists("varname_original")){
-    if(map_var_hist[varname_model==varname_original]$set_witch!="") merged_variable <- merged_variable %>% filter(get(map_var_hist[varname_model==varname_original]$set_witch)==map_var_hist[varname_model==varname_original]$element_witch) %>% select(-one_of(map_var_hist[varname_model==varname_original]$set_witch)) 
-  } 
+  #remove additional columns and set elements if no set_model given but set-witch is not empty
+  if(exists("map_var_hist")) if(map_var_hist[varname_model==varname_original]$set_witch[1]!="" & map_var_hist[varname_model==varname_original]$set_model[1]=="") .hist <- merged_variable %>% filter(get(map_var_hist[varname_model==varname_original]$set_witch)==map_var_hist[varname_model==varname_original]$element_witch) %>% select(-one_of(map_var_hist[varname_model==varname_original]$set_witch)) 
   return(merged_variable)
 }

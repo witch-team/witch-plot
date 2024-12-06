@@ -1,32 +1,5 @@
 #Auxiliary Functions
 
-#to avoid using deprecated dplyr package, use it's mapvalues function
-mapvalues <- function(x, from, to, warn_missing = TRUE) {
-  if (length(from) != length(to)) {
-    stop("`from` and `to` vectors are not the same length.")
-  }
-  if (!is.atomic(x)) {
-    stop("`x` must be an atomic vector.")
-  }
-  if (is.factor(x)) {
-    # If x is a factor, call self but operate on the levels
-    levels(x) <- mapvalues(levels(x), from, to, warn_missing)
-    return(x)
-  }
-  mapidx <- match(x, from)
-  mapidxNA  <- is.na(mapidx)
-  # index of items in `from` that were found in `x`
-  from_found <- sort(unique(mapidx))
-  if (warn_missing && length(from_found) != length(from)) {
-    message("The following `from` values were not present in `x`: ",
-            paste(from[!(1:length(from) %in% from_found) ], collapse = ", "))
-  }
-  x[!mapidxNA] <- to[mapidx[!mapidxNA]]
-  x
-}
-
-
-
 ttoyear <- function(t){year=((as.numeric(t)-1) * tstep + year0); return(year);}
 yeartot <- function(year){t=((as.numeric(as.character(year)) - year0) / tstep) + 1; return(t);}
 

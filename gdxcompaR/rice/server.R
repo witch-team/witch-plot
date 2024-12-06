@@ -210,7 +210,7 @@ shinyServer(function(input, output, session) {
     if (length(fullpathdir) != 1) {
       p <- p + facet_grid(. ~ pathdir)
     }
-    print(p + labs(title = variable))
+    if(nrow(afd)>0) print(p + labs(title = variable))
   })
 
 
@@ -315,7 +315,7 @@ shinyServer(function(input, output, session) {
     # legends:
     p_stacked <- p_stacked + theme(text = element_text(size = 16), legend.position = "bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title = element_blank()) + guides(fill = guide_legend(title = NULL, nrow = 2))
     if (!is.null(scenarios)) p_stacked <- p_stacked + facet_wrap(. ~ file)
-    print(p_stacked + labs(title = variable))
+    if(nrow(afd)>0) print(p_stacked + labs(title = variable))
   })
 
 
@@ -465,7 +465,7 @@ shinyServer(function(input, output, session) {
       p_dyn <- p_dyn + facet_grid(. ~ pathdir)
     }
     p_dyn <- p_dyn + theme(legend.position = "none")
-    print(p_dyn)
+    if(nrow(afd)>0) print(p_dyn)
     if(length(ggplot_build(p_dyn)$data[[1]]) > 0) ggplotly()
   })
 

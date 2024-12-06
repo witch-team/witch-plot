@@ -290,7 +290,7 @@ shinyServer(function(input, output, session) {
         
       }
       if(length(fullpathdir)!=1){p <- p + facet_grid(. ~ pathdir)}
-      print(p + labs(title=variable))
+      if(nrow(afd)>0) print(p + labs(title=variable))
   })
     
     ################################################################################################
@@ -443,7 +443,7 @@ shinyServer(function(input, output, session) {
       }
       if(length(fullpathdir)!=1){p_dyn <- p_dyn + facet_grid(. ~ pathdir)}
       p_dyn <- p_dyn + theme(legend.position = "none")
-      print(p_dyn)
+      if(nrow(afd)>0) print(p_dyn)
       if(length(ggplot_build(p_dyn)$data[[1]]) > 0) ggplotly()
     })
     

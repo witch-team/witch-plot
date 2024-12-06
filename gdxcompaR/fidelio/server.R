@@ -238,7 +238,7 @@ shinyServer(function(input, output, session) {
     if (length(fullpathdir) != 1) {
       p <- p + facet_grid(. ~ pathdir)
     }
-    print(p + labs(title = variable))
+    if(nrow(afd)>0) print(p + labs(title = variable))
   })
 
 

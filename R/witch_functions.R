@@ -119,7 +119,7 @@ reg_id <- subset(conf, file==scenlist[1] & pathdir==basename(fullpathdir[1]) & V
 n <- suppressWarnings(batch_extract("n", files = file.path(fullpathdir,paste0(filelist,".gdx"))))
 if(is.null(n$n)) {witch_regions <- "World"} else witch_regions <- unique(n$n$V1)
 
-if(exists("nice_region_names")) witch_regions <- mapvalues(witch_regions , from=names(nice_region_names), to=nice_region_names, warn_missing = FALSE)
+if(exists("nice_region_names")) witch_regions <- dplyr::recode(witch_regions, !!!nice_region_names)
 display_regions <- witch_regions
 
 if(!dir.exists(file.path(witch_folder, paste0("data_", reg_id)))) print("No data_* directory for historical data found.")
@@ -175,7 +175,7 @@ neweuro,Eastern Europe
 oldeuro,Western Europe"
 witch_region_names <- read.table(textConnection(witch_region_names), sep=",", head=T, dec=".")
 region_palette_longnames <- region_palette
-names(region_palette_longnames) <- mapvalues(names(region_palette), as.character(witch_region_names$n), paste0(as.character(witch_region_names$longname), " (",as.character(witch_region_names$n),")"), warn_missing = F)
+names(region_palette_longnames) <- dplyr::recode(names(region_palette), !!!setNames(paste0(as.character(witch_region_names$longname), " (",as.character(witch_region_names$n),")"), as.character(witch_region_names$n)))
 
 #load specialized functions
 source('R/map_functions.R')

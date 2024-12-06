@@ -108,7 +108,7 @@ shinyServer(function(input, output, session) {
         #legends:
         p <- p + theme(text = element_text(size=16), legend.position="bottom", legend.direction = "horizontal", legend.box = "vertical", legend.key = element_rect(colour = NA), legend.title=element_blank()) + guides(color=guide_legend(title=NULL, nrow = 2), linetype=guide_legend(title=NULL))
       }
-      print(p + labs(title=variable))
+      if(nrow(afd)>0) print(p + labs(title=variable))
       })
     
     

@@ -162,7 +162,7 @@ Investment_Plot <- function(regions=witch_regions, scenplot=scenlist, match_hist
   I_EN <- get_witch("I_EN", check_calibration = T)
   I_RD_inv = get_witch("I_RD", check_calibration = T)
   I_EN_sum <- I_EN %>% group_by_at(c("pathdir", file_group_columns, "n", "t")) %>% summarize(value=sum(value))
-  I_RD_inv$rd  <- mapvalues(I_RD_inv$rd , from=c("en","neladvbio","battery", "fuelcell"), to=c("Energy Efficiency", "Advanced Biofuels", "Batteries", "Hydrogen"))
+  I_RD_inv <- I_RD_inv %>% mutate(rd = dplyr::recode(rd, !!!c("en"="Energy Efficiency","neladvbio"="Advanced Biofuels","battery"="Batteries", "fuelcell"="Hydrogen")))
   I_RD_inv <- I_RD_inv %>% rename(category="rd") %>% mutate(sector="Energy RnD")
   I_EN_Renewables <- I_EN %>% group_by_at(c("pathdir", file_group_columns, "n", "t")) %>% filter(jinv %in% c("elpv", "elcsp", "elwindon", "elwindoff", "elhydro", "windsolar")) %>% summarize(value=sum(value)) %>% mutate(category="Renewables")
   I_EN_FossilFuels <- I_EN %>% group_by_at(c("pathdir", file_group_columns, "n", "t")) %>% filter(jinv %in% c("elpc", "eloil", "elgastr", "elpb", "oilgas")) %>% summarize(value=sum(value)) %>% mutate(category="Fossil Fuels")
@@ -206,7 +206,7 @@ Power_capacity <- function(regions="World", years=seq(yearmin, yearmax), plot_na
   if(length(fullpathdir)!=1){print("Electricity mix only for one directory at a time!")}else{
     K_EN <- get_witch("K_EN")
     K_EN <- K_EN %>% filter(jreal %in% c("eloil", "elpb", "elpc", "elgastr", "elbigcc", "elcigcc", "elgasccs", "elpc_ccs", "elpv", "elcsp", "elnuclear", "elwindon", "elwindoff", "elhydro"))
-    K_EN$category <- mapvalues(K_EN$jreal, from = c("elpc", "elpc_ccs", "elgastr", "elgasccs", "eloil", "elnuclear", "elpb", "elbigcc", "elhydro", "elwindon", "elwindoff", "elpv", "elcsp"), to = c("Coal w/o CCS", "Coal w/ CCS", "Gas w/o CCS", "Gas w/ CCS", "Oil", "Nuclear", "Biomass w/o CCS", "Biomass w/ CCS", "Hydro", "Wind Onshore", "Wind Offshore", "Solar PV", "Solar CSP"))
+    K_EN <- K_EN %>% mutate(category = dplyr::recode(jreal, !!!c("elpc" = "Coal w/o CCS", "elpc_ccs" = "Coal w/ CCS", "elgastr" = "Gas w/o CCS", "elgasccs" = "Gas w/ CCS", "eloil" = "Oil", "elnuclear" = "Nuclear", "elpb" = "Biomass w/o CCS", "elbigcc" = "Biomass w/ CCS", "elhydro" = "Hydro", "elwindon" = "Wind Onshore", "elwindoff" = "Wind Offshore", "elpv" = "Solar PV", "elcsp" = "Solar CSP")))
     ELEC <- K_EN
     ELEC$jreal <- NULL
     if(regions[1]=="World"){

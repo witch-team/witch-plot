@@ -88,8 +88,7 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   .hist$t <- yeartot(.hist$t)
   t_historical<-unique(.hist$t)
   #adjust scenario names
-  if(exists("witch_regions")) .hist$n  <- mapvalues(.hist$n , from=witch_regions, to=display_regions, warn_missing = F)
-  
+  if(exists("witch_regions")) .hist$n  <- dplyr::recode(.hist$n, !!!setNames(witch_regions, display_regions))
   #change set name and element if map_var_hist has set_model defined
   if(exists("map_var_hist")){
     if(!all(map_var_hist[varname_model==varname_original]$set_model=="")){

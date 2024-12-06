@@ -38,11 +38,8 @@ get_witch <- function(variable_name,
     }
   }
   if(exists("allfilesdata")){
-    allfilesdata$file <- mapvalues(allfilesdata$file,  # SLOW (975)
-                                   from=names(scenlist), 
-                                   to = scenlist, 
-                                   warn_missing = FALSE)
-    allfilesdata$file <- factor(allfilesdata$file, levels = scenlist) # SLOW (450) to snsure ordering in the order of scenarios in scenlist
+    allfilesdata <- allfilesdata %>% mutate(file = dplyr::recode(file, !!!scenlist))
+    allfilesdata$file <- factor(allfilesdata$file, levels = scenlist) # SLOW (450) to ensure ordering in the order of scenarios in scenlist
     if(str_detect(variable_name, "eq")) {
       colnames(allfilesdata) <- gsub("V1", "t", colnames(allfilesdata)) 
       colnames(allfilesdata) <- gsub("V2", "n", colnames(allfilesdata))
@@ -62,7 +59,7 @@ get_witch <- function(variable_name,
       #since t is character in gams convert to numeric fastest way
       allfilesdata <- allfilesdata %>% mutate(t=as.numeric(as.character(t)))
       }
-    if(exists("display_regions"))  allfilesdata$n  <- mapvalues(allfilesdata$n , from=witch_regions, to=display_regions, warn_missing = F) #map n to display regions
+    if(exists("display_regions"))  allfilesdata <- allfilesdata %>% mutate(n = dplyr::recode(n, !!!setNames(witch_regions, display_regions))) #map n to display regions
     if(str_detect(variable_name, "MAGICC|HECTOR")) {allfilesdata <- suppressWarnings(allfilesdata[,-c("magicc_n", "hector_n")])}
     
     #combine _old, _new, _late to one unit in case present
@@ -85,7 +82,7 @@ get_witch <- function(variable_name,
     # also save as data.table
     allfilesdata <- as.data.table(allfilesdata)
     #in case nice_region_names exist map region names for those with a nice name
-    if(exists("nice_region_names") & !unique(allfilesdata$n)[1]=="World") allfilesdata$n <- mapvalues(allfilesdata$n , from=names(nice_region_names), to=nice_region_names, warn_missing = FALSE)
+    if(exists("nice_region_names") & !unique(allfilesdata$n)[1]=="World") allfilesdata <- allfilesdata %>% mutate(n = dplyr::recode(n, !!!nice_region_names))
     #in case restrict_regions exists keep only these regions
     if(exists("restrict_regions") & !skip_restrict_regions & !unique(allfilesdata$n)[1]=="World") allfilesdata <- subset(allfilesdata, n %in% restrict_regions)
     #in case separate file to more meaningful columns

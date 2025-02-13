@@ -1,5 +1,5 @@
 rm(list = ls())
-witch_folder = "../witch-ecemf" #Where you're WITCH code is located
+witch_folder = "../witch" #Where you're WITCH code is located
 main_folder <- witch_folder # by default, the witch source folder
 subdir = c("EIEE-MIP") #can be multiple directories
 
@@ -46,6 +46,7 @@ if(str_detect(iamc_filename, ".csv.zip$")){iiasadb_snapshot <- fread(cmd=paste0(
 #from zipped CSV files (old iiasadb snapshots)
 if(str_detect(iamc_filename, ".csv$")){iiasadb_snapshot <- fread(file.path(main_folder, subdir, iamc_filename), header=T, quote="\"", sep=",", check.names = FALSE);names(iiasadb_snapshot) <- toupper(names(iiasadb_snapshot))}
 #convert to iiasadb long format
+iiasadb_snapshot <- iiasadb_snapshot %>% mutate(across(matches("^\\d{4}$"), as.numeric))
 iiasadb_snapshot <- iiasadb_snapshot %>% pivot_longer(cols = -c(MODEL, SCENARIO, REGION, VARIABLE, UNIT), names_to = "YEAR") %>% mutate(YEAR=as.integer(YEAR)) %>% as.data.frame()
 }
 #to avoid casing issues, for now always use upper case for regions

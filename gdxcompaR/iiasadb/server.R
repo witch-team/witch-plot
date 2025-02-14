@@ -31,10 +31,20 @@ shinyServer(function(input, output, session) {
     
     #Variable selector
     output$select_variable <- renderUI({
-    selectInput("variable_selected", "Select variable", variables, size=1, selectize = F, multiple = F, selected = variable_atstart)
-    })  
-    variable_selected_reactive <- reactive({input$variable_selected})
-  
+      pickerInput(
+        inputId = "variable_selected",
+        label = "Variable:", 
+        choices = variables,
+        selected = variable_atstart,
+        options = list(
+          `live-search` = TRUE)
+      )
+    })
+    
+    # Reactively update variable selector
+    variable_input <- reactive({
+      return(input$variable_selected)
+    })
 
     #MODEL selector
     output$select_models <- renderUI({

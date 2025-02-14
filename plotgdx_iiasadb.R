@@ -15,12 +15,13 @@ source('R/witch_functions.R')
 
 #mapping of variables to historical and validation statistics and unit conversion from WITCH historical to model
 map_var_hist <- fread("varname_model, set_model, element_model, var_witch, set_witch, element_witch, conv
-Primary Energy, na, na, TPES, , , 0.0036 
-Emissions|CO2, na, na, Q_EMI, e, co2, 1e3*(44/12)
-Emissions|CO2|Energy, na, na, Q_EMI, e, co2ffi, 1e3*(44/12)
-Emissions|CH4, na, na, Q_EMI, e, ch4,  1e3*(44/12)/28
-Population, na, na, l, , , 1
-GDP|MER, na, na, Q, iq, y, 1e3
+Primary Energy, , , TPES, , , 0.0036 
+Emissions|CO2, , , Q_EMI, e, co2, 1e3*(44/12)
+Emissions|CO2|Energy, , , Q_EMI, e, co2ffi, 1e3*(44/12)
+Emissions|CH4, , , Q_EMI, e, ch4,  1e3*(44/12)/28
+Population, , , l, , , 1
+GDP|MER, , , Q, iq, y, 1e3
+E, ghg, co2, Q_EMI, e, co2, 44/12
 ")
 #compute numerical conversion factor
 map_var_hist <- map_var_hist %>% rowwise() %>% mutate(conv=eval(parse(text = conv))) %>% as.data.table()
@@ -46,7 +47,7 @@ if(str_detect(iamc_filename, ".csv.zip$")){iiasadb_snapshot <- fread(cmd=paste0(
 #from zipped CSV files (old iiasadb snapshots)
 if(str_detect(iamc_filename, ".csv$")){iiasadb_snapshot <- fread(file.path(main_folder, subdir, iamc_filename), header=T, quote="\"", sep=",", check.names = FALSE);names(iiasadb_snapshot) <- toupper(names(iiasadb_snapshot))}
 #convert to iiasadb long format
-iiasadb_snapshot <- iiasadb_snapshot %>% mutate(across(matches("^\\d{4}$"), as.numeric))
+iiasadb_snapshot <- iiasadb_snapshot %>% mutate(across(matches("^\\d{4}$"), ~suppressWarnings(as.numeric(.x))))
 iiasadb_snapshot <- iiasadb_snapshot %>% pivot_longer(cols = -c(MODEL, SCENARIO, REGION, VARIABLE, UNIT), names_to = "YEAR") %>% mutate(YEAR=as.integer(YEAR)) %>% as.data.frame()
 }
 #to avoid casing issues, for now always use upper case for regions
@@ -59,7 +60,7 @@ if(!exists("iiasadb_snapshot")) stop("Please check you specified a correct iiasa
 #function to get historical values for all data where map_var_hist is defined
 iiasadb_with_historical = list()
 for(varname in map_var_hist$varname_model){
-  iiasadb_with_historical[[varname]] <- add_historical_values(iiasadb_snapshot %>% filter(VARIABLE==varname), varname = varname, check_calibration = T, iiasadb = T, verbose = F)
+  if(nrow(iiasadb_snapshot %>% filter(VARIABLE==varname))>0) iiasadb_with_historical[[varname]] <- add_historical_values(iiasadb_snapshot %>% filter(VARIABLE==varname), varname = varname, check_calibration = T, iiasadb = T, verbose = F)
 }
 iiasadb_historical <- rbindlist(iiasadb_with_historical) %>% filter(str_detect(SCENARIO, "historical")) %>% as.data.frame()
 

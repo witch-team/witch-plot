@@ -8,7 +8,7 @@ if(!exists("iiasadb_snapshot")){
   require_package <- function(package){
     suppressPackageStartupMessages(require(package,character.only=T, quietly = TRUE))  
   }
-  pkgs <- c('data.table', 'stringr', 'countrycode', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'plotly', 'purrr', 'reldist', 'tidytidbits', 'forcats', 'arrow')
+  pkgs <- c('data.table', 'stringr', 'countrycode', 'ggplot2', 'ggpubr', 'scales', 'RColorBrewer', 'dplyr', 'openxlsx', 'gsubfn', 'tidyr', 'rlang', 'shiny', 'shinythemes', 'shinyWidgets', 'plotly', 'purrr', 'reldist', 'tidytidbits', 'forcats', 'arrow')
   res <- lapply(pkgs, require_package)
   deploy_online <<- T
 } 

@@ -184,6 +184,6 @@ add_historical_values <- function(variable, varname=deparse(substitute(variable)
   if(iiasadb) merged_variable <- merged_variable %>% dplyr::rename(REGION=n) %>% mutate(t=ttoyear(t)) %>% dplyr::rename(YEAR=t) %>% mutate(VARIABLE=gsub("_","|",VARIABLE))
   if(iiasadb) merged_variable <- merged_variable %>% mutate(REGION=toupper(REGION)) #for now use upper case for all regions
   #remove additional columns and set elements if no set_model given but set-witch is not empty
-  if(exists("map_var_hist")) if(map_var_hist[varname_model==varname_original]$set_witch[1]!="" & map_var_hist[varname_model==varname_original]$set_model[1]=="") .hist <- merged_variable %>% filter(get(map_var_hist[varname_model==varname_original]$set_witch)==map_var_hist[varname_model==varname_original]$element_witch) %>% select(-one_of(map_var_hist[varname_model==varname_original]$set_witch)) 
+  if(exists("map_var_hist")) if(map_var_hist[varname_model==varname_original]$set_witch[1]!="" & map_var_hist[varname_model==varname_original]$set_model[1]=="") merged_variable <- merged_variable %>% filter(get(map_var_hist[varname_model==varname_original]$set_witch)==map_var_hist[varname_model==varname_original]$element_witch) %>% select(-one_of(map_var_hist[varname_model==varname_original]$set_witch)) 
   return(merged_variable)
 }

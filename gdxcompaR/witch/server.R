@@ -4,6 +4,7 @@
 if(deploy_online){
   suppressPackageStartupMessages(require(tidyverse))
   require(plotly)
+  require(shinyWidgets)
   add_historical_values <- function(x, varname, check_calibration, iiasadb, verbose){return(x)}
   get_witch <- function(variable, check_calibration, field){return(allvariables[[variable]])}
 } 

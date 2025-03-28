@@ -555,4 +555,24 @@ shinyServer(function(input, output, session) {
     scenarios <- input$scenarios_selected
     gridded_temp_map(yearplot = yearlim[2], scenplot = scenarios, pathadj = "../../")
   })
+  
+  
+  output$iterationplot <- renderPlot({
+    yearlim <- input$yearlim
+    scenarios <- input$scenarios_selected
+    regions <- input$regions_selected
+    viter <- get_witch("viter")
+    viter <- viter %>% complete(n, t, file, pathdir, v, iter, fill = list(value = 0)) %>% group_by(n, file, pathdir, v, iter)
+    viter <- viter %>% summarise(value = mean(value[ttoyear(t) >= yearlim[1] & ttoyear(t) <= yearlim[2]]))
+    viter <- viter %>% filter(file %in% scenarios)
+    if(regions[1]!="World") viter <- viter %>% filter(n %in% regions)
+    
+    
+    p_iter <- ggplot(viter) + geom_line(aes(iter, value, color=n, group=n)) + facet_grid(v ~ file, scales = "free") + theme(legend.position = "none")
+    print(p_iter)
+    #ggplotly()
+  })
+  
+   
+  
 })

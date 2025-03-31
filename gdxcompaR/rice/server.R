@@ -562,13 +562,13 @@ shinyServer(function(input, output, session) {
     scenarios <- input$scenarios_selected
     regions <- input$regions_selected
     viter <- get_witch("viter")
-    viter <- viter %>% complete(n, t, file, pathdir, v, iter, fill = list(value = 0)) %>% group_by(n, file, pathdir, v, iter)
-    viter <- viter %>% summarise(value = mean(value[ttoyear(t) >= yearlim[1] & ttoyear(t) <= yearlim[2]]))
+    # Assuming viter is your dataframe and 'value' is the column with actual values
+    # First, group by the variables that define your sequences
+    viter <- viter %>% group_by(n, file, pathdir, v, iter) %>% arrange(t) %>% mutate(seen_nonzero = cumsum(value != 0) > 0) %>% complete(t) %>% mutate(value = ifelse(is.na(value) & !seen_nonzero, 0, value)) %>% select(-seen_nonzero) %>% ungroup()
+    viter <- viter %>% group_by(n, file, pathdir, v, iter) %>% summarise(value = mean(value[ttoyear(t) >= yearlim[1] & ttoyear(t) <= yearlim[2]]))
     viter <- viter %>% filter(file %in% scenarios)
     if(regions[1]!="World") viter <- viter %>% filter(n %in% regions)
-    
-    
-    p_iter <- ggplot(viter) + geom_line(aes(iter, value, color=n, group=n)) + facet_grid(v ~ file, scales = "free") + theme(legend.position = "none")
+    p_iter <- ggplot(viter) + geom_line(aes(iter, value, color=n, group=n)) + facet_grid(v ~ file, scales = "free_y") + theme(legend.position = "none")
     print(p_iter)
     #ggplotly()
   })
